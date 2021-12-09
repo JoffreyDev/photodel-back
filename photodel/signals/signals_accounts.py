@@ -7,13 +7,10 @@ from accounts.models import Profile
 
 @receiver(post_save, sender=User)
 def save_or_create_profile(sender, instance, created, **kwargs):
-    """
-    При создании юзера автоматическое создание профиля пользователя
-    """
     if created:
-        profile = Profile.objects.create(user=instance)
+        Profile.objects.create(user=instance)
     else:
         try:
             instance.profile.save()
         except ObjectDoesNotExist:
-            profile = Profile.objects.create(user=instance)
+            Profile.objects.create(user=instance)

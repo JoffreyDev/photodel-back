@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'django_cleanup.apps.CleanupConfig',
 
     'accounts',
+    'additional_entities',
 ]
 
 MIDDLEWARE = [
@@ -63,7 +64,7 @@ ROOT_URLCONF = 'photodel.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -78,21 +79,17 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'photodel.wsgi.application'
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.mail.ru'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'tvs263455@mail.ru'
+EMAIL_HOST_PASSWORD = 'kPc7FDUBz447jKgVqxy1'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': 'photodel',
-        'USER': 'postgres',
-        'PASSWORD': 'admin',
-        'HOST': '',
-        'PORT': '5432',
-    }
-}
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'en'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Etc/GMT-3'
 
 USE_I18N = True
 
@@ -130,8 +127,6 @@ INTERNAL_IPS = [
 
 GEOIP_PATH = os.path.join(BASE_DIR, 'geoip2')
 
-GDAL_LIBRARY_PATH = 'C:\\OSGeo4W\\bin\\gdal303.dll'
-GEOS_LIBRARY_PATH = 'C:\\OSGeo4W\\bin\\geos_c.dll'
 
 STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
@@ -139,7 +134,35 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# try:
-#     from .local_settings import *
-# except ImportError:
-#     from .prod_settings import *
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'common': {
+            'format': '{levelname} {asctime} {name} message={message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'accountS_file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'accounts_debug.log'),
+            'formatter': 'common',
+            'backupCount': 10,
+            'maxBytes': 104857600,
+        },
+    },
+    'loggers': {
+        'accounts': {
+            'handlers': ['accountS_file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
+}
+
+try:
+    from .local_settings import *
+except ImportError:
+    from .prod_settings import *
