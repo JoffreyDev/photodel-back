@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from accounts.models import Profile, VerificationCode
 from rest_framework_simplejwt.views import TokenViewBase
 from services.accounts_service import check_email_verification_code, update_or_create_verification_code, \
-    change_user_password, create_random_code
+    change_user_password, create_random_code, check_is_unique_email
 
 from tasks.accounts_task import task_send_email_to_user, task_send_reset_password_to_email
 from .serializers import ProfileUpdateSerializer, ChangePasswordSerializer
@@ -154,19 +154,22 @@ class ProfileViewSet(viewsets.ViewSet):
         """
         Частитичное или полное обновление полей в таблицу Profile
         """
-        user = request.user
-        if Profile.objects.filter(email=request.data['email']):
-            return Response(status=status.HTTP_400_BAD_REQUEST, data='Такой email уже существует')
-        instance = Profile.objects.get(user=user)
-        logger.info(f'Обновление профиля для пользователя {user} было запрошено')
-        serializer = ProfileUpdateSerializer(instance, data=request.data, partial=True)
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            logger.info(f'Обновление профиля для пользователя {user} был выполнено')
-            return Response(status=status.HTTP_200_OK)
-        logger.error(f'Обновление профиля для пользователя {user} не было завершено')
-        return Response(status=status.HTTP_400_BAD_REQUEST, data='Обновление не было выполнено '
-                                                                 'Пожалуйства обратитесь в поддержку')
+        try:
+            user = request.user
+            check_is_unique_email(request.data['email'], user)
+            instance = Profile.objects.get(user=user)
+            logger.info(f'Обновление профиля для пользователя {user} было запрошено')
+            serializer = ProfileUpdateSerializer(instance, data=request.data, partial=True)
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()
+                logger.info(f'Обновление профиля для пользователя {user} был выполнено')
+                return Response(status=status.HTTP_200_OK, data='Обнввление профиля прошло успешно')
+            logger.error(f'Обновление профиля для пользователя {user} не было завершено')
+            return Response(status=status.HTTP_400_BAD_REQUEST, data='Обновление не было выполнено '
+                                                                     'Пожалуйства обратитесь в поддержку')
+        except KeyError:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data='Не был передан email. '
+                                                                     'Пожалуйства обратитесь в поддержку')
 
     def get_permissions(self):
         try:

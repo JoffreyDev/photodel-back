@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.core.mail import send_mail
 from django.conf import settings
+from rest_framework import serializers
 
 from accounts.models import VerificationCode, Profile
 from smtplib import SMTPException
@@ -105,3 +106,9 @@ def change_user_password(user_id, random_password):
         return True
     except User.DoesNotExist:
         return False
+
+
+def check_is_unique_email(email, user):
+    profile = Profile.objects.filter(email=email).exclude(user=user)
+    if email and profile.exists():
+        raise serializers.ValidationError("Такой емейл уже существует")
