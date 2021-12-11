@@ -1,9 +1,10 @@
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.serializers import TokenObtainSerializer
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from accounts.models import Profile
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import password_validation
+from django.contrib.auth.models import update_last_login
 
 
 def get_tokens_for_user(user):
@@ -24,10 +25,13 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['username']
 
 
-class CustomJWTSerializer(TokenObtainPairSerializer):
+class CustomJWTSerializer(TokenObtainSerializer):
     """
     Сериализатор для кастомной авторизации пользователя
     """
+    username = serializers.CharField(max_length=50, write_only=True)
+    password = serializers.CharField(style={'input_type': 'password'}, write_only=True)
+
     def validate_username(self, value):
         qs = User.objects.filter(username__iexact=value)
         if not qs.exists():
@@ -35,15 +39,13 @@ class CustomJWTSerializer(TokenObtainPairSerializer):
         return value
 
     def validate(self, validate_data):
-        credentials = {
-            'username': '',
-            'password': validate_data.get("password")
-        }
+        data = super().validate(validate_data)
+        refresh = RefreshToken.for_user(self.user)
+        data['refresh'] = str(refresh)
+        data['access'] = str(refresh.access_token)
+        update_last_login(None, self.user)
 
-        user_obj = User.objects.filter(username=validate_data.get("username")).first()
-        if user_obj:
-            credentials['username'] = user_obj.username
-        return super().validate(credentials)
+        return data
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):

@@ -2,16 +2,25 @@ from rest_framework import generics, permissions, status, viewsets
 from django.contrib.auth.models import User
 from rest_framework.response import Response
 from accounts.models import Profile, VerificationCode
-from services.accounts_service import create_verification_code, \
-    check_email_verification_code, update_or_create_verification_code, \
-    generate_random_password, change_user_password
+from rest_framework_simplejwt.views import TokenViewBase
+from services.accounts_service import check_email_verification_code, update_or_create_verification_code, \
+    change_user_password, create_random_code
+
 from tasks.accounts_task import task_send_email_to_user, task_send_reset_password_to_email
 from .serializers import ProfileUpdateSerializer, ChangePasswordSerializer
 
-from .serializers import UserRegisterSerializer, UserSerializer
+from .serializers import UserRegisterSerializer, UserSerializer, CustomJWTSerializer
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+class CustomTokenObtainPairView(TokenViewBase):
+    """
+    Takes a set of user credentials and returns an access and refresh JSON web
+    token pair to prove the authentication of those credentials.
+    """
+    serializer_class = CustomJWTSerializer
 
 
 class RegisterAPIView(generics.CreateAPIView):
@@ -40,7 +49,6 @@ class VerificationEmailViewSet(viewsets.ViewSet):
     """
     permission_classes_by_action = {
         'send_email': [permissions.IsAuthenticated, ],
-        'verify_email': [permissions.IsAuthenticated, ],
         }
 
     def send_email(self, request):
@@ -51,7 +59,7 @@ class VerificationEmailViewSet(viewsets.ViewSet):
         """
         profile = Profile.objects.get(user=request.user)
         logger.info(f'Пользователь {request.user} хочет потвердить почту')
-        code = create_verification_code()
+        code = create_random_code(30)
         update_or_create_verification_code(profile, code)
         logger.info(f'Код верификации емейла для пользователя {request.user} сохранен')
         if not task_send_email_to_user(profile.email, code):
@@ -68,9 +76,8 @@ class VerificationEmailViewSet(viewsets.ViewSet):
         """
         logger.info(f'Пользователь {request.user} вводит код для подтвеждения емейла ')
         try:
-            profile = Profile.objects.get(user=request.user)
             code = request.data['code']
-            if check_email_verification_code(code, profile):
+            if check_email_verification_code(code):
                 logger.info(f'Пользователь {request.user} успешно подтвердил почту ')
                 return Response(status=status.HTTP_200_OK, data='Ваш email успешно верефицирован')
             logger.info(f'Пользователь {request.user} не подтвердил почту ')
@@ -148,6 +155,8 @@ class ProfileViewSet(viewsets.ViewSet):
         Частитичное или полное обновление полей в таблицу Profile
         """
         user = request.user
+        if Profile.objects.filter(email=request.data['email']):
+            return Response(status=status.HTTP_400_BAD_REQUEST, data='Такой email уже существует')
         instance = Profile.objects.get(user=user)
         logger.info(f'Обновление профиля для пользователя {user} было запрошено')
         serializer = ProfileUpdateSerializer(instance, data=request.data, partial=True)

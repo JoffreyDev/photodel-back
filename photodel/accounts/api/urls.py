@@ -1,15 +1,15 @@
 from django.urls import path
-from rest_framework_simplejwt.views import TokenRefreshView, TokenObtainPairView
+from rest_framework_simplejwt.views import TokenRefreshView
 
-from .views import RegisterAPIView, ProfileViewSet, VerificationEmailViewSet, ChangePasswordView
-from .serializers import CustomJWTSerializer
+from .views import RegisterAPIView, ProfileViewSet, VerificationEmailViewSet, \
+    ChangePasswordView, CustomTokenObtainPairView
 
 app_name = 'accounts'
 
 urlpatterns = [
     path('register/', RegisterAPIView.as_view(),
          name='register'),
-    path('token/', TokenObtainPairView.as_view(serializer_class=CustomJWTSerializer),
+    path('token/', CustomTokenObtainPairView.as_view(),
          name="login"),
     path('token/refresh/', TokenRefreshView.as_view(),
          name='token_refresh'),

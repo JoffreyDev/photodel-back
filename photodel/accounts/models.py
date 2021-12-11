@@ -42,7 +42,7 @@ class Profile(models.Model):
     location = gis_models.PointField(srid=4326, blank=True, null=True)
     phone = models.CharField(max_length=15, blank=True)
     site = models.CharField(max_length=30, blank=True)
-    email = models.CharField(max_length=50, unique=True)
+    email = models.CharField(max_length=50)
     email_verify = models.BooleanField(default=False)
     instagram = models.CharField(max_length=40, blank=True)
     facebook = models.CharField(max_length=40, blank=True)
@@ -61,6 +61,6 @@ class Profile(models.Model):
 
 class VerificationCode(models.Model):
     profile_id = models.OneToOneField(Profile, on_delete=models.CASCADE, null=True)
-    email_code = models.IntegerField(blank=True, null=True)
+    email_code = models.CharField(max_length=30, blank=True, null=True)
 
 

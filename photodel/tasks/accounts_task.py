@@ -6,12 +6,13 @@ from photodel.celery import app
 
 @app.task
 def task_send_email_to_user(email, code):
-    title = f'{code}: Платформа photodel приветствует вас'
+    title = f'Платформа photodel приветствует вас'
+    url = f'http://34.116.234.236/?email_token={code}'
     login_or_name, profile = get_name_user(email)
     placement_piece = EmailFragment.objects.all().first().verify_email
     html_content = render_to_string('mail_templates/mail.html', {"login": login_or_name,
                                                                  "placement_piece": placement_piece,
-                                                                 "fragment": code})
+                                                                 "fragment": url})
     return send_email_to_users(title, [email], html_content)
 
 

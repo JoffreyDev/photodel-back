@@ -57,6 +57,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'photodel.middleware.user_allow.UserVisit',
 ]
 
 ROOT_URLCONF = 'photodel.urls'
@@ -86,6 +87,13 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = 'tvs263455@mail.ru'
 EMAIL_HOST_PASSWORD = 'kPc7FDUBz447jKgVqxy1'
 
+REDIS_HOST = '127.0.0.1'
+REDIS_PORT = '6379'
+CELERY_BROKER_URL = 'redis://' + REDIS_HOST + ':' + REDIS_PORT + '/0'
+CELERY_RESULT_BACKEND = 'redis://' + REDIS_HOST + ':' + REDIS_PORT + '/0'
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
 
 LANGUAGE_CODE = 'en'
 

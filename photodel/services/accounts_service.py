@@ -47,23 +47,15 @@ def send_email_to_users(title, to_email, html_content, from_email=settings.EMAIL
         return False
 
 
-def create_verification_code():
-    """
-    Создание кода верификации с помощью random
-    Шестизначный код
-    :return:
-    """
-    return random.randint(100000, 999999)
-
-
-def check_email_verification_code(verification_code, profile):
+def check_email_verification_code(verification_code):
     """
     Проверка соответствия введного кода с кодом в бд
     Если успешно, флаг верифицирован ли емейл меняется на True
     :return:
     """
-    code = VerificationCode.objects.get(profile_id=profile).email_code
-    if int(code) == int(verification_code):
+    code = VerificationCode.objects.filter(email_code=verification_code).last()
+    profile = code.profile_id
+    if code.email_code == verification_code:
         profile.email_verify = True
         profile.save()
         return True
@@ -83,7 +75,7 @@ def update_or_create_verification_code(profile, code):
         VerificationCode.objects.create(profile_id=profile, email_code=code)
 
 
-def generate_random_password(count_number):
+def create_random_code(count_number):
     """
     Функция создания рандомного пароля
     """
