@@ -3,8 +3,9 @@ from django.contrib.auth.models import User
 from rest_framework.response import Response
 from accounts.models import Profile, VerificationCode
 from rest_framework_simplejwt.views import TokenViewBase
-from services.accounts_service import check_email_verification_code, update_or_create_verification_code, \
-    change_user_password, create_random_code, check_is_unique_email
+from services.accounts_service import check_email_verification_code, update_or_create_verification_token, \
+    create_random_code, check_is_unique_email, return_user_use_reset_token
+from services.ip_service import get_ip
 
 from tasks.accounts_task import task_send_email_to_user, task_send_reset_password_to_email
 from .serializers import ProfileUpdateSerializer, ChangePasswordSerializer
@@ -60,7 +61,7 @@ class VerificationEmailViewSet(viewsets.ViewSet):
         profile = Profile.objects.get(user=request.user)
         logger.info(f'Пользователь {request.user} хочет потвердить почту')
         code = create_random_code(30)
-        update_or_create_verification_code(profile, code)
+        update_or_create_verification_token(profile, code, type='verify')
         logger.info(f'Код верификации емейла для пользователя {request.user} сохранен')
         if not task_send_email_to_user(profile.email, code):
             logger.info(f'Емейл для пользователя {request.user} не был отправлен')
@@ -100,21 +101,27 @@ class ChangePasswordView(viewsets.ViewSet):
         'update_password': [permissions.IsAuthenticated, ],
         }
 
-    def update_password(self, request, *args, **kwargs):
+    def update_password_after_reset(self, request):
         """
         Обновление пароля для авторизированного юзера
         """
-        logger.info(f'Обновление пароля для пользователя {request.user}')
-        serializer = ChangePasswordSerializer(data=request.data, context={'request': request})
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            logger.info(f'Пароль для пользователя {request.user} был сохранен')
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        logger.error(f'Пароль для пользователя {request.user} не был изменен')
-        return Response(status=status.HTTP_400_BAD_REQUEST, data='Ваш пароль не был изменен. '
-                                                                 'Пожалуйства обратитесь в поддержку')
+        try:
+            ip = get_ip(request)
+            logger.info(f'Обновление пароля для пользователя {ip}')
+            user = return_user_use_reset_token(request.data.get('token'))
+            serializer = ChangePasswordSerializer(data=request.data, context={'user': user})
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()
+                logger.info(f'Пароль для пользователя {ip} был сохранен')
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            logger.error(f'Пароль для пользователя {ip} не был изменен')
+            return Response(status=status.HTTP_400_BAD_REQUEST, data='Ваш пароль не был изменен. '
+                                                                     'Пожалуйства обратитесь в поддержку')
+        except KeyError:
+            logger.error(f'Не были передано нужные параметры')
+            return Response(status=status.HTTP_400_BAD_REQUEST, data='Токен не был передан')
 
-    def set_generate_password_use_email(self, request):
+    def generate_token_for_reset_password(self, request):
         """
         Функция восстановления пароля. После отправки запроса
         генерируется новый рандомный пароль и присваиватся юзеру
@@ -122,18 +129,19 @@ class ChangePasswordView(viewsets.ViewSet):
         """
         try:
             username = request.data['username']
-            logger.info(f'Восстановление пароля для пользователя {username} по емейл ')
+            logger.info(f'Отправка токена для восстановление пароля для пользователя {username} по емейл ')
             profile = Profile.objects.get(user__username=username)
-            random_password = generate_random_password(8)
-            if task_send_reset_password_to_email(profile.email, random_password):
-                logger.info(f'Пароль для пользователя {username} был успешно отправлен на емейл')
-                if change_user_password(profile.user.id, random_password):
-                    return Response(status=status.HTTP_200_OK, data='Новый пароль был успешно отправлен на email')
-            return Response(status=status.HTTP_400_BAD_REQUEST, data='Пароль не был отправлен '
+            token = create_random_code(30)
+            update_or_create_verification_token(profile, token, 'reset')
+            if task_send_reset_password_to_email(profile.email, token):
+                logger.info(f'Токен для пользователя {username} был успешно отправлен на емейл')
+                return Response(status=status.HTTP_400_BAD_REQUEST, data='Ссылка с восстановлением пароля '
+                                                                         'успешно отправлена ')
+            return Response(status=status.HTTP_400_BAD_REQUEST, data='Токен не был отправлен '
                                                                      'Пожалуйства обратитесь в поддержку')
         except KeyError:
             logger.error(f'Не были передано нужные параметры')
-            return Response(status=status.HTTP_400_BAD_REQUEST, data='Email или логин не были переданы')
+            return Response(status=status.HTTP_400_BAD_REQUEST, data='Email не был переданы')
         except Profile.DoesNotExist:
             logger.error(f'Пользователь не был найден')
             return Response(status=status.HTTP_400_BAD_REQUEST, data='Пользовтаель не был найден')

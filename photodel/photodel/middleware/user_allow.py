@@ -12,6 +12,7 @@ class UserVisit:
         self.allow_urls = ['/api/accounts/email/check/',
                            '/api/accounts/email/send/',
                            '/api/accounts/reset-password-email/',
+                           '/api/accounts/profile/update/',
                            ]
 
     def __call__(self, request):

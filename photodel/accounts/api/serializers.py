@@ -1,5 +1,5 @@
 from rest_framework_simplejwt.serializers import TokenObtainSerializer
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, AnonymousUser
 from rest_framework import serializers
 from accounts.models import Profile
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -93,7 +93,6 @@ class ChangePasswordSerializer(serializers.Serializer):
     """
     Сериализотор для изменения пароля
     """
-    old_password = serializers.CharField(max_length=128, write_only=True, required=True)
     new_password1 = serializers.CharField(max_length=128, write_only=True, required=True)
     new_password2 = serializers.CharField(max_length=128, write_only=True, required=True)
 
@@ -101,23 +100,18 @@ class ChangePasswordSerializer(serializers.Serializer):
         model = User
         fields = '__all__'
 
-    def validate_old_password(self, value):
-        user = self.context['request'].user
-        if not user.check_password(value):
-            raise serializers.ValidationError(
-                 'Ваш старый пароль введен неправильно. Пожалуйста, попробуйте еще раз'
-            )
-        return value
-
     def validate(self, data):
+        if self.context['user'] is AnonymousUser:
+            raise serializers.ValidationError('Пользователь с таким логином не найден')
         if data['new_password1'] != data['new_password2']:
             raise serializers.ValidationError('Пароя не совпадают')
-        password_validation.validate_password(data['new_password1'], self.context['request'].user)
+        print(self.context['user'])
+        password_validation.validate_password(data['new_password1'], self.context['user'])
         return data
 
     def save(self, **kwargs):
         password = self.validated_data['new_password1']
-        user = self.context['request'].user
+        user = self.context['user']
         user.set_password(password)
         user.save()
         return user

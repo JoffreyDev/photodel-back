@@ -1,6 +1,5 @@
 from django.contrib.gis.geoip2 import GeoIP2
 from geoip2.errors import AddressNotFoundError
-from django.contrib.gis.geos import Point
 
 
 def get_ip(request):

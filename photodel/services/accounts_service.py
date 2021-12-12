@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, AnonymousUser
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.core.mail import send_mail
@@ -63,17 +63,36 @@ def check_email_verification_code(verification_code):
     return False
 
 
-def update_or_create_verification_code(profile, code):
+def return_user_use_reset_token(token):
+    """
+    Проверка соответствия введного кода с кодом в бд
+    Если успешно, флаг верифицирован ли емейл меняется на True
+    :return:
+    """
+    code = VerificationCode.objects.filter(password_reset_token=token).last()
+    if code.password_reset_token == token:
+        return code.profile_id.user
+    return AnonymousUser
+
+
+def update_or_create_verification_token(profile, code, type_action):
     """
     Функция проверяет есть ли email в таблице VerificationCode
     если есть - обновляет код, если нет создает новую запись
     """
     try:
         instance = VerificationCode.objects.get(profile_id=profile)
-        instance.email_code = code
-        instance.save()
+        if type_action == 'reset':
+            instance.password_reset_token = code
+            instance.save()
+        elif type_action == 'verify':
+            instance.email_code = code
+            instance.save()
     except VerificationCode.DoesNotExist:
-        VerificationCode.objects.create(profile_id=profile, email_code=code)
+        if type_action == 'reset':
+            VerificationCode.objects.create(profile_id=profile, email_code=code)
+        else:
+            VerificationCode.objects.create(profile_id=profile, password_reset_token=code)
 
 
 def create_random_code(count_number):
@@ -93,19 +112,6 @@ def get_name_user(email):
     if profile:
         return profile.name, profile if profile.name else profile.user.username
     return None, None
-
-
-def change_user_password(user_id, random_password):
-    """
-    Изменение пароля для переданного id юзера
-    """
-    try:
-        user = User.objects.get(id=user_id)
-        user.set_password(random_password)
-        user.save()
-        return True
-    except User.DoesNotExist:
-        return False
 
 
 def check_is_unique_email(email, user):

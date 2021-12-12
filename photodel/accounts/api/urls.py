@@ -21,9 +21,9 @@ urlpatterns = [
 
     path('profile/update/', ProfileViewSet.as_view({'post': "partial_update"}),
          name='profile_update'),
-    path('update-password/', ChangePasswordView.as_view({"post": 'update_password'}),
-         name='update_password'),
-    path('reset-password-email/', ChangePasswordView.as_view({"post": 'set_generate_password_use_email'}),
-         name='reset_password_email'),
+    path('user/update-password/', ChangePasswordView.as_view({"post": 'update_password_after_reset'}),
+         name='update_password_after_reset'),
+    path('reset-password-email/', ChangePasswordView.as_view({"post": 'generate_token_for_reset_password'}),
+         name='generate_token_for_reset_password'),
 ]
 

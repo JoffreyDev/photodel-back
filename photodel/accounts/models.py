@@ -62,5 +62,6 @@ class Profile(models.Model):
 class VerificationCode(models.Model):
     profile_id = models.OneToOneField(Profile, on_delete=models.CASCADE, null=True)
     email_code = models.CharField(max_length=30, blank=True, null=True)
+    password_reset_token = models.CharField(max_length=30, blank=True, null=True)
 
 
