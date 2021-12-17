@@ -1,7 +1,7 @@
 from rest_framework import generics, permissions, status, viewsets
 from django.contrib.auth.models import User
 from rest_framework.response import Response
-from accounts.models import Profile, VerificationCode, ProCategory, Specialization
+from accounts.models import Profile, VerificationCode, ProCategory, Specialization, Album, Gallery
 from rest_framework_simplejwt.views import TokenViewBase
 from services.accounts_service import check_email_verification_code, update_or_create_verification_token, \
     create_random_code, check_is_unique_email, return_user_use_reset_token, custom_paginator
@@ -10,7 +10,8 @@ from services.search_profile_service import filter_by_all_parameters
 
 from tasks.accounts_task import task_send_email_to_user, task_send_reset_password_to_email
 from .serializers import ProfileUpdateSerializer, ChangePasswordSerializer, \
-    ProCategoryListSerializer, SpecializationListSerializer
+    ProCategoryListSerializer, SpecializationListSerializer, AlbumListSerializer, \
+    AlbumCreateSerializer, GalleryListSerializer, GalleryForCardListSerializer
 
 from .serializers import UserRegisterSerializer, UserSerializer, CustomJWTSerializer
 import logging
@@ -219,6 +220,68 @@ class ProfileViewSet(viewsets.ViewSet):
         except KeyError:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Не был передан email. '
                                                                                  'Пожалуйства обратитесь в поддержку'})
+
+    def get_permissions(self):
+        try:
+            return [permission() for permission in self.permission_classes_by_action[self.action]]
+        except KeyError:
+            return [permission() for permission in self.permission_classes]
+
+
+class AlbumViewSet(viewsets.ViewSet):
+    permission_classes_by_action = {
+        'create_album': [permissions.IsAuthenticated, ],
+        }
+
+    def create_album(self, request):
+        logger.info(f'Пользователь {request.user} хочет создать альбом')
+        profile = Profile.objects.get(user=request.user)
+        serializer = AlbumCreateSerializer(data=request.data | {"profile": profile.id})
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            logger.info(f'Пользователь {request.user} успешно создал альбом')
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        logger.error(f'Пользователь {request.user} не смог добавить новый альбом')
+        return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Создание альбома не было выполнено. '
+                                                                             'Пожалуйства обратитесь в поддержку'})
+
+    def list_user_albums(self, request, pk):
+        albums = Album.objects.filter(profile=pk)
+        serializer = AlbumListSerializer(albums, many=True)
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
+
+    def list_album_photos(self, request, pk):
+        albums = Gallery.objects.filter(album=pk)
+        serializer = GalleryForCardListSerializer(albums, many=True)
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
+
+    def get_permissions(self):
+        try:
+            return [permission() for permission in self.permission_classes_by_action[self.action]]
+        except KeyError:
+            return [permission() for permission in self.permission_classes]
+
+
+class GalleryViewSet(viewsets.ViewSet):
+    permission_classes_by_action = {
+        # 'partial_update': [permissions.IsAuthenticated, ],
+    }
+
+    def create(self, request):
+        pass
+
+    def retrieve_photo(self, request, pk):
+        try:
+            albums = Gallery.objects.get(id=pk)
+            serializer = GalleryListSerializer(albums, many=True)
+            return Response(status=status.HTTP_200_OK, data=serializer.data)
+        except Gallery.DoesNotExist:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Фото из галерии не было найдено'})
+
+    def list_photos(self, request, pk):
+        albums = Gallery.objects.filter(profile=pk)
+        serializer = GalleryForCardListSerializer(albums, many=True)
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
 
     def get_permissions(self):
         try:

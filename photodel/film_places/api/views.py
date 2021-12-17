@@ -2,7 +2,7 @@ from rest_framework import generics, permissions, status, viewsets
 from django.contrib.auth.models import User
 from rest_framework.response import Response
 from film_places.api.serializers import FilmPlacesCreateSerializer, CategoryFilmPlacesListSerializer
-from film_places.models import CategoryFilmPlaces, FilmPlaces, Favorite, Image
+from film_places.models import CategoryFilmPlaces, FilmPlaces, Favorite
 from accounts.models import Profile
 from services.ip_service import get_ip
 

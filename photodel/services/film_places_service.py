@@ -2,7 +2,7 @@ from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
 from django.db.models import Q
 from geopy.distance import geodesic
-from film_places.models import CategoryFilmPlaces, FilmPlaces, Favorite, Image
+from film_places.models import CategoryFilmPlaces, FilmPlaces, Favorite
 from additional_entities.models import CustomSettings
 
 

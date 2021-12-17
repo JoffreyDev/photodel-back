@@ -1,7 +1,7 @@
 from rest_framework_simplejwt.serializers import TokenObtainSerializer
 from django.contrib.auth.models import User, AnonymousUser
 from rest_framework import serializers
-from accounts.models import Profile, ProCategory, Specialization
+from accounts.models import Profile, ProCategory, Specialization, Album, Gallery
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import password_validation
 from django.contrib.auth.models import update_last_login
@@ -105,7 +105,6 @@ class ChangePasswordSerializer(serializers.Serializer):
             raise serializers.ValidationError('Пользователь с таким логином не найден')
         if data['new_password1'] != data['new_password2']:
             raise serializers.ValidationError('Пароя не совпадают')
-        print(self.context['user'])
         password_validation.validate_password(data['new_password1'], self.context['user'])
         return data
 
@@ -135,7 +134,36 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ['name', 'surname', 'filming_geo', 'work_condition', 'cost_services',
-                  'photo_technics', 'languages', 'about', 'status', 'type_pro',
+        fields = ['name', 'surname', 'filming_geo', 'work_condition', 'cost_services', 'string_location_now',
+                  'photo_technics', 'languages', 'about', 'status', 'type_pro', 'string_location',
                   'location', 'phone', 'site', 'email', 'instagram', 'facebook', 'vk',
                   'location_now', 'date_stay_start', 'date_stay_end', 'message', 'is_show_nu_photo', 'is_adult', ]
+
+
+class AlbumListSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Album
+        fields = ['name_album', 'description_album', ]
+
+
+class AlbumCreateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Album
+        fields = '__All__'
+
+
+class GalleryForCardListSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Gallery
+        fields = ['gallery_image', 'id', 'views']
+
+
+class GalleryListSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Gallery
+        fields = ['gallery_image', 'name_image', 'description', 'place_location',
+                  'photo_camera', 'focal_len', 'excerpt', 'flash', 'views', ]
