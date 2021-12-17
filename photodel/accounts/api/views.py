@@ -1,14 +1,16 @@
 from rest_framework import generics, permissions, status, viewsets
 from django.contrib.auth.models import User
 from rest_framework.response import Response
-from accounts.models import Profile, VerificationCode
+from accounts.models import Profile, VerificationCode, ProCategory, Specialization
 from rest_framework_simplejwt.views import TokenViewBase
 from services.accounts_service import check_email_verification_code, update_or_create_verification_token, \
-    create_random_code, check_is_unique_email, return_user_use_reset_token
+    create_random_code, check_is_unique_email, return_user_use_reset_token, custom_paginator
 from services.ip_service import get_ip
+from services.search_profile_service import filter_by_all_parameters
 
 from tasks.accounts_task import task_send_email_to_user, task_send_reset_password_to_email
-from .serializers import ProfileUpdateSerializer, ChangePasswordSerializer
+from .serializers import ProfileUpdateSerializer, ChangePasswordSerializer, \
+    ProCategoryListSerializer, SpecializationListSerializer
 
 from .serializers import UserRegisterSerializer, UserSerializer, CustomJWTSerializer
 import logging
@@ -65,9 +67,9 @@ class VerificationEmailViewSet(viewsets.ViewSet):
         logger.info(f'Код верификации емейла для пользователя {request.user} сохранен')
         if not task_send_email_to_user(profile.email, code):
             logger.info(f'Емейл для пользователя {request.user} не был отправлен')
-            return Response(status=status.HTTP_400_BAD_REQUEST, data='E-mail не был найден')
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'E-mail не был найден'})
         logger.info(f'Емейл для пользователя {request.user} был успешно отправлен')
-        return Response(status=status.HTTP_200_OK, data='Код успешно отправлен вам на E-mail')
+        return Response(status=status.HTTP_200_OK, data={"message": 'Код успешно отправлен вам на E-mail'})
 
     def verify_email(self, request):
         """
@@ -80,14 +82,15 @@ class VerificationEmailViewSet(viewsets.ViewSet):
             code = request.data['code']
             if check_email_verification_code(code):
                 logger.info(f'Пользователь {request.user} успешно подтвердил почту ')
-                return Response(status=status.HTTP_200_OK, data='Ваш email успешно верефицирован')
+                return Response(status=status.HTTP_200_OK, data={"message": 'Ваш email успешно верефицирован'})
             logger.info(f'Пользователь {request.user} не подтвердил почту ')
-            return Response(status=status.HTTP_400_BAD_REQUEST, data='Введенный код неверный. Попробуйте еще раз')
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message":
+                                                                      'Введенный код неверный. Попробуйте еще раз'})
         except KeyError:
             logger.error(f'Код не был передан')
-            return Response(status=status.HTTP_400_BAD_REQUEST, data="email или код не были переданы")
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": "email или код не были переданы"})
         except Profile.DoesNotExist:
-            return Response(status=status.HTTP_400_BAD_REQUEST, data="Пользователь не был найден")
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": "Пользователь не был найден"})
 
     def get_permissions(self):
         try:
@@ -115,11 +118,11 @@ class ChangePasswordView(viewsets.ViewSet):
                 logger.info(f'Пароль для пользователя {ip} был сохранен')
                 return Response(serializer.data, status=status.HTTP_200_OK)
             logger.error(f'Пароль для пользователя {ip} не был изменен')
-            return Response(status=status.HTTP_400_BAD_REQUEST, data='Ваш пароль не был изменен. '
-                                                                     'Пожалуйства обратитесь в поддержку')
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Ваш пароль не был изменен. '
+                                                                                 'Пожалуйства обратитесь в поддержку'})
         except KeyError:
             logger.error(f'Не были передано нужные параметры')
-            return Response(status=status.HTTP_400_BAD_REQUEST, data='Токен не был передан')
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Токен не был передан'})
 
     def generate_token_for_reset_password(self, request):
         """
@@ -135,22 +138,45 @@ class ChangePasswordView(viewsets.ViewSet):
             update_or_create_verification_token(profile, token, 'reset')
             if task_send_reset_password_to_email(profile.email, token):
                 logger.info(f'Токен для пользователя {username} был успешно отправлен на емейл')
-                return Response(status=status.HTTP_400_BAD_REQUEST, data='Ссылка с восстановлением пароля '
-                                                                         'успешно отправлена ')
-            return Response(status=status.HTTP_400_BAD_REQUEST, data='Токен не был отправлен '
-                                                                     'Пожалуйства обратитесь в поддержку')
+                return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Ссылка с восстановлением пароля '
+                                                                                     'успешно отправлена '})
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Токен не был отправлен. '
+                                                                                 'Пожалуйства обратитесь в поддержку'})
         except KeyError:
             logger.error(f'Не были передано нужные параметры')
-            return Response(status=status.HTTP_400_BAD_REQUEST, data='Email не был переданы')
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Email не был переданы'})
         except Profile.DoesNotExist:
             logger.error(f'Пользователь не был найден')
-            return Response(status=status.HTTP_400_BAD_REQUEST, data='Пользовтаель не был найден')
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Пользовтаель не был найден'})
 
     def get_permissions(self):
         try:
             return [permission() for permission in self.permission_classes_by_action[self.action]]
         except KeyError:
             return [permission() for permission in self.permission_classes]
+
+
+class CategoriesProfileViewSet(viewsets.ViewSet):
+
+    def list_specialization(self, request):
+        """
+        Список категория профи
+        """
+        ip = get_ip(request)
+        instance = Specialization.objects.all()
+        logger.info(f'Для пользователя {ip} был получен список профи категорий')
+        serializer = SpecializationListSerializer(instance, many=True)
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
+
+    def list_pro_categories(self, request):
+        """
+        Список специализаий фотографов и моделей
+        """
+        ip = get_ip(request)
+        instance = ProCategory.objects.all()
+        logger.info(f'Для пользователя {ip} был получен список специализаий')
+        serializer = ProCategoryListSerializer(instance, many=True)
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
 
 
 class ProfileViewSet(viewsets.ViewSet):
@@ -171,13 +197,28 @@ class ProfileViewSet(viewsets.ViewSet):
             if serializer.is_valid(raise_exception=True):
                 serializer.save()
                 logger.info(f'Обновление профиля для пользователя {user} был выполнено')
-                return Response(status=status.HTTP_200_OK, data='Обнввление профиля прошло успешно')
+                return Response(status=status.HTTP_200_OK, data={"message": 'Обнввление профиля прошло успешно'})
             logger.error(f'Обновление профиля для пользователя {user} не было завершено')
-            return Response(status=status.HTTP_400_BAD_REQUEST, data='Обновление не было выполнено '
-                                                                     'Пожалуйства обратитесь в поддержку')
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Обновление не было выполнено '
+                                                                                 'Пожалуйства обратитесь в поддержку'})
         except KeyError:
-            return Response(status=status.HTTP_400_BAD_REQUEST, data='Не был передан email. '
-                                                                     'Пожалуйства обратитесь в поддержку')
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Не был передан email. '
+                                                                                 'Пожалуйства обратитесь в поддержку'})
+
+    def search_profiles(self, request):
+        """
+        Частитичное или полное обновление полей в таблицу Profile
+        """
+        try:
+            ip = get_ip(request)
+            filter_queryset = filter_by_all_parameters(request.GET)
+            paginates_queryset = custom_paginator(filter_queryset, request)
+            logger.info(f'Пользователь {ip} хочет найти профили')
+            serializer = ProfileUpdateSerializer(paginates_queryset, many=True)
+            return Response(status=status.HTTP_200_OK, data=serializer.data)
+        except KeyError:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Не был передан email. '
+                                                                                 'Пожалуйства обратитесь в поддержку'})
 
     def get_permissions(self):
         try:

@@ -2,7 +2,7 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from .views import RegisterAPIView, ProfileViewSet, VerificationEmailViewSet, \
-    ChangePasswordView, CustomTokenObtainPairView
+    ChangePasswordView, CustomTokenObtainPairView, CategoriesProfileViewSet
 
 app_name = 'accounts'
 
@@ -25,5 +25,11 @@ urlpatterns = [
          name='update_password_after_reset'),
     path('reset-password-email/', ChangePasswordView.as_view({"post": 'generate_token_for_reset_password'}),
          name='generate_token_for_reset_password'),
+    path('profiles/search/', ProfileViewSet.as_view({'get': "search_profiles"}),
+         name='search_profiles'),
+    path('list_specialization/', CategoriesProfileViewSet.as_view({'get': "list_specialization"}),
+         name='list_specialization'),
+    path('list_pro_categories/', CategoriesProfileViewSet.as_view({'get': "list_pro_categories"}),
+         name='list_pro_categories'),
 ]
 

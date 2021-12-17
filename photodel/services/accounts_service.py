@@ -1,3 +1,4 @@
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.contrib.auth.models import User, AnonymousUser
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
@@ -12,6 +13,20 @@ import logging
 
 
 logger = logging.getLogger(__name__)
+
+
+def custom_paginator(queryset, request):
+    """
+    Кастомный пагинатор страниц
+    """
+    paginator = Paginator(queryset, settings.PAGE_SIZE)
+    page = request.GET.get('page')
+    try:
+        return paginator.page(page)
+    except PageNotAnInteger:
+        return paginator.page(1)
+    except EmptyPage:
+        return []
 
 
 def is_valid_email(email):

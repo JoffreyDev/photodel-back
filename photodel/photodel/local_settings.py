@@ -22,9 +22,9 @@ DATABASES = {
     }
 }
 
-GDAL_LIBRARY_PATH = 'C:\\OSGeo4W\\bin\\gdal303.dll'
-GEOS_LIBRARY_PATH = 'C:\\OSGeo4W\\bin\\geos_c.dll'
-
+GDAL_LIBRARY_PATH = r'C:\\OSGeo4W\\bin\\gdal303.dll'
+GEOS_LIBRARY_PATH = r'C:\\OSGeo4W\\bin\\geos_c.dll'
+PROJ_LIBRARY_PATH = r'C:\\OSGeo4W\\bin\\proj_7_2.dll'
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_DIRS = [

@@ -1,7 +1,7 @@
 from rest_framework_simplejwt.serializers import TokenObtainSerializer
 from django.contrib.auth.models import User, AnonymousUser
 from rest_framework import serializers
-from accounts.models import Profile
+from accounts.models import Profile, ProCategory, Specialization
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import password_validation
 from django.contrib.auth.models import update_last_login
@@ -115,6 +115,20 @@ class ChangePasswordSerializer(serializers.Serializer):
         user.set_password(password)
         user.save()
         return user
+
+
+class SpecializationListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Specialization
+        fields = ['name_spec', 'type_model', ]
+
+
+class ProCategoryListSerializer(serializers.ModelSerializer):
+    spec_model_or_photographer = SpecializationListSerializer()
+
+    class Meta:
+        model = ProCategory
+        fields = ['name_category', 'spec_model_or_photographer', ]
 
 
 class ProfileUpdateSerializer(serializers.ModelSerializer):

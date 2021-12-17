@@ -13,12 +13,18 @@ class Specialization(models.Model):
     ]
 
     name_spec = models.CharField(max_length=50)
-    # type_model = models.CharField(max_length=20, choices=TYPE_MODEL_CHOICE, blank=True)
+    type_model = models.CharField(max_length=20, choices=TYPE_MODEL_CHOICE, blank=True)
+
+    def __str__(self):
+        return self.name_spec
 
 
 class ProCategory(models.Model):
     name_category = models.CharField(max_length=50)
     spec_model_or_photographer = models.ManyToManyField(Specialization, blank=True)
+
+    def __str__(self):
+        return self.name_category
 
 
 class Profile(models.Model):
@@ -56,6 +62,7 @@ class Profile(models.Model):
 
     is_adult = models.BooleanField(default=False)
     is_show_nu_photo = models.BooleanField(default=False)
+    is_hide = models.BooleanField(default=False)
     user = models.OneToOneField(User, on_delete=models.CASCADE)
 
 
