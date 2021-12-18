@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Profile, VerificationCode, ProCategory, Specialization, GalleryImages, Album, Gallery
+from .models import Profile, VerificationCode, ProCategory, Specialization, GalleryImage, Album, Gallery
 
 
 @admin.register(Profile)
@@ -7,8 +7,8 @@ class ProfileAdmin(admin.ModelAdmin):
     list_display = ['name', 'surname', 'email', 'phone', 'status', 'last_ip', ]
 
 
-@admin.register(GalleryImages)
-class GalleryImagesAdmin(admin.ModelAdmin):
+@admin.register(GalleryImage)
+class GalleryImageAdmin(admin.ModelAdmin):
     list_display = ['photo', ]
 
 

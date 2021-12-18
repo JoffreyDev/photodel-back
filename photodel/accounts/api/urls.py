@@ -2,7 +2,8 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from .views import RegisterAPIView, ProfileViewSet, VerificationEmailViewSet, \
-    ChangePasswordView, CustomTokenObtainPairView, CategoriesProfileViewSet
+    ChangePasswordView, CustomTokenObtainPairView, CategoriesProfileViewSet, \
+    AlbumViewSet, GalleryViewSet
 
 app_name = 'accounts'
 
@@ -19,6 +20,10 @@ urlpatterns = [
     path('email/check/', VerificationEmailViewSet.as_view({'post': "verify_email"}),
          name='verify_email'),
 
+    path('profile/', ProfileViewSet.as_view({'get': "private_profile"}),
+         name='private_profile'),
+    path('profile/<int:pk>/', ProfileViewSet.as_view({'get': "public_profile"}),
+         name='public_profile'),
     path('profile/update/', ProfileViewSet.as_view({'post': "partial_update"}),
          name='profile_update'),
     path('user/update-password/', ChangePasswordView.as_view({"post": 'update_password_after_reset'}),
@@ -31,5 +36,19 @@ urlpatterns = [
          name='list_specialization'),
     path('list_pro_categories/', CategoriesProfileViewSet.as_view({'get': "list_pro_categories"}),
          name='list_pro_categories'),
+
+    path('album/create/', AlbumViewSet.as_view({'post': "create_album"}),
+         name='create_album'),
+    path('album/list/<int:pk>/', AlbumViewSet.as_view({'get': "list_user_albums"}),
+         name='list_user_albums'),
+    path('album/list_photos/<int:pk>/', AlbumViewSet.as_view({'get': "list_album_photos"}),
+         name='list_album_photos'),
+
+    path('photo/create/', GalleryViewSet.as_view({'post': "create_photo"}),
+         name='create_photo'),
+    path('photo/<int:pk>/', GalleryViewSet.as_view({'get': "retrieve_photo"}),
+         name='retrieve_photo'),
+    path('photo/list/<int:pk>/', GalleryViewSet.as_view({'get': "list_photos"}),
+         name='list_photos'),
 ]
 

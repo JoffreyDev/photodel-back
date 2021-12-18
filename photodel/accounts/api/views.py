@@ -1,7 +1,7 @@
 from rest_framework import generics, permissions, status, viewsets
 from django.contrib.auth.models import User
 from rest_framework.response import Response
-from accounts.models import Profile, VerificationCode, ProCategory, Specialization, Album, Gallery
+from accounts.models import Profile, VerificationCode, ProCategory, Specialization, Album, Gallery, GalleryImage
 from rest_framework_simplejwt.views import TokenViewBase
 from services.accounts_service import check_email_verification_code, update_or_create_verification_token, \
     create_random_code, check_is_unique_email, return_user_use_reset_token, custom_paginator
@@ -11,7 +11,8 @@ from services.search_profile_service import filter_by_all_parameters
 from tasks.accounts_task import task_send_email_to_user, task_send_reset_password_to_email
 from .serializers import ProfileUpdateSerializer, ChangePasswordSerializer, \
     ProCategoryListSerializer, SpecializationListSerializer, AlbumListSerializer, \
-    AlbumCreateSerializer, GalleryListSerializer, GalleryForCardListSerializer
+    AlbumCreateSerializer, GalleryListSerializer, GalleryForCardListSerializer, \
+    ProfilePrivateSerializer, ProfilePublicSerializer, GalleryCreateSerializer
 
 from .serializers import UserRegisterSerializer, UserSerializer, CustomJWTSerializer
 import logging
@@ -183,7 +184,21 @@ class CategoriesProfileViewSet(viewsets.ViewSet):
 class ProfileViewSet(viewsets.ViewSet):
     permission_classes_by_action = {
         'partial_update': [permissions.IsAuthenticated, ],
+        'private_profile': [permissions.IsAuthenticated, ],
         }
+
+    def private_profile(self, request):
+        instance = Profile.objects.get(user=request.user)
+        serializer = ProfilePrivateSerializer(instance)
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
+
+    def public_profile(self, request, pk):
+        try:
+            instance = Profile.objects.get(id=pk)
+            serializer = ProfilePublicSerializer(instance)
+            return Response(status=status.HTTP_200_OK, data=serializer.data)
+        except Profile.DoesNotExist:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Профиль не был найден.'})
 
     def partial_update(self, request):
         """
@@ -264,16 +279,25 @@ class AlbumViewSet(viewsets.ViewSet):
 
 class GalleryViewSet(viewsets.ViewSet):
     permission_classes_by_action = {
-        # 'partial_update': [permissions.IsAuthenticated, ],
+        'create_photo': [permissions.IsAuthenticated, ],
     }
 
-    def create(self, request):
-        pass
+    def create_photo(self, request):
+        logger.info(f'Пользователь {request.user} хочет добавить фото')
+        profile = Profile.objects.get(user=request.user)
+        serializer = GalleryCreateSerializer(data=request.data | {"profile": profile.id})
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            logger.info(f'Пользователь {request.user} успешно создал фото')
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        logger.error(f'Пользователь {request.user} не смог добавить фото')
+        return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Создание фото не было выполнено. '
+                                                                             'Пожалуйства обратитесь в поддержку'})
 
     def retrieve_photo(self, request, pk):
         try:
-            albums = Gallery.objects.get(id=pk)
-            serializer = GalleryListSerializer(albums, many=True)
+            instance = Gallery.objects.get(id=pk)
+            serializer = GalleryListSerializer(instance)
             return Response(status=status.HTTP_200_OK, data=serializer.data)
         except Gallery.DoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Фото из галерии не было найдено'})

@@ -1,9 +1,41 @@
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
-from django.db.models import Q
-from geopy.distance import geodesic
 from film_places.models import CategoryFilmPlaces, FilmPlaces, Favorite
 from additional_entities.models import CustomSettings
+from rest_framework import serializers
+from django.conf import settings
+from PIL import Image
+from PIL import UnidentifiedImageError
+import base64
+import io
+
+
+class ImageBase64Field(serializers.ImageField):
+    """
+    Класс преобразования картинки в base64 строку
+    """
+    def to_representation(self, obj):
+        """
+        Функция преобразования картинки в base64
+        """
+        try:
+            image = Image.open(str(settings.BASE_DIR) + obj.url)
+            buff = io.BytesIO()
+            image.save(buff, format="JPEG")
+            img_str = base64.b64encode(buff.getvalue())
+            return img_str
+        except FileNotFoundError:
+            return None
+        except UnidentifiedImageError:
+            return None
+        except OSError:
+            image = Image.open(str(settings.BASE_DIR) + obj.url).convert('RGB').save('new.jpeg')
+            buff = io.BytesIO()
+            image.save(buff, format="JPEG")
+            img_str = base64.b64encode(buff.getvalue())
+            return img_str
+        except ValueError:
+            return None
 
 
 def convert_string_coordinates_to_point_obj(coordinates):

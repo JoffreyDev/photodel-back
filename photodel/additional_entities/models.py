@@ -8,3 +8,7 @@ class EmailFragment(models.Model):
 
 class CustomSettings(models.Model):
     distance_for_unique_places = models.IntegerField()
+
+
+class Country(models.Model):
+    name_country = models.CharField(max_length=45)

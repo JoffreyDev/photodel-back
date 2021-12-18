@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
 
 
-class GalleryImages(models.Model):
+class GalleryImage(models.Model):
     photo = models.ImageField(upload_to='gallery/')
 
 
@@ -84,7 +84,7 @@ class Album(models.Model):
 
 
 class Gallery(models.Model):
-    gallery_image = models.ForeignKey(GalleryImages, on_delete=models.CASCADE)
+    gallery_image = models.ForeignKey(GalleryImage, on_delete=models.CASCADE)
     name_image = models.CharField(max_length=50)
     description = models.TextField(blank=True)
     place_location = gis_models.PointField(srid=4326)
@@ -94,7 +94,7 @@ class Gallery(models.Model):
     flash = models.CharField(max_length=40)
     views = models.IntegerField(default=0, validators=[MinValueValidator(0.0)])
     # category = models.ForeignKey(GalleryImages, on_delete=models.CASCADE)
-    album = models.ForeignKey(Album, on_delete=models.CASCADE, blank=True)
+    album = models.ForeignKey(Album, on_delete=models.CASCADE, blank=True, null=True)
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
 
     def __str__(self):
