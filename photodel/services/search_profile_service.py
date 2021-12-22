@@ -1,10 +1,8 @@
 from accounts.models import Profile
-from geopy.distance import geodesic
 from django.db.models import Q
 from django.contrib.gis.measure import D
-from geopy.geocoders import Nominatim
-from django.core.exceptions import ValidationError
 from services.film_places_service import convert_string_coordinates_to_point_obj
+from django.utils import timezone
 
 from itertools import chain
 
@@ -70,7 +68,12 @@ def filter_by_distance(profiles, user_coordinates, distance):
     if not (user_coordinates or distance):
         return profiles
     user_coordinates = convert_string_coordinates_to_point_obj(user_coordinates)
-    return profiles.filter(location__distance_lte=(user_coordinates, D(m=distance)))
+    profiles = profiles.filter(Q(date_stay_end__gte=timezone.localtime()) &
+                               Q(location_now__distance_lte=(user_coordinates, D(m=distance))) |
+                               (Q(date_stay_end__lte=timezone.localtime()) | Q(date_stay_end=''))
+                               & Q(location__distance_lte=(user_coordinates, D(m=distance)))
+                               )
+    return profiles
 
 
 def filter_by_all_parameters(request_data):

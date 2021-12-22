@@ -3,7 +3,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 
 from .views import RegisterAPIView, ProfileViewSet, VerificationEmailViewSet, \
     ChangePasswordView, CustomTokenObtainPairView, CategoriesProfileViewSet, \
-    AlbumViewSet, GalleryViewSet
+    AlbumViewSet, GalleryViewSet, GalleryFavoriteViewSet, GalleryLikeViewSet
 
 app_name = 'accounts'
 
@@ -50,5 +50,17 @@ urlpatterns = [
          name='retrieve_photo'),
     path('photo/list/<int:pk>/', GalleryViewSet.as_view({'get': "list_photos"}),
          name='list_photos'),
+    path('photo/like/create/', GalleryLikeViewSet.as_view({'post': "create_like"}),
+         name='create_like'),
+    path('photo/like/delete/<int:pk>/', GalleryLikeViewSet.as_view({'delete': "delete_like"}),
+         name='delete_like'),
+
+    path('favorite/list/', GalleryFavoriteViewSet.as_view({'get': "list_favorite"}),
+         name='list_favorite'),
+    path('favorite/create/', GalleryFavoriteViewSet.as_view({'post': "create_favorite"}),
+         name='create_favorite'),
+    path('favorite/delete/<int:pk>/', GalleryFavoriteViewSet.as_view({'delete': "delete_favorite"}),
+         name='delete_favorite'),
+
 ]
 

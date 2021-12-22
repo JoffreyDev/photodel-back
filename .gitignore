@@ -1,3 +1,8 @@
 photodel/env
 .idea
 **/__pycache__
+photodel/photodel/local_settings.py
+photodel/logs/
+photodel/accounts/migrations/
+photodel/additional_entities/migrations/
+photodel/film_places/migrations/

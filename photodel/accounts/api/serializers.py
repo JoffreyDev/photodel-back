@@ -1,7 +1,8 @@
 from rest_framework_simplejwt.serializers import TokenObtainSerializer
 from django.contrib.auth.models import User, AnonymousUser
 from rest_framework import serializers
-from accounts.models import Profile, ProCategory, Specialization, Album, Gallery
+from accounts.models import Profile, ProCategory, Specialization, \
+    Album, Gallery, GalleryComment, GalleryLike, GalleryFavorite
 from services.film_places_service import ImageBase64Field
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import password_validation
@@ -132,7 +133,6 @@ class ProCategoryListSerializer(serializers.ModelSerializer):
 
 
 class ProfileUpdateSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Profile
         fields = ['name', 'surname', 'filming_geo', 'work_condition', 'cost_services', 'string_location_now',
@@ -165,36 +165,52 @@ class ProfilePrivateSerializer(serializers.ModelSerializer):
 
 
 class AlbumListSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Album
         fields = ['name_album', 'description_album', ]
 
 
 class AlbumCreateSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Album
         fields = '__all__'
 
 
 class GalleryCreateSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Gallery
         fields = '__all__'
 
 
 class GalleryForCardListSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Gallery
         fields = ['gallery_image', 'id', 'views']
 
 
 class GalleryListSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Gallery
         fields = ['gallery_image', 'name_image', 'description', 'place_location',
                   'photo_camera', 'focal_len', 'excerpt', 'flash', 'views', ]
+
+
+class GalleryFavoriteCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GalleryFavorite
+        fields = '__all__'
+
+
+class GalleryFavoriteListSerializer(serializers.ModelSerializer):
+    profile = ProfilePublicSerializer()
+    gallery = GalleryForCardListSerializer()
+
+    class Meta:
+        model = GalleryFavorite
+        fields = ['profile', 'gallery', ]
+
+
+class GalleryLikeCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GalleryLike
+        fields = '__all__'

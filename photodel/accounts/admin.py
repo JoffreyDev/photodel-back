@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Profile, VerificationCode, ProCategory, Specialization, GalleryImage, Album, Gallery
+from .models import Profile, VerificationCode, ProCategory, Specialization, GalleryImage, \
+    Album, Gallery, GalleryComment, GalleryLike, GalleryFavorite
 
 
 @admin.register(Profile)
@@ -32,6 +33,16 @@ class ProCategoryAdmin(admin.ModelAdmin):
     list_display = ['name_category', ]
 
 
-@admin.register(Specialization)
-class SpecializationAdmin(admin.ModelAdmin):
-    list_display = ['name_spec', 'type_model', ]
+@admin.register(GalleryComment)
+class GalleryCommentAdmin(admin.ModelAdmin):
+    list_display = ['sender_comment', 'gallery', 'content', 'timestamp', ]
+
+
+@admin.register(GalleryLike)
+class GalleryLikeAdmin(admin.ModelAdmin):
+    list_display = ['profile', 'gallery', ]
+
+
+@admin.register(GalleryFavorite)
+class GalleryFavoriteAdmin(admin.ModelAdmin):
+    list_display = ['profile', 'gallery', ]

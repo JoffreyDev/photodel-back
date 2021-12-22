@@ -101,6 +101,23 @@ class Gallery(models.Model):
         return self.name_image
 
 
+class GalleryComment(models.Model):
+    content = models.TextField()
+    timestamp = models.DateTimeField(default=timezone.localtime)
+    sender_comment = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    gallery = models.ForeignKey(Gallery, on_delete=models.CASCADE)
+
+
+class GalleryLike(models.Model):
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    gallery = models.ForeignKey(Gallery, on_delete=models.CASCADE)
+
+
+class GalleryFavorite(models.Model):
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    gallery = models.ForeignKey(Gallery, on_delete=models.CASCADE)
+
+
 class VerificationCode(models.Model):
     profile_id = models.OneToOneField(Profile, on_delete=models.CASCADE, null=True)
     email_code = models.CharField(max_length=30, blank=True, null=True)

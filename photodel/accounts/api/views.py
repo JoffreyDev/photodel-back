@@ -1,10 +1,12 @@
 from rest_framework import generics, permissions, status, viewsets
 from django.contrib.auth.models import User
 from rest_framework.response import Response
-from accounts.models import Profile, VerificationCode, ProCategory, Specialization, Album, Gallery, GalleryImage
+from accounts.models import Profile, VerificationCode, ProCategory, Specialization, \
+    Album, Gallery, GalleryImage, GalleryComment, GalleryLike, GalleryFavorite
 from rest_framework_simplejwt.views import TokenViewBase
 from services.accounts_service import check_email_verification_code, update_or_create_verification_token, \
-    create_random_code, check_is_unique_email, return_user_use_reset_token, custom_paginator
+    create_random_code, check_is_unique_email, return_user_use_reset_token, custom_paginator, \
+    is_unique_favorite, is_unique_like
 from services.ip_service import get_ip
 from services.search_profile_service import filter_by_all_parameters
 
@@ -12,7 +14,8 @@ from tasks.accounts_task import task_send_email_to_user, task_send_reset_passwor
 from .serializers import ProfileUpdateSerializer, ChangePasswordSerializer, \
     ProCategoryListSerializer, SpecializationListSerializer, AlbumListSerializer, \
     AlbumCreateSerializer, GalleryListSerializer, GalleryForCardListSerializer, \
-    ProfilePrivateSerializer, ProfilePublicSerializer, GalleryCreateSerializer
+    ProfilePrivateSerializer, ProfilePublicSerializer, GalleryCreateSerializer, \
+    GalleryFavoriteCreateSerializer, GalleryFavoriteListSerializer, GalleryLikeCreateSerializer
 
 from .serializers import UserRegisterSerializer, UserSerializer, CustomJWTSerializer
 import logging
@@ -306,6 +309,92 @@ class GalleryViewSet(viewsets.ViewSet):
         albums = Gallery.objects.filter(profile=pk)
         serializer = GalleryForCardListSerializer(albums, many=True)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
+
+    def get_permissions(self):
+        try:
+            return [permission() for permission in self.permission_classes_by_action[self.action]]
+        except KeyError:
+            return [permission() for permission in self.permission_classes]
+
+
+class GalleryFavoriteViewSet(viewsets.ViewSet):
+    permission_classes_by_action = {
+        'list': [permissions.IsAuthenticated, ],
+        'create_favorite': [permissions.IsAuthenticated, ],
+        'delete_favorite': [permissions.IsAuthenticated, ],
+    }
+
+    def list_favorite(self, request):
+        logger.info(f'Пользователь {request.user} хочет получить список избранных фото')
+        queryset = GalleryFavorite.objects.filter(profile__user=request.user).select_related()
+        serializer = GalleryFavoriteListSerializer(queryset, many=True)
+        logger.info(f'Пользователь {request.user} успешно получил список избранных фото')
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def create_favorite(self, request):
+        logger.info(f'Пользователь {request.user} хочет добавить фото в избранное')
+        profile = Profile.objects.get(user=request.user).id
+        if not is_unique_favorite(request.data.get('gallery'), profile):
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Такая фото уже есть в избранном'})
+        serializer = GalleryFavoriteCreateSerializer(data=request.data | {"profile": profile})
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            logger.info(f'Пользователь {request.user} учпешно добавил фото в избранное')
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        logger.error(f'Пользователь {request.user} не добавил фото в избранное')
+        return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Добавление избранного не было выполнено. '
+                                                                             'Пожалуйства обратитесь в поддержку'})
+
+    def delete_favorite(self, request, pk):
+        try:
+            logger.info(f'Пользователь {request.user} хочет удалить фото из избранного')
+            profile = Profile.objects.get(user=request.user)
+            instance = GalleryFavorite.objects.get(profile=profile.id, gallery=pk)
+            instance.delete()
+            logger.info(f'Пользователь {request.user} успешно удалил фото из избранного')
+            return Response(status=status.HTTP_200_OK)
+        except GalleryFavorite.DoesNotExist:
+            logger.error(f'Для Пользователя {request.user} не было найдено избранное фото при удалении')
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Избранное фото не была найдена'})
+
+    def get_permissions(self):
+        try:
+            return [permission() for permission in self.permission_classes_by_action[self.action]]
+        except KeyError:
+            return [permission() for permission in self.permission_classes]
+
+
+class GalleryLikeViewSet(viewsets.ViewSet):
+    permission_classes_by_action = {
+        'create_like': [permissions.IsAuthenticated, ],
+        'delete_like': [permissions.IsAuthenticated, ],
+    }
+
+    def create_like(self, request):
+        logger.info(f'Пользователь {request.user} хочет добавить лайк к фото')
+        profile = Profile.objects.get(user=request.user).id
+        if not is_unique_like(request.data.get('gallery'), profile):
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Такой лайк на фото уже есть'})
+        serializer = GalleryLikeCreateSerializer(data=request.data | {"profile": profile})
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            logger.info(f'Пользователь {request.user} успешно добавил лайк к фото')
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        logger.error(f'Пользователь {request.user} не добавил лайк к фото')
+        return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Добавление лайка не было выполнено. '
+                                                                             'Пожалуйства обратитесь в поддержку'})
+
+    def delete_like(self, request, pk):
+        try:
+            logger.info(f'Пользователь {request.user} хочет убрать лайк')
+            profile = Profile.objects.get(user=request.user)
+            instance = GalleryLike.objects.filter(profile=profile, gallery=pk).first()
+            instance.delete()
+            logger.info(f'Пользователь {request.user} успешно убрал лайк с фото')
+            return Response(status=status.HTTP_200_OK)
+        except GalleryLike.DoesNotExist:
+            logger.error(f'Для Пользователя {request.user} не было найдено фото при удалении лайка')
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Фото не была найдена'})
 
     def get_permissions(self):
         try:

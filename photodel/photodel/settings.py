@@ -20,7 +20,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'djoser',
     'django_cleanup.apps.CleanupConfig',
-    'leaflet',
 
     'accounts',
     'additional_entities',

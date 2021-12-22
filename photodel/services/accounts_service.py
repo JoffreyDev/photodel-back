@@ -6,7 +6,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from rest_framework import serializers
 
-from accounts.models import VerificationCode, Profile
+from accounts.models import VerificationCode, Profile, GalleryFavorite, GalleryLike
 from smtplib import SMTPException
 import random
 import logging
@@ -133,3 +133,17 @@ def check_is_unique_email(email, user):
     profile = Profile.objects.filter(email=email).exclude(user=user)
     if email and profile.exists():
         raise serializers.ValidationError("Такой емейл уже существует")
+
+
+def is_unique_favorite(gallery_id, profile_id):
+    favorites = GalleryFavorite.objects.filter(gallery=gallery_id, profile=profile_id)
+    if favorites:
+        return False
+    return True
+
+
+def is_unique_like(gallery_id, profile_id):
+    favorites = GalleryLike.objects.filter(gallery=gallery_id, profile=profile_id)
+    if favorites:
+        return False
+    return True
