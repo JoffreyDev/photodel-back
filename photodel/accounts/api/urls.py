@@ -3,7 +3,8 @@ from rest_framework_simplejwt.views import TokenRefreshView
 
 from .views import RegisterAPIView, ProfileViewSet, VerificationEmailViewSet, \
     ChangePasswordView, CustomTokenObtainPairView, CategoriesProfileViewSet, \
-    AlbumViewSet, GalleryViewSet, GalleryFavoriteViewSet, GalleryLikeViewSet
+    AlbumViewSet, GalleryViewSet, GalleryFavoriteViewSet, GalleryLikeViewSet, \
+    GalleryCommentViewSet
 
 app_name = 'accounts'
 
@@ -54,13 +55,16 @@ urlpatterns = [
          name='create_like'),
     path('photo/like/delete/<int:pk>/', GalleryLikeViewSet.as_view({'delete': "delete_like"}),
          name='delete_like'),
-
-    path('favorite/list/', GalleryFavoriteViewSet.as_view({'get': "list_favorite"}),
+    path('photo/favorite/list/', GalleryFavoriteViewSet.as_view({'get': "list_favorite"}),
          name='list_favorite'),
-    path('favorite/create/', GalleryFavoriteViewSet.as_view({'post': "create_favorite"}),
+    path('photo/favorite/create/', GalleryFavoriteViewSet.as_view({'post': "create_favorite"}),
          name='create_favorite'),
-    path('favorite/delete/<int:pk>/', GalleryFavoriteViewSet.as_view({'delete': "delete_favorite"}),
+    path('photo/favorite/delete/<int:pk>/', GalleryFavoriteViewSet.as_view({'delete': "delete_favorite"}),
          name='delete_favorite'),
+    path('photo/comment/list/', GalleryCommentViewSet.as_view({'get': "list_comments"}),
+         name='list_comments'),
+    path('photo/comment/create/', GalleryCommentViewSet.as_view({'post': "create_comment"}),
+         name='create_comment'),
 
 ]
 

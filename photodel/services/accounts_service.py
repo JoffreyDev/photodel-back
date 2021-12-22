@@ -147,3 +147,24 @@ def is_unique_like(gallery_id, profile_id):
     if favorites:
         return False
     return True
+
+
+def protection_cheating_views(instance, ip):
+    """
+    Защита от накрутки просмотров вещи, путем
+    сравнивания последннего ip адреса фото,
+    которую просмотрел пользователь
+    """
+    if instance.last_ip_user != ip:
+        instance.last_ip_user = ip
+        instance.save()
+        return True
+    return False
+
+
+def add_view(instance):
+    """
+    Функция добавления просмотра
+    """
+    instance.views += 1
+    instance.save()

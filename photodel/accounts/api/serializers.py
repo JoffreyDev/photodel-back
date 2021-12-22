@@ -2,7 +2,7 @@ from rest_framework_simplejwt.serializers import TokenObtainSerializer
 from django.contrib.auth.models import User, AnonymousUser
 from rest_framework import serializers
 from accounts.models import Profile, ProCategory, Specialization, \
-    Album, Gallery, GalleryComment, GalleryLike, GalleryFavorite
+    Album, Gallery, GalleryComment, GalleryLike, GalleryFavorite, GalleryImage
 from services.film_places_service import ImageBase64Field
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import password_validation
@@ -118,6 +118,14 @@ class ChangePasswordSerializer(serializers.Serializer):
         return user
 
 
+class GalleryImageSerializer(serializers.ModelSerializer):
+    photo = ImageBase64Field()
+
+    class Meta:
+        model = GalleryImage
+        fields = ['photo', ]
+
+
 class SpecializationListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Specialization
@@ -183,9 +191,23 @@ class GalleryCreateSerializer(serializers.ModelSerializer):
 
 
 class GalleryForCardListSerializer(serializers.ModelSerializer):
+    gallery_image = GalleryImageSerializer()
+    likes = serializers.SerializerMethodField()
+    comments = serializers.SerializerMethodField()
+    favorites = serializers.SerializerMethodField()
+
     class Meta:
         model = Gallery
-        fields = ['gallery_image', 'id', 'views']
+        fields = ['gallery_image', 'id', 'views', 'likes', 'comments', 'favorites', ]
+
+    def get_likes(self, obj):
+        return GalleryLike.objects.filter(gallery=obj.id).count()
+
+    def get_comments(self, obj):
+        return GalleryComment.objects.filter(gallery=obj.id).count()
+
+    def get_favorites(self, obj):
+        return GalleryFavorite.objects.filter(gallery=obj.id).count()
 
 
 class GalleryListSerializer(serializers.ModelSerializer):
@@ -214,3 +236,18 @@ class GalleryLikeCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = GalleryLike
         fields = '__all__'
+
+
+class GalleryCommentCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GalleryComment
+        fields = '__all__'
+
+
+class GalleryCommentListSerializer(serializers.ModelSerializer):
+    sender_comment = ProfilePublicSerializer()
+    gallery = GalleryForCardListSerializer()
+
+    class Meta:
+        model = GalleryComment
+        fields = ['content', 'timestamp', 'sender_comment', 'gallery', ]

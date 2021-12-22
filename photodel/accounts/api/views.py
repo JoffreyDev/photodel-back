@@ -6,7 +6,7 @@ from accounts.models import Profile, VerificationCode, ProCategory, Specializati
 from rest_framework_simplejwt.views import TokenViewBase
 from services.accounts_service import check_email_verification_code, update_or_create_verification_token, \
     create_random_code, check_is_unique_email, return_user_use_reset_token, custom_paginator, \
-    is_unique_favorite, is_unique_like
+    is_unique_favorite, is_unique_like, protection_cheating_views, add_view
 from services.ip_service import get_ip
 from services.search_profile_service import filter_by_all_parameters
 
@@ -15,7 +15,8 @@ from .serializers import ProfileUpdateSerializer, ChangePasswordSerializer, \
     ProCategoryListSerializer, SpecializationListSerializer, AlbumListSerializer, \
     AlbumCreateSerializer, GalleryListSerializer, GalleryForCardListSerializer, \
     ProfilePrivateSerializer, ProfilePublicSerializer, GalleryCreateSerializer, \
-    GalleryFavoriteCreateSerializer, GalleryFavoriteListSerializer, GalleryLikeCreateSerializer
+    GalleryFavoriteCreateSerializer, GalleryFavoriteListSerializer, GalleryLikeCreateSerializer, \
+    GalleryCommentListSerializer, GalleryCommentCreateSerializer
 
 from .serializers import UserRegisterSerializer, UserSerializer, CustomJWTSerializer
 import logging
@@ -299,7 +300,10 @@ class GalleryViewSet(viewsets.ViewSet):
 
     def retrieve_photo(self, request, pk):
         try:
+            user_ip = get_ip(request)
             instance = Gallery.objects.get(id=pk)
+            if protection_cheating_views(instance, user_ip):
+                add_view(instance)
             serializer = GalleryListSerializer(instance)
             return Response(status=status.HTTP_200_OK, data=serializer.data)
         except Gallery.DoesNotExist:
@@ -395,6 +399,37 @@ class GalleryLikeViewSet(viewsets.ViewSet):
         except GalleryLike.DoesNotExist:
             logger.error(f'Для Пользователя {request.user} не было найдено фото при удалении лайка')
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Фото не была найдена'})
+
+    def get_permissions(self):
+        try:
+            return [permission() for permission in self.permission_classes_by_action[self.action]]
+        except KeyError:
+            return [permission() for permission in self.permission_classes]
+
+
+class GalleryCommentViewSet(viewsets.ViewSet):
+    permission_classes_by_action = {
+        'list_comments': [permissions.IsAuthenticated, ],
+        'create_comment': [permissions.IsAuthenticated, ],
+    }
+
+    def list_comments(self, request, pk):
+        logger.info(f'Пользователь {request.user} хочет получить список комментариев')
+        queryset = GalleryComment.objects.filter(gallery=pk).select_related()
+        serializer = GalleryCommentListSerializer(queryset, many=True)
+        logger.info(f'Пользователь {request.user} успешно получил список комментариев')
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def create_comment(self, request):
+        profile = Profile.objects.get(user=request.user).id
+        serializer = GalleryCommentCreateSerializer(data=request.data | {"sender_comment": profile})
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            logger.info(f'Пользователь {request.user} успешно добавил комментарий к фото')
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        logger.error(f'Пользователь {request.user} не добавил комментарий к фото')
+        return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Добавление комментария не было выполнено.'
+                                                                             ' Пожалуйства обратитесь в поддержку'})
 
     def get_permissions(self):
         try:
