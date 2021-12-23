@@ -12,3 +12,7 @@ class CustomSettings(models.Model):
 
 class Country(models.Model):
     name_country = models.CharField(max_length=45)
+
+
+class Language(models.Model):
+    name_language = models.CharField(max_length=15)
