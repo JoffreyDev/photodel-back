@@ -69,7 +69,7 @@ class VerificationEmailViewSet(viewsets.ViewSet):
         profile = Profile.objects.get(user=request.user)
         logger.info(f'Пользователь {request.user} хочет потвердить почту')
         code = create_random_code(30)
-        update_or_create_verification_token(profile, code, type='verify')
+        update_or_create_verification_token(profile, code, type_action='verify')
         logger.info(f'Код верификации емейла для пользователя {request.user} сохранен')
         if not task_send_email_to_user(profile.email, code):
             logger.info(f'Емейл для пользователя {request.user} не был отправлен')
@@ -141,7 +141,7 @@ class ChangePasswordView(viewsets.ViewSet):
             logger.info(f'Отправка токена для восстановление пароля для пользователя {username} по емейл ')
             profile = Profile.objects.get(user__username=username)
             token = create_random_code(30)
-            update_or_create_verification_token(profile, token, 'reset')
+            update_or_create_verification_token(profile, token, type_action='reset')
             if task_send_reset_password_to_email(profile.email, token):
                 logger.info(f'Токен для пользователя {username} был успешно отправлен на емейл')
                 return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Ссылка с восстановлением пароля '
@@ -392,7 +392,7 @@ class GalleryLikeViewSet(viewsets.ViewSet):
         try:
             logger.info(f'Пользователь {request.user} хочет убрать лайк')
             profile = Profile.objects.get(user=request.user)
-            instance = GalleryLike.objects.filter(profile=profile, gallery=pk).first()
+            instance = GalleryLike.objects.get(profile=profile, gallery=pk)
             instance.delete()
             logger.info(f'Пользователь {request.user} успешно убрал лайк с фото')
             return Response(status=status.HTTP_200_OK)
@@ -409,15 +409,12 @@ class GalleryLikeViewSet(viewsets.ViewSet):
 
 class GalleryCommentViewSet(viewsets.ViewSet):
     permission_classes_by_action = {
-        'list_comments': [permissions.IsAuthenticated, ],
         'create_comment': [permissions.IsAuthenticated, ],
     }
 
     def list_comments(self, request, pk):
-        logger.info(f'Пользователь {request.user} хочет получить список комментариев')
         queryset = GalleryComment.objects.filter(gallery=pk).select_related()
         serializer = GalleryCommentListSerializer(queryset, many=True)
-        logger.info(f'Пользователь {request.user} успешно получил список комментариев')
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def create_comment(self, request):

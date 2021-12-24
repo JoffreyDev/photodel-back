@@ -6,11 +6,11 @@ class CountryListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Country
-        fields = ['name_country', ]
+        fields = ['id', 'name_country', ]
 
 
 class LanguageListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Language
-        fields = ['name_language', ]
+        fields = ['id', 'name_language', ]

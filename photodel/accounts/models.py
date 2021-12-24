@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.contrib.gis.db import models as gis_models
 from django.contrib.auth.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
+from additional_entities.models import Country, Language
 
 
 class GalleryImage(models.Model):
@@ -10,15 +11,7 @@ class GalleryImage(models.Model):
 
 
 class Specialization(models.Model):
-    TYPE_MODEL_CHOICE = [
-        ('1', 'Взрослые Мужчина'),
-        ('2', 'Взрослые Женщина'),
-        ('3', 'Дети Мальчики'),
-        ('4', 'Дети Девочки'),
-    ]
-
     name_spec = models.CharField(max_length=50)
-    type_model = models.CharField(max_length=20, choices=TYPE_MODEL_CHOICE, blank=True)
 
     def __str__(self):
         return self.name_spec
@@ -26,7 +19,6 @@ class Specialization(models.Model):
 
 class ProCategory(models.Model):
     name_category = models.CharField(max_length=50)
-    spec_model_or_photographer = models.ManyToManyField(Specialization, blank=True)
 
     def __str__(self):
         return self.name_category
@@ -39,14 +31,15 @@ class Profile(models.Model):
     date_register = models.DateTimeField(default=timezone.localtime)
     last_date_in = models.DateTimeField(null=True, blank=True)
     last_ip = models.CharField(max_length=15, blank=True)
-    filming_geo = models.CharField(max_length=100, blank=True)
+    filming_geo = models.ManyToManyField(Country, blank=True)
     work_condition = models.CharField(max_length=100, blank=True)
     cost_services = models.CharField(max_length=100, blank=True)
     photo_technics = models.CharField(max_length=50, blank=True)
-    languages = models.CharField(max_length=255, blank=True)
+    languages = models.ManyToManyField(Language, blank=True)
     about = models.TextField(null=True, blank=True)
     status = models.IntegerField(default=1)  # 1 - Клиент 2 - Профи
     type_pro = models.ForeignKey(ProCategory, on_delete=models.CASCADE, null=True, blank=True)
+    spec_model_or_photographer = models.ManyToManyField(Specialization, blank=True)
     type_pro_account = models.IntegerField(default=1, null=True)  # 1 - Бесплатный 2 - Стандарт 3 - Максимум
     expired_pro_subscription = models.DateTimeField(blank=True, null=True)
 

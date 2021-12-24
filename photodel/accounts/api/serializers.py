@@ -7,6 +7,7 @@ from services.film_places_service import ImageBase64Field
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import password_validation
 from django.contrib.auth.models import update_last_login
+from additional_entities.api.serializers import CountryListSerializer, LanguageListSerializer
 
 
 def get_tokens_for_user(user):
@@ -129,15 +130,14 @@ class GalleryImageSerializer(serializers.ModelSerializer):
 class SpecializationListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Specialization
-        fields = ['name_spec', 'type_model', ]
+        fields = ['id', 'name_spec', ]
 
 
 class ProCategoryListSerializer(serializers.ModelSerializer):
-    spec_model_or_photographer = SpecializationListSerializer()
 
     class Meta:
         model = ProCategory
-        fields = ['name_category', 'spec_model_or_photographer', ]
+        fields = ['id', 'name_category', ]
 
 
 class ProfileUpdateSerializer(serializers.ModelSerializer):
@@ -147,21 +147,28 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
                   'photo_technics', 'languages', 'about', 'status', 'type_pro', 'string_location',
                   'location', 'phone', 'site', 'email', 'instagram', 'facebook', 'vk',
                   'location_now', 'date_stay_start', 'date_stay_end', 'message', 'is_show_nu_photo',
-                  'is_adult', 'avatar', ]
+                  'is_adult', 'avatar', 'spec_model_or_photographer', ]
 
 
 class ProfilePublicSerializer(serializers.ModelSerializer):
     avatar = ImageBase64Field()
+    filming_geo = CountryListSerializer(read_only=True, many=True)
+    languages = LanguageListSerializer(read_only=True, many=True)
+    spec_model_or_photographer = SpecializationListSerializer(read_only=True, many=True)
 
     class Meta:
         model = Profile
         fields = ['name', 'surname', 'filming_geo', 'work_condition', 'cost_services', 'string_location_now',
                   'photo_technics', 'languages', 'about', 'status', 'type_pro', 'string_location',
                   'location', 'phone', 'site', 'email', 'instagram', 'facebook', 'vk', 'avatar',
-                  'location_now', 'date_stay_start', 'date_stay_end', 'message', 'is_show_nu_photo', 'is_adult', ]
+                  'location_now', 'date_stay_start', 'date_stay_end', 'message', 'is_adult',
+                  'spec_model_or_photographer', ]
 
 
 class ProfilePrivateSerializer(serializers.ModelSerializer):
+    filming_geo = CountryListSerializer(read_only=True, many=True)
+    languages = LanguageListSerializer(read_only=True, many=True)
+    spec_model_or_photographer = SpecializationListSerializer(read_only=True, many=True)
     avatar = ImageBase64Field()
 
     class Meta:
@@ -169,7 +176,8 @@ class ProfilePrivateSerializer(serializers.ModelSerializer):
         fields = ['name', 'surname', 'filming_geo', 'work_condition', 'cost_services', 'string_location_now',
                   'photo_technics', 'languages', 'about', 'status', 'type_pro', 'string_location',
                   'location', 'phone', 'site', 'email', 'instagram', 'facebook', 'vk', 'avatar',
-                  'location_now', 'date_stay_start', 'date_stay_end', 'message', 'is_show_nu_photo', 'is_adult', ]
+                  'location_now', 'date_stay_start', 'date_stay_end', 'message', 'is_show_nu_photo', 'is_adult',
+                  'spec_model_or_photographer', ]
 
 
 class AlbumListSerializer(serializers.ModelSerializer):

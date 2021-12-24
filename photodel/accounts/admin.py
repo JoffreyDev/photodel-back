@@ -33,6 +33,11 @@ class ProCategoryAdmin(admin.ModelAdmin):
     list_display = ['name_category', ]
 
 
+@admin.register(Specialization)
+class SpecializationAdmin(admin.ModelAdmin):
+    list_display = ['name_spec', ]
+
+
 @admin.register(GalleryComment)
 class GalleryCommentAdmin(admin.ModelAdmin):
     list_display = ['sender_comment', 'gallery', 'content', 'timestamp', ]

@@ -61,7 +61,7 @@ urlpatterns = [
          name='create_favorite'),
     path('photo/favorite/delete/<int:pk>/', GalleryFavoriteViewSet.as_view({'delete': "delete_favorite"}),
          name='delete_favorite'),
-    path('photo/comment/list/', GalleryCommentViewSet.as_view({'get': "list_comments"}),
+    path('photo/comment/list/<int:pk>/', GalleryCommentViewSet.as_view({'get': "list_comments"}),
          name='list_comments'),
     path('photo/comment/create/', GalleryCommentViewSet.as_view({'post': "create_comment"}),
          name='create_comment'),
