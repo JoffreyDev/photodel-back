@@ -210,7 +210,7 @@ class ProfileViewSet(viewsets.ViewSet):
         """
         try:
             user = request.user
-            check_is_unique_email(request.data['email'], user)
+            check_is_unique_email(request.data.get('email'), user)
             instance = Profile.objects.get(user=user)
             logger.info(f'Обновление профиля для пользователя {user} было запрошено')
             serializer = ProfileUpdateSerializer(instance, data=request.data, partial=True)

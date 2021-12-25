@@ -3,7 +3,7 @@ from django.contrib.auth.models import User, AnonymousUser
 from rest_framework import serializers
 from accounts.models import Profile, ProCategory, Specialization, \
     Album, Gallery, GalleryComment, GalleryLike, GalleryFavorite, GalleryImage
-from services.film_places_service import ImageBase64Field
+from services.film_places_service import ImageBase64Field, Base64ImageField
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import password_validation
 from django.contrib.auth.models import update_last_login
@@ -142,6 +142,8 @@ class ProCategoryListSerializer(serializers.ModelSerializer):
 
 
 class ProfileUpdateSerializer(serializers.ModelSerializer):
+    avatar = Base64ImageField(max_length=None, use_url=True, allow_null=True)
+
     class Meta:
         model = Profile
         fields = ['name', 'surname', 'filming_geo', 'work_condition', 'cost_services', 'string_location_now',
