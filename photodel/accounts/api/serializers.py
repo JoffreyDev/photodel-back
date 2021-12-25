@@ -8,6 +8,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import password_validation
 from django.contrib.auth.models import update_last_login
 from additional_entities.api.serializers import CountryListSerializer, LanguageListSerializer
+import json
 
 
 def get_tokens_for_user(user):
@@ -166,9 +167,10 @@ class ProfilePublicSerializer(serializers.ModelSerializer):
 
 
 class ProfilePrivateSerializer(serializers.ModelSerializer):
-    filming_geo = CountryListSerializer(read_only=True, many=True)
-    languages = LanguageListSerializer(read_only=True, many=True)
-    spec_model_or_photographer = SpecializationListSerializer(read_only=True, many=True)
+    filming_geo = serializers.SerializerMethodField()
+    languages = serializers.SerializerMethodField()
+    spec_model_or_photographer = serializers.SerializerMethodField()
+    type_pro = serializers.SerializerMethodField()
     avatar = ImageBase64Field()
 
     class Meta:
@@ -178,6 +180,20 @@ class ProfilePrivateSerializer(serializers.ModelSerializer):
                   'location', 'phone', 'site', 'email', 'instagram', 'facebook', 'vk', 'avatar',
                   'location_now', 'date_stay_start', 'date_stay_end', 'message', 'is_show_nu_photo', 'is_adult',
                   'spec_model_or_photographer', ]
+
+    def get_spec_model_or_photographer(self, obj):
+        return json.dumps([{i.id: i.name_spec} for i in obj.spec_model_or_photographer.all()])
+
+    def get_filming_geo(self, obj):
+        return json.dumps([{i.id: i.name_country} for i in obj.filming_geo.all()])
+
+    def get_languages(self, obj):
+        return json.dumps([{i.id: i.name_language} for i in obj.languages.all()])
+
+    def get_type_pro(self, obj):
+        if not obj.type_pro:
+            return []
+        return json.dumps([{obj.type_pro.id: obj.type_pro.name_category}])
 
 
 class AlbumListSerializer(serializers.ModelSerializer):

@@ -4,6 +4,8 @@ from django.contrib.gis.db import models as gis_models
 from django.contrib.auth.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
 from additional_entities.models import Country, Language
+from rest_framework.exceptions import ValidationError
+from rest_framework import serializers
 
 
 class GalleryImage(models.Model):
@@ -38,6 +40,7 @@ class Profile(models.Model):
     languages = models.ManyToManyField(Language, blank=True)
     about = models.TextField(null=True, blank=True)
     status = models.IntegerField(default=1)  # 1 - Клиент 2 - Профи
+    ready_status = models.CharField(max_length=50, blank=True)
     type_pro = models.ForeignKey(ProCategory, on_delete=models.CASCADE, null=True, blank=True)
     spec_model_or_photographer = models.ManyToManyField(Specialization, blank=True)
     type_pro_account = models.IntegerField(default=1, null=True)  # 1 - Бесплатный 2 - Стандарт 3 - Максимум
@@ -65,6 +68,12 @@ class Profile(models.Model):
     is_show_nu_photo = models.BooleanField(default=False)
     is_hide = models.BooleanField(default=False)
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+
+    def save(self, *args, **kwargs):
+        if (self.type_pro.name_category != 'Модели' and self.type_pro.name_category != 'Фотографы') \
+                and self.spec_model_or_photographer.all():
+            raise ValidationError({"error": "Вы не являетесь моделью или фотографом для выбора специализации"})
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.user.username
