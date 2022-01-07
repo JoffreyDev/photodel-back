@@ -2,10 +2,7 @@ from django.db import models
 from django.contrib.gis.db import models as gis_models
 from accounts.models import Profile
 from django.core.validators import MaxValueValidator, MinValueValidator
-
-
-class PlaceImages(models.Model):
-    photo = models.ImageField(upload_to='places/')
+from gallery.models import Image
 
 
 class CategoryFilmPlaces(models.Model):
@@ -14,7 +11,7 @@ class CategoryFilmPlaces(models.Model):
 
 class FilmPlaces(models.Model):
     name_place = models.CharField(max_length=50)
-    place_image = models.ManyToManyField(PlaceImages)
+    place_image = models.ManyToManyField(Image)
     description = models.TextField(blank=True)
     photo_camera = models.CharField(max_length=40)
     cost = models.FloatField(validators=[MinValueValidator(0.0)])

@@ -8,6 +8,9 @@ from PIL import Image
 from PIL import UnidentifiedImageError
 import base64
 import io
+from django.core.files.base import ContentFile
+import uuid
+import six
 
 
 class ImageBase64Field(serializers.ImageField):
@@ -29,16 +32,21 @@ class ImageBase64Field(serializers.ImageField):
         except UnidentifiedImageError:
             return None
         except OSError:
-            image = Image.open(str(settings.BASE_DIR) + obj.url).convert('RGB').save('new.jpeg')
+            image = Image.open(str(settings.BASE_DIR) + obj.url)
             buff = io.BytesIO()
-            image.save(buff, format="JPEG")
+            image.save(buff, format="PNG")
             img_str = base64.b64encode(buff.getvalue())
             return img_str
         except ValueError:
             return None
+        except AttributeError:
+            return None
 
 
 class Base64ImageField(serializers.ImageField):
+    """
+    Класс сериализации base64 в изображение
+    """
 
     def to_internal_value(self, data):
         if isinstance(data, six.string_types):
@@ -61,7 +69,6 @@ class Base64ImageField(serializers.ImageField):
         extension = imghdr.what(file_name, decoded_file)
         extension = "jpg" if extension == "jpeg" else extension
         return extension
-
 
 
 def convert_string_coordinates_to_point_obj(coordinates):

@@ -2,7 +2,7 @@ from pathlib import Path
 import os
 import datetime
 
-BASE_URL = 'http://googletestphotodel.com/'
+BASE_URL = 'https://googletestphotodel.com/'
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     'accounts',
     'additional_entities',
     'film_places',
+    'gallery',
 ]
 
 MIDDLEWARE = [
@@ -140,7 +141,15 @@ LOGGING = {
         'film_places_file': {
             'level': 'INFO',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs', 'accounts_debug.log'),
+            'filename': os.path.join(BASE_DIR, 'logs', 'film_places_debug.log'),
+            'formatter': 'common',
+            'backupCount': 10,
+            'maxBytes': 104857600,
+        },
+        'gallery_file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'gallery_debug.log'),
             'formatter': 'common',
             'backupCount': 10,
             'maxBytes': 104857600,
@@ -154,6 +163,11 @@ LOGGING = {
         },
         'film_places': {
             'handlers': ['film_places_file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'gallery': {
+            'handlers': ['gallery_file'],
             'level': 'INFO',
             'propagate': True,
         },

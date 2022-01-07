@@ -6,7 +6,8 @@ from django.core.mail import send_mail
 from django.conf import settings
 from rest_framework import serializers
 
-from accounts.models import VerificationCode, Profile, GalleryFavorite, GalleryLike
+from accounts.models import VerificationCode, Profile
+from gallery.models import GalleryFavorite, GalleryLike
 from smtplib import SMTPException
 import random
 import logging
@@ -105,9 +106,9 @@ def update_or_create_verification_token(profile, code, type_action):
             instance.save()
     except VerificationCode.DoesNotExist:
         if type_action == 'reset':
-            VerificationCode.objects.create(profile_id=profile, email_code=code)
-        else:
             VerificationCode.objects.create(profile_id=profile, password_reset_token=code)
+        else:
+            VerificationCode.objects.create(profile_id=profile, email_code=code)
 
 
 def create_random_code(count_number):
@@ -130,12 +131,18 @@ def get_name_user(email):
 
 
 def check_is_unique_email(email, user):
+    """
+    Проверка на уникальность емейла
+    """
     profile = Profile.objects.filter(email=email).exclude(user=user)
     if email and profile.exists():
         raise serializers.ValidationError("Такой емейл уже существует")
 
 
 def is_unique_favorite(gallery_id, profile_id):
+    """
+    Проверка на уникальность избранного
+    """
     favorites = GalleryFavorite.objects.filter(gallery=gallery_id, profile=profile_id)
     if favorites:
         return False
@@ -143,6 +150,9 @@ def is_unique_favorite(gallery_id, profile_id):
 
 
 def is_unique_like(gallery_id, profile_id):
+    """
+    Проверка на уникальность лайка
+    """
     favorites = GalleryLike.objects.filter(gallery=gallery_id, profile=profile_id)
     if favorites:
         return False

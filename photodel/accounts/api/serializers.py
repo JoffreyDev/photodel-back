@@ -1,8 +1,7 @@
 from rest_framework_simplejwt.serializers import TokenObtainSerializer
 from django.contrib.auth.models import User, AnonymousUser
 from rest_framework import serializers
-from accounts.models import Profile, ProCategory, Specialization, \
-    Album, Gallery, GalleryComment, GalleryLike, GalleryFavorite, GalleryImage
+from accounts.models import Profile, ProCategory, Specialization
 from services.film_places_service import ImageBase64Field, Base64ImageField
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import password_validation
@@ -120,14 +119,6 @@ class ChangePasswordSerializer(serializers.Serializer):
         return user
 
 
-class GalleryImageSerializer(serializers.ModelSerializer):
-    photo = ImageBase64Field()
-
-    class Meta:
-        model = GalleryImage
-        fields = ['photo', ]
-
-
 class SpecializationListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Specialization
@@ -150,7 +141,7 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
                   'photo_technics', 'languages', 'about', 'status', 'type_pro', 'string_location',
                   'location', 'phone', 'site', 'email', 'instagram', 'facebook', 'vk',
                   'location_now', 'date_stay_start', 'date_stay_end', 'message', 'is_show_nu_photo',
-                  'is_adult', 'avatar', 'spec_model_or_photographer', ]
+                  'is_adult', 'avatar', 'spec_model_or_photographer', 'ready_status', ]
 
 
 class ProfilePublicSerializer(serializers.ModelSerializer):
@@ -165,7 +156,7 @@ class ProfilePublicSerializer(serializers.ModelSerializer):
                   'photo_technics', 'languages', 'about', 'status', 'type_pro', 'string_location',
                   'location', 'phone', 'site', 'email', 'instagram', 'facebook', 'vk', 'avatar',
                   'location_now', 'date_stay_start', 'date_stay_end', 'message', 'is_adult',
-                  'spec_model_or_photographer', ]
+                  'spec_model_or_photographer', 'ready_status', ]
 
 
 class ProfilePrivateSerializer(serializers.ModelSerializer):
@@ -181,7 +172,7 @@ class ProfilePrivateSerializer(serializers.ModelSerializer):
                   'photo_technics', 'languages', 'about', 'status', 'type_pro', 'string_location',
                   'location', 'phone', 'site', 'email', 'instagram', 'facebook', 'vk', 'avatar',
                   'location_now', 'date_stay_start', 'date_stay_end', 'message', 'is_show_nu_photo', 'is_adult',
-                  'spec_model_or_photographer', ]
+                  'spec_model_or_photographer', 'ready_status', ]
 
     def get_spec_model_or_photographer(self, obj):
         return json.dumps([{i.id: i.name_spec} for i in obj.spec_model_or_photographer.all()])
@@ -196,84 +187,3 @@ class ProfilePrivateSerializer(serializers.ModelSerializer):
         if not obj.type_pro:
             return []
         return json.dumps([{obj.type_pro.id: obj.type_pro.name_category}])
-
-
-class AlbumListSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Album
-        fields = ['name_album', 'description_album', ]
-
-
-class AlbumCreateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Album
-        fields = '__all__'
-
-
-class GalleryCreateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Gallery
-        fields = '__all__'
-
-
-class GalleryForCardListSerializer(serializers.ModelSerializer):
-    gallery_image = GalleryImageSerializer()
-    likes = serializers.SerializerMethodField()
-    comments = serializers.SerializerMethodField()
-    favorites = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Gallery
-        fields = ['gallery_image', 'id', 'views', 'likes', 'comments', 'favorites', ]
-
-    def get_likes(self, obj):
-        return GalleryLike.objects.filter(gallery=obj.id).count()
-
-    def get_comments(self, obj):
-        return GalleryComment.objects.filter(gallery=obj.id).count()
-
-    def get_favorites(self, obj):
-        return GalleryFavorite.objects.filter(gallery=obj.id).count()
-
-
-class GalleryListSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Gallery
-        fields = ['gallery_image', 'name_image', 'description', 'place_location',
-                  'photo_camera', 'focal_len', 'excerpt', 'flash', 'views', ]
-
-
-class GalleryFavoriteCreateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = GalleryFavorite
-        fields = '__all__'
-
-
-class GalleryFavoriteListSerializer(serializers.ModelSerializer):
-    profile = ProfilePublicSerializer()
-    gallery = GalleryForCardListSerializer()
-
-    class Meta:
-        model = GalleryFavorite
-        fields = ['profile', 'gallery', ]
-
-
-class GalleryLikeCreateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = GalleryLike
-        fields = '__all__'
-
-
-class GalleryCommentCreateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = GalleryComment
-        fields = '__all__'
-
-
-class GalleryCommentListSerializer(serializers.ModelSerializer):
-    sender_comment = ProfilePublicSerializer()
-    gallery = GalleryForCardListSerializer()
-
-    class Meta:
-        model = GalleryComment
-        fields = ['content', 'timestamp', 'sender_comment', 'gallery', ]

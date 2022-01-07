@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import FilmPlaces, Favorite, CategoryFilmPlaces, PlaceImages
+from .models import FilmPlaces, Favorite, CategoryFilmPlaces
 
 
 @admin.register(FilmPlaces)
@@ -10,8 +10,3 @@ class FilmPlacesAdmin(admin.ModelAdmin):
 @admin.register(CategoryFilmPlaces)
 class CategoryFilmPlacesAdmin(admin.ModelAdmin):
     list_display = ['name_category', ]
-
-
-@admin.register(PlaceImages)
-class PlaceImagesPlacesAdmin(admin.ModelAdmin):
-    list_display = ['photo', ]
