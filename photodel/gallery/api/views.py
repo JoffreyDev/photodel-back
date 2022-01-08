@@ -8,11 +8,31 @@ from services.ip_service import get_ip
 from .serializers import AlbumListSerializer, AlbumCreateSerializer, GalleryListSerializer, \
     GalleryForCardListSerializer, GalleryCreateSerializer, GalleryFavoriteCreateSerializer, \
     GalleryFavoriteListSerializer, GalleryLikeCreateSerializer, GalleryCommentListSerializer, \
-    GalleryCommentCreateSerializer, PhotoSessionCreateSerializer
+    GalleryCommentCreateSerializer, PhotoSessionCreateSerializer, ImageSerializer
 
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+class ImageViewSet(viewsets.ViewSet):
+    permission_classes_by_action = {
+        'create_image': [permissions.IsAuthenticated, ],
+        }
+
+    def create_image(self, request):
+        profile = Profile.objects.get(user=request.user)
+        serializer = ImageSerializer(data=request.data | {"profile": profile.id})
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Добавление изображение не было выполнено'})
+
+    def get_permissions(self):
+        try:
+            return [permission() for permission in self.permission_classes_by_action[self.action]]
+        except KeyError:
+            return [permission() for permission in self.permission_classes]
 
 
 class AlbumViewSet(viewsets.ViewSet):

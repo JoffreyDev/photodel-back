@@ -5,8 +5,13 @@ from django.contrib.gis.db import models as gis_models
 from django.core.validators import MaxValueValidator, MinValueValidator
 
 
+def image_path(instance, filename):
+    return f'gallery/{instance.profile.id}.jpg'
+
+
 class Image(models.Model):
-    photo = models.ImageField(upload_to='gallery/')
+    photo = models.ImageField(upload_to=image_path)
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True)
 
 
 class Album(models.Model):

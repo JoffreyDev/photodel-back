@@ -6,3 +6,4 @@ photodel/logs/
 photodel/accounts/migrations/
 photodel/additional_entities/migrations/
 photodel/film_places/migrations/
+photodel/gallery/migrations/

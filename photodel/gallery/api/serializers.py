@@ -4,12 +4,12 @@ from services.film_places_service import ImageBase64Field, Base64ImageField
 from accounts.api.serializers import ProfilePublicSerializer
 
 
-class GalleryImageSerializer(serializers.ModelSerializer):
-    photo = ImageBase64Field()
+class ImageSerializer(serializers.ModelSerializer):
+    photo = Base64ImageField(max_length=None, use_url=True)
 
     class Meta:
         model = Image
-        fields = ['photo', ]
+        fields = ['id', 'photo', ]
 
 
 class AlbumListSerializer(serializers.ModelSerializer):
@@ -31,7 +31,7 @@ class GalleryCreateSerializer(serializers.ModelSerializer):
 
 
 class GalleryForCardListSerializer(serializers.ModelSerializer):
-    gallery_image = GalleryImageSerializer()
+    gallery_image = ImageSerializer()
     likes = serializers.SerializerMethodField()
     comments = serializers.SerializerMethodField()
     favorites = serializers.SerializerMethodField()

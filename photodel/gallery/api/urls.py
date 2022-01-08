@@ -1,9 +1,13 @@
 from django.urls import path
-from .views import AlbumViewSet, GalleryViewSet, GalleryFavoriteViewSet, GalleryLikeViewSet, GalleryCommentViewSet
+from .views import AlbumViewSet, GalleryViewSet, GalleryFavoriteViewSet, \
+     GalleryLikeViewSet, GalleryCommentViewSet, ImageViewSet
 
 app_name = 'gallery'
 
 urlpatterns = [
+     path('image/create/', ImageViewSet.as_view({'post': "create_image"}),
+          name='create_image'),
+
      path('album/create/', AlbumViewSet.as_view({'post': "create_album"}),
           name='create_album'),
      path('album/list/<int:pk>/', AlbumViewSet.as_view({'get': "list_user_albums"}),
