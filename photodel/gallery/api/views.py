@@ -1,14 +1,18 @@
 from rest_framework import permissions, status, viewsets
 from rest_framework.response import Response
-from gallery.models import Album, Gallery, Image, GalleryComment, GalleryLike, GalleryFavorite
+from gallery.models import Album, Gallery, Image, GalleryComment, GalleryLike, GalleryFavorite, \
+    AlbumComment, AlbumLike, AlbumFavorite, PhotoSessionComment, PhotoSessionLike, \
+    PhotoSessionFavorite, PhotoSession
 from accounts.models import Profile
-from services.accounts_service import is_unique_favorite, is_unique_like, \
+from services.gallery_service import is_unique_favorite, is_unique_like, \
     protection_cheating_views, add_view
 from services.ip_service import get_ip
 from .serializers import AlbumListSerializer, AlbumCreateSerializer, GalleryListSerializer, \
     GalleryForCardListSerializer, GalleryCreateSerializer, GalleryFavoriteCreateSerializer, \
     GalleryFavoriteListSerializer, GalleryLikeCreateSerializer, GalleryCommentListSerializer, \
-    GalleryCommentCreateSerializer, PhotoSessionCreateSerializer, ImageSerializer
+    GalleryCommentCreateSerializer, PhotoSessionCreateSerializer, ImageSerializer, \
+    AlbumFavoriteCreateSerializer, AlbumFavoriteListSerializer, AlbumLikeCreateSerializer, \
+    AlbumCommentCreateSerializer, AlbumCommentListSerializer
 
 import logging
 
@@ -43,7 +47,7 @@ class AlbumViewSet(viewsets.ViewSet):
     def create_album(self, request):
         logger.info(f'Пользователь {request.user} хочет создать альбом')
         profile = Profile.objects.get(user=request.user)
-        serializer = AlbumCreateSerializer(data=request.data | {"profile": profile.id})
+        serializer = AlbumCreateSerializer(data=request.data | {"profile": profile.id}, context={'profile': profile})
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             logger.info(f'Пользователь {request.user} успешно создал альбом')
@@ -69,6 +73,120 @@ class AlbumViewSet(viewsets.ViewSet):
             return Response(status=status.HTTP_200_OK)
         except Gallery.DoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Фото из галерии не было найдено'})
+
+    def get_permissions(self):
+        try:
+            return [permission() for permission in self.permission_classes_by_action[self.action]]
+        except KeyError:
+            return [permission() for permission in self.permission_classes]
+
+
+class AlbumFavoriteViewSet(viewsets.ViewSet):
+    permission_classes_by_action = {
+        'list': [permissions.IsAuthenticated, ],
+        'create_favorite': [permissions.IsAuthenticated, ],
+        'delete_favorite': [permissions.IsAuthenticated, ],
+    }
+
+    def list_favorite(self, request):
+        logger.info(f'Пользователь {request.user} хочет получить список избранных альбомов')
+        queryset = AlbumFavorite.objects.filter(profile__user=request.user).select_related()
+        serializer = AlbumFavoriteListSerializer(queryset, many=True)
+        logger.info(f'Пользователь {request.user} успешно получил список избранных альбомов')
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def create_favorite(self, request):
+        logger.info(f'Пользователь {request.user} хочет добавить альбом в избранное')
+        profile = Profile.objects.get(user=request.user).id
+        if not is_unique_favorite(request.data.get('album'), profile, 'album'):
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Такой альбом уже есть в избранном'})
+        serializer = AlbumFavoriteCreateSerializer(data=request.data | {"profile": profile})
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            logger.info(f'Пользователь {request.user} успешно добавил альбом в избранное')
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        logger.error(f'Пользователь {request.user} не добавил альбом в избранное')
+        return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Добавление избранного не было выполнено. '
+                                                                             'Пожалуйства обратитесь в поддержку'})
+
+    def delete_favorite(self, request, pk):
+        try:
+            logger.info(f'Пользователь {request.user} хочет удалить альбом из избранного')
+            profile = Profile.objects.get(user=request.user)
+            instance = AlbumFavorite.objects.get(profile=profile.id, album=pk)
+            instance.delete()
+            logger.info(f'Пользователь {request.user} успешно удалил альбом из избранного')
+            return Response(status=status.HTTP_200_OK)
+        except AlbumFavorite.DoesNotExist:
+            logger.error(f'Для Пользователя {request.user} не было найдено избранный альбом при удалении')
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Избранный альбом не была найдена'})
+
+    def get_permissions(self):
+        try:
+            return [permission() for permission in self.permission_classes_by_action[self.action]]
+        except KeyError:
+            return [permission() for permission in self.permission_classes]
+
+
+class AlbumLikeViewSet(viewsets.ViewSet):
+    permission_classes_by_action = {
+        'create_like': [permissions.IsAuthenticated, ],
+        'delete_like': [permissions.IsAuthenticated, ],
+    }
+
+    def create_like(self, request):
+        logger.info(f'Пользователь {request.user} хочет добавить лайк к альбому')
+        profile = Profile.objects.get(user=request.user).id
+        if not is_unique_like(request.data.get('album'), profile, 'album'):
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Такой лайк на альбоме уже есть'})
+        serializer = AlbumLikeCreateSerializer(data=request.data | {"profile": profile})
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            logger.info(f'Пользователь {request.user} успешно добавил лайк к альбому')
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        logger.error(f'Пользователь {request.user} не добавил лайк к альбому')
+        return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Добавление лайка не было выполнено. '
+                                                                             'Пожалуйства обратитесь в поддержку'})
+
+    def delete_like(self, request, pk):
+        try:
+            logger.info(f'Пользователь {request.user} хочет убрать лайк с альбома')
+            profile = Profile.objects.get(user=request.user)
+            instance = AlbumLike.objects.get(profile=profile, album=pk)
+            instance.delete()
+            logger.info(f'Пользователь {request.user} успешно убрал лайк с альбома')
+            return Response(status=status.HTTP_200_OK)
+        except AlbumLike.DoesNotExist:
+            logger.error(f'Для Пользователя {request.user} не был найден альбом при удалении лайка')
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Альбом не была найдена'})
+
+    def get_permissions(self):
+        try:
+            return [permission() for permission in self.permission_classes_by_action[self.action]]
+        except KeyError:
+            return [permission() for permission in self.permission_classes]
+
+
+class AlbumCommentViewSet(viewsets.ViewSet):
+    permission_classes_by_action = {
+        'create_comment': [permissions.IsAuthenticated, ],
+    }
+
+    def list_comments(self, request, pk):
+        queryset = AlbumComment.objects.filter(album=pk).select_related()
+        serializer = AlbumCommentListSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def create_comment(self, request):
+        profile = Profile.objects.get(user=request.user).id
+        serializer = AlbumCommentCreateSerializer(data=request.data | {"sender_comment": profile})
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            logger.info(f'Пользователь {request.user} успешно добавил комментарий к альбому')
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        logger.error(f'Пользователь {request.user} не добавил комментарий к альбому')
+        return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Добавление комментария не было выполнено.'
+                                                                             ' Пожалуйства обратитесь в поддержку'})
 
     def get_permissions(self):
         try:
@@ -117,30 +235,6 @@ class GalleryViewSet(viewsets.ViewSet):
             return [permission() for permission in self.permission_classes]
 
 
-class PhotoSessionViewSet(viewsets.ViewSet):
-    permission_classes_by_action = {
-        'create_photo_session': [permissions.IsAuthenticated, ],
-    }
-
-    def create_photo_session(self, request):
-        logger.info(f'Пользователь {request.user} хочет добавить фотосессию')
-        profile = Profile.objects.get(user=request.user)
-        serializer = PhotoSessionCreateSerializer(data=request.data | {"profile": profile.id})
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            logger.info(f'Пользователь {request.user} успешно создал фотосессию')
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        logger.error(f'Пользователь {request.user} не смог добавить фотосессию')
-        return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Создание фотосессию не было выполнено. '
-                                                                             'Пожалуйства обратитесь в поддержку'})
-
-    def get_permissions(self):
-        try:
-            return [permission() for permission in self.permission_classes_by_action[self.action]]
-        except KeyError:
-            return [permission() for permission in self.permission_classes]
-
-
 class GalleryFavoriteViewSet(viewsets.ViewSet):
     permission_classes_by_action = {
         'list': [permissions.IsAuthenticated, ],
@@ -158,7 +252,7 @@ class GalleryFavoriteViewSet(viewsets.ViewSet):
     def create_favorite(self, request):
         logger.info(f'Пользователь {request.user} хочет добавить фото в избранное')
         profile = Profile.objects.get(user=request.user).id
-        if not is_unique_favorite(request.data.get('gallery'), profile):
+        if not is_unique_favorite(request.data.get('gallery'), profile, 'gallery'):
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Такая фото уже есть в избранном'})
         serializer = GalleryFavoriteCreateSerializer(data=request.data | {"profile": profile})
         if serializer.is_valid(raise_exception=True):
@@ -197,7 +291,7 @@ class GalleryLikeViewSet(viewsets.ViewSet):
     def create_like(self, request):
         logger.info(f'Пользователь {request.user} хочет добавить лайк к фото')
         profile = Profile.objects.get(user=request.user).id
-        if not is_unique_like(request.data.get('gallery'), profile):
+        if not is_unique_like(request.data.get('gallery'), profile, 'gallery'):
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Такой лайк на фото уже есть'})
         serializer = GalleryLikeCreateSerializer(data=request.data | {"profile": profile})
         if serializer.is_valid(raise_exception=True):
@@ -247,6 +341,30 @@ class GalleryCommentViewSet(viewsets.ViewSet):
         logger.error(f'Пользователь {request.user} не добавил комментарий к фото')
         return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Добавление комментария не было выполнено.'
                                                                              ' Пожалуйства обратитесь в поддержку'})
+
+    def get_permissions(self):
+        try:
+            return [permission() for permission in self.permission_classes_by_action[self.action]]
+        except KeyError:
+            return [permission() for permission in self.permission_classes]
+
+
+class PhotoSessionViewSet(viewsets.ViewSet):
+    permission_classes_by_action = {
+        'create_photo_session': [permissions.IsAuthenticated, ],
+    }
+
+    def create_photo_session(self, request):
+        logger.info(f'Пользователь {request.user} хочет добавить фотосессию')
+        profile = Profile.objects.get(user=request.user)
+        serializer = PhotoSessionCreateSerializer(data=request.data | {"profile": profile.id})
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            logger.info(f'Пользователь {request.user} успешно создал фотосессию')
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        logger.error(f'Пользователь {request.user} не смог добавить фотосессию')
+        return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Создание фотосессию не было выполнено. '
+                                                                             'Пожалуйства обратитесь в поддержку'})
 
     def get_permissions(self):
         try:

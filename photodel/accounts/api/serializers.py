@@ -1,7 +1,8 @@
 from rest_framework_simplejwt.serializers import TokenObtainSerializer
 from django.contrib.auth.models import User, AnonymousUser
 from rest_framework import serializers
-from accounts.models import Profile, ProCategory, Specialization
+from accounts.models import Profile, VerificationCode, ProCategory, Specialization, \
+    ProfileComment, ProfileLike, ProfileFavorite
 from services.film_places_service import ImageBase64Field, Base64ImageField
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import password_validation
@@ -187,3 +188,39 @@ class ProfilePrivateSerializer(serializers.ModelSerializer):
         if not obj.type_pro:
             return []
         return json.dumps([{obj.type_pro.id: obj.type_pro.name_category}])
+
+
+class ProfileFavoriteCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProfileFavorite
+        fields = '__all__'
+
+
+class ProfileFavoriteListSerializer(serializers.ModelSerializer):
+    sender_favorite = ProfilePublicSerializer()
+    receiver_favorite = ProfilePublicSerializer()
+
+    class Meta:
+        model = ProfileFavorite
+        fields = ['sender_favorite', 'receiver_favorite', ]
+
+
+class ProfileLikeCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProfileLike
+        fields = '__all__'
+
+
+class ProfileCommentCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProfileComment
+        fields = '__all__'
+
+
+class ProfileCommentListSerializer(serializers.ModelSerializer):
+    sender_comment = ProfilePublicSerializer()
+    receiver_comment = ProfilePublicSerializer()
+
+    class Meta:
+        model = ProfileComment
+        fields = ['content', 'timestamp', 'sender_comment', 'receiver_comment', ]

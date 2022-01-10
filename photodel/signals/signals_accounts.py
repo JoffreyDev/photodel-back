@@ -13,10 +13,10 @@ def save_or_create_profile(sender, instance, created, **kwargs):
     """
     if created:
         profile = Profile.objects.create(user=instance)
-        Album.objects.create(profile=profile, name_album='Главный')
+        Album.objects.create(profile=profile, name_album='Разное')
     else:
         try:
             instance.profile.save()
         except ObjectDoesNotExist:
             profile = Profile.objects.create(user=instance)
-            Album.objects.create(profile=profile, name_album='Главный')
+            Album.objects.create(profile=profile, name_album='Разное')

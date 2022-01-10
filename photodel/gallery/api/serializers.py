@@ -1,5 +1,7 @@
 from rest_framework import serializers
-from gallery.models import Album, Gallery, GalleryComment, GalleryLike, GalleryFavorite, Image, PhotoSession
+from gallery.models import Album, Gallery, Image, GalleryComment, GalleryLike, GalleryFavorite, \
+    AlbumComment, AlbumLike, AlbumFavorite, PhotoSessionComment, PhotoSessionLike, \
+    PhotoSessionFavorite, PhotoSession
 from services.film_places_service import ImageBase64Field, Base64ImageField
 from accounts.api.serializers import ProfilePublicSerializer
 
@@ -23,11 +25,59 @@ class AlbumCreateSerializer(serializers.ModelSerializer):
         model = Album
         fields = '__all__'
 
+    def validate(self, data):
+        profile = self.context['profile']
+        user_albums = Album.oobjects.filter(profile=profile, name_album=data.get('name_album'))
+        if user_albums:
+            raise serializers.ValidationError({'error': 'Альбом с таким названием уже существует'})
+        return data
+
+
+class AlbumFavoriteCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AlbumFavorite
+        fields = '__all__'
+
+
+class AlbumFavoriteListSerializer(serializers.ModelSerializer):
+    profile = ProfilePublicSerializer()
+    album = AlbumListSerializer()
+
+    class Meta:
+        model = AlbumFavorite
+        fields = ['profile', 'album', ]
+
+
+class AlbumLikeCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AlbumLike
+        fields = '__all__'
+
+
+class AlbumCommentCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AlbumComment
+        fields = '__all__'
+
+
+class AlbumCommentListSerializer(serializers.ModelSerializer):
+    sender_comment = ProfilePublicSerializer()
+    album = AlbumListSerializer()
+
+    class Meta:
+        model = AlbumComment
+        fields = ['content', 'timestamp', 'sender_comment', 'album', ]
+
 
 class GalleryCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Gallery
         fields = '__all__'
+
+    # def validate(self, data):
+    #     if not data.get('album'):
+    #         raise serializers.ValidationError({'error': 'Альбом с таким названием уже существует'})
+    #     return data
 
 
 class GalleryForCardListSerializer(serializers.ModelSerializer):

@@ -1,6 +1,6 @@
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
-from film_places.models import CategoryFilmPlaces, FilmPlaces, Favorite
+from film_places.models import CategoryFilmPlaces, FilmPlaces, FilmPlacesFavorite
 from additional_entities.models import CustomSettings
 from rest_framework import serializers
 from django.conf import settings

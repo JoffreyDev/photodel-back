@@ -1,6 +1,7 @@
 from django.urls import path
 from .views import AlbumViewSet, GalleryViewSet, GalleryFavoriteViewSet, \
-     GalleryLikeViewSet, GalleryCommentViewSet, ImageViewSet
+     GalleryLikeViewSet, GalleryCommentViewSet, ImageViewSet, AlbumLikeViewSet, \
+     AlbumFavoriteViewSet, AlbumCommentViewSet
 
 app_name = 'gallery'
 
@@ -16,6 +17,20 @@ urlpatterns = [
           name='list_album_photos'),
      path('album/delete/<int:album_id>/<int:photo_id>/', AlbumViewSet.as_view({'get': "delete_photo_from_album"}),
           name='delete_photo_from_album'),
+     path('album/like/create/', AlbumLikeViewSet.as_view({'post': "create_like"}),
+          name='album_create_like'),
+     path('album/like/delete/<int:pk>/', AlbumLikeViewSet.as_view({'delete': "delete_like"}),
+          name='album_delete_like'),
+     path('album/favorite/list/', AlbumFavoriteViewSet.as_view({'get': "list_favorite"}),
+          name='album_list_favorite'),
+     path('album/favorite/create/', AlbumFavoriteViewSet.as_view({'post': "create_favorite"}),
+          name='album_create_favorite'),
+     path('album/favorite/delete/<int:pk>/', AlbumFavoriteViewSet.as_view({'delete': "delete_favorite"}),
+          name='album_delete_favorite'),
+     path('album/comment/list/<int:pk>/', AlbumCommentViewSet.as_view({'get': "list_comments"}),
+          name='album_list_comments'),
+     path('album/comment/create/', AlbumCommentViewSet.as_view({'post': "create_comment"}),
+          name='album_create_comment'),
 
      path('photo/create/', GalleryViewSet.as_view({'post': "create_photo"}),
           name='create_photo'),

@@ -13,12 +13,44 @@ class Image(models.Model):
     photo = models.ImageField(upload_to=image_path)
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True)
 
+    def __str__(self):
+        return str(self.id)
+
 
 class Album(models.Model):
     name_album = models.CharField(max_length=40)
     description_album = models.TextField(blank=True)
     main_photo_id = models.IntegerField(null=True, blank=True)
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name_album
+
+
+class AlbumComment(models.Model):
+    content = models.TextField()
+    timestamp = models.DateTimeField(default=timezone.localtime)
+    sender_comment = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    album = models.ForeignKey(Album, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.content
+
+
+class AlbumLike(models.Model):
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    album = models.ForeignKey(Album, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return str(self.id)
+
+
+class AlbumFavorite(models.Model):
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    album = models.ForeignKey(Album, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return str(self.id)
 
 
 class Gallery(models.Model):
@@ -40,6 +72,32 @@ class Gallery(models.Model):
         return self.name_image
 
 
+class GalleryComment(models.Model):
+    content = models.TextField()
+    timestamp = models.DateTimeField(default=timezone.localtime)
+    sender_comment = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    gallery = models.ForeignKey(Gallery, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.content
+
+
+class GalleryLike(models.Model):
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    gallery = models.ForeignKey(Gallery, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return str(self.id)
+
+
+class GalleryFavorite(models.Model):
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    gallery = models.ForeignKey(Gallery, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return str(self.id)
+
+
 class PhotoSession(models.Model):
     session_name = models.CharField(max_length=40)
     session_description = models.TextField(blank=True)
@@ -49,19 +107,31 @@ class PhotoSession(models.Model):
     photos = models.ManyToManyField(Image)
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
 
+    def __str__(self):
+        return self.session_name
 
-class GalleryComment(models.Model):
+
+class PhotoSessionComment(models.Model):
     content = models.TextField()
     timestamp = models.DateTimeField(default=timezone.localtime)
     sender_comment = models.ForeignKey(Profile, on_delete=models.CASCADE)
-    gallery = models.ForeignKey(Gallery, on_delete=models.CASCADE)
+    photo_session = models.ForeignKey(PhotoSession, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.content
 
 
-class GalleryLike(models.Model):
+class PhotoSessionLike(models.Model):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
-    gallery = models.ForeignKey(Gallery, on_delete=models.CASCADE)
+    photo_session = models.ForeignKey(PhotoSession, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return str(self.id)
 
 
-class GalleryFavorite(models.Model):
+class PhotoSessionFavorite(models.Model):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
-    gallery = models.ForeignKey(Gallery, on_delete=models.CASCADE)
+    photo_session = models.ForeignKey(PhotoSession, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return str(self.id)

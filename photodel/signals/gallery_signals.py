@@ -1,6 +1,6 @@
 from django.dispatch import receiver
 from django.db.models.signals import post_save, post_init
-from gallery.models import Image
+from gallery.models import Image, Album, Gallery
 from services.scale_image_service import scale_image
 
 
@@ -15,6 +15,7 @@ def post_init_handler(instance, **kwargs):
 @receiver(post_save, sender=Image)
 def scale_image_after_save(sender, instance, created, **kwargs):
     """
+    Сигнал масштабирование фото в таблице Image
     """
     if instance.old_photo != instance.photo:
         instance.photo = scale_image(instance.photo)

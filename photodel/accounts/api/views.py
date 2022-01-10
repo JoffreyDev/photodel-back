@@ -1,17 +1,20 @@
 from rest_framework import generics, permissions, status, viewsets
 from django.contrib.auth.models import User
 from rest_framework.response import Response
-from accounts.models import Profile, VerificationCode, ProCategory, Specialization
+from accounts.models import Profile, VerificationCode, ProCategory, Specialization, \
+    ProfileComment, ProfileLike, ProfileFavorite
 from rest_framework_simplejwt.views import TokenViewBase
 from services.accounts_service import check_email_verification_code, update_or_create_verification_token, \
     create_random_code, check_is_unique_email, return_user_use_reset_token, custom_paginator
 from services.ip_service import get_ip
 from services.search_profile_service import filter_by_all_parameters
-
+from services.gallery_service import is_unique_favorite, is_unique_like
 from tasks.accounts_task import task_send_email_to_user, task_send_reset_password_to_email
 from .serializers import ProfileUpdateSerializer, ChangePasswordSerializer, \
     ProCategoryListSerializer, SpecializationListSerializer, \
-    ProfilePrivateSerializer, ProfilePublicSerializer
+    ProfilePrivateSerializer, ProfilePublicSerializer, ProfileFavoriteCreateSerializer, \
+    ProfileFavoriteListSerializer, ProfileLikeCreateSerializer, ProfileCommentCreateSerializer, \
+    ProfileCommentListSerializer
 
 from .serializers import UserRegisterSerializer, UserSerializer, CustomJWTSerializer
 import logging
@@ -234,6 +237,123 @@ class ProfileViewSet(viewsets.ViewSet):
         except KeyError:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Не был передан email. '
                                                                                  'Пожалуйства обратитесь в поддержку'})
+
+    def get_permissions(self):
+        try:
+            return [permission() for permission in self.permission_classes_by_action[self.action]]
+        except KeyError:
+            return [permission() for permission in self.permission_classes]
+
+
+class ProfileFavoriteViewSet(viewsets.ViewSet):
+    permission_classes_by_action = {
+        'list': [permissions.IsAuthenticated, ],
+        'create_favorite': [permissions.IsAuthenticated, ],
+        'delete_favorite': [permissions.IsAuthenticated, ],
+    }
+
+    def list_favorite(self, request):
+        logger.info(f'Пользователь {request.user} хочет получить список избранных профилей')
+        queryset = ProfileFavorite.objects.filter(sender_favorite__user=request.user).select_related()
+        serializer = ProfileFavoriteListSerializer(queryset, many=True)
+        logger.info(f'Пользователь {request.user} успешно получил список профилей')
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def create_favorite(self, request):
+        logger.info(f'Пользователь {request.user} хочет добавить профиль в избранное')
+        profile = Profile.objects.get(user=request.user).id
+        if not is_unique_favorite(request.data.get('receiver_favorite'), profile, 'profile'):
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message":
+                                                                      'Такой профиль уже есть в избранном'})
+        serializer = ProfileFavoriteCreateSerializer(data=request.data | {"sender_favorite": profile})
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            logger.info(f'Пользователь {request.user} успешно добавил профиль в избранное')
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        logger.error(f'Пользователь {request.user} не добавил профиль в избранное')
+        return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Добавление избранного не было выполнено. '
+                                                                             'Пожалуйства обратитесь в поддержку'})
+
+    def delete_favorite(self, request, pk):
+        try:
+            logger.info(f'Пользователь {request.user} хочет удалить профиль из избранного')
+            profile = Profile.objects.get(user=request.user)
+            instance = ProfileFavorite.objects.get(sender_favorite=profile.id, receiver_favorite=pk)
+            instance.delete()
+            logger.info(f'Пользователь {request.user} успешно удалил профиль из избранного')
+            return Response(status=status.HTTP_200_OK)
+        except ProfileFavorite.DoesNotExist:
+            logger.error(f'Для Пользователя {request.user} не было найдено избраннйы профиль при удалении')
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Избранный профиль не было найдено'})
+
+    def get_permissions(self):
+        try:
+            return [permission() for permission in self.permission_classes_by_action[self.action]]
+        except KeyError:
+            return [permission() for permission in self.permission_classes]
+
+
+class ProfileLikeViewSet(viewsets.ViewSet):
+    permission_classes_by_action = {
+        'create_like': [permissions.IsAuthenticated, ],
+        'delete_like': [permissions.IsAuthenticated, ],
+    }
+
+    def create_like(self, request):
+        logger.info(f'Пользователь {request.user} хочет добавить лайк к профилю')
+        profile = Profile.objects.get(user=request.user).id
+        if not is_unique_like(request.data.get('receiver_like'), profile, 'profile'):
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Лайк профилю уже есть'})
+        serializer = ProfileLikeCreateSerializer(data=request.data | {"sender_like": profile})
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            logger.info(f'Пользователь {request.user} успешно добавил лайк к профилю')
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        logger.error(f'Пользователь {request.user} не добавил лайк к профилю')
+        return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Добавление лайка не было выполнено. '
+                                                                             'Пожалуйства обратитесь в поддержку'})
+
+    def delete_like(self, request, pk):
+        try:
+            logger.info(f'Пользователь {request.user} хочет убрать лайк с профиля')
+            profile = Profile.objects.get(user=request.user)
+            instance = ProfileLike.objects.get(sender_like=profile, receiver_like=pk)
+            instance.delete()
+            logger.info(f'Пользователь {request.user} успешно убрал лайк с профиля')
+            return Response(status=status.HTTP_200_OK)
+        except ProfileLike.DoesNotExist:
+            logger.error(f'Для Пользователя {request.user} не было найдено профиля при удалении лайка')
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Место съемки не была найдена'})
+
+    def get_permissions(self):
+        try:
+            return [permission() for permission in self.permission_classes_by_action[self.action]]
+        except KeyError:
+            return [permission() for permission in self.permission_classes]
+
+
+class ProfileCommentViewSet(viewsets.ViewSet):
+    permission_classes_by_action = {
+        'create_comment': [permissions.IsAuthenticated, ],
+    }
+
+    def list_comments(self, request, pk):
+        logger.info(f'Пользователь {request.user} хочет получить список профилей')
+        queryset = ProfileComment.objects.filter(receiver_comment=pk).select_related()
+        serializer = ProfileCommentListSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def create_comment(self, request):
+        logger.info(f'Пользователь {request.user} хочет создать комментарий к профилю')
+        profile = Profile.objects.get(user=request.user).id
+        serializer = ProfileCommentCreateSerializer(data=request.data | {"sender_comment": profile})
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            logger.info(f'Пользователь {request.user} успешно добавил комментарий к профилю')
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        logger.error(f'Пользователь {request.user} не добавил комментарий к профилю')
+        return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Добавление комментария не было выполнено.'
+                                                                             ' Пожалуйства обратитесь в поддержку'})
 
     def get_permissions(self):
         try:

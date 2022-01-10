@@ -73,9 +73,38 @@ class Profile(models.Model):
         return self.user.username
 
 
+class ProfileComment(models.Model):
+    content = models.TextField()
+    timestamp = models.DateTimeField(default=timezone.localtime)
+    sender_comment = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='sender_comment')
+    receiver_comment = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='receiver_comment')
+
+    def __str__(self):
+        return self.content
+
+
+class ProfileLike(models.Model):
+    sender_like = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='sender_like')
+    receiver_like = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='receiver_like')
+
+    def __str__(self):
+        return str(self.id)
+
+
+class ProfileFavorite(models.Model):
+    sender_favorite = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='sender_favorite')
+    receiver_favorite = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='receiver_favorite')
+
+    def __str__(self):
+        return str(self.id)
+
+
 class VerificationCode(models.Model):
     profile_id = models.OneToOneField(Profile, on_delete=models.CASCADE, null=True)
     email_code = models.CharField(max_length=30, blank=True, null=True)
     password_reset_token = models.CharField(max_length=30, blank=True, null=True)
+
+    def __str__(self):
+        return str(self.id)
 
 

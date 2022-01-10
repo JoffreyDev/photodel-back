@@ -10,10 +10,6 @@ from accounts.models import VerificationCode, Profile
 from gallery.models import GalleryFavorite, GalleryLike
 from smtplib import SMTPException
 import random
-import logging
-
-
-logger = logging.getLogger(__name__)
 
 
 def custom_paginator(queryset, request):
@@ -137,44 +133,3 @@ def check_is_unique_email(email, user):
     profile = Profile.objects.filter(email=email).exclude(user=user)
     if email and profile.exists():
         raise serializers.ValidationError("Такой емейл уже существует")
-
-
-def is_unique_favorite(gallery_id, profile_id):
-    """
-    Проверка на уникальность избранного
-    """
-    favorites = GalleryFavorite.objects.filter(gallery=gallery_id, profile=profile_id)
-    if favorites:
-        return False
-    return True
-
-
-def is_unique_like(gallery_id, profile_id):
-    """
-    Проверка на уникальность лайка
-    """
-    favorites = GalleryLike.objects.filter(gallery=gallery_id, profile=profile_id)
-    if favorites:
-        return False
-    return True
-
-
-def protection_cheating_views(instance, ip):
-    """
-    Защита от накрутки просмотров вещи, путем
-    сравнивания последннего ip адреса фото,
-    которую просмотрел пользователь
-    """
-    if instance.last_ip_user != ip:
-        instance.last_ip_user = ip
-        instance.save()
-        return True
-    return False
-
-
-def add_view(instance):
-    """
-    Функция добавления просмотра
-    """
-    instance.views += 1
-    instance.save()

@@ -2,7 +2,8 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from .views import RegisterAPIView, ProfileViewSet, VerificationEmailViewSet, \
-    ChangePasswordView, CustomTokenObtainPairView, CategoriesProfileViewSet
+    ChangePasswordView, CustomTokenObtainPairView, CategoriesProfileViewSet, \
+    ProfileFavoriteViewSet, ProfileLikeViewSet, ProfileCommentViewSet
 
 app_name = 'accounts'
 
@@ -31,6 +32,21 @@ urlpatterns = [
          name='generate_token_for_reset_password'),
     path('profiles/search/', ProfileViewSet.as_view({'get': "search_profiles"}),
          name='search_profiles'),
+    path('profile/like/create/', ProfileLikeViewSet.as_view({'post': "create_like"}),
+         name='profile_create_like'),
+    path('profile/like/delete/<int:pk>/', ProfileLikeViewSet.as_view({'delete': "delete_like"}),
+         name='profile_delete_like'),
+    path('profile/favorite/list/', ProfileFavoriteViewSet.as_view({'get': "list_favorite"}),
+         name='profile_list_favorite'),
+    path('profile/favorite/create/', ProfileFavoriteViewSet.as_view({'post': "create_favorite"}),
+         name='profile_create_favorite'),
+    path('profile/favorite/delete/<int:pk>/', ProfileFavoriteViewSet.as_view({'delete': "delete_favorite"}),
+         name='profile_delete_favorite'),
+    path('profile/comment/list/<int:pk>/', ProfileCommentViewSet.as_view({'get': "list_comments"}),
+         name='profile_list_comments'),
+    path('profile/comment/create/', ProfileCommentViewSet.as_view({'post': "create_comment"}),
+         name='profile_create_comment'),
+
     path('list_specialization/', CategoriesProfileViewSet.as_view({'get': "list_specialization"}),
          name='list_specialization'),
     path('list_pro_categories/', CategoriesProfileViewSet.as_view({'get': "list_pro_categories"}),
