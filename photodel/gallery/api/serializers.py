@@ -11,13 +11,16 @@ class ImageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Image
-        fields = ['id', 'photo', ]
+        fields = ['id', 'photo', 'profile', ]
 
 
 class AlbumListSerializer(serializers.ModelSerializer):
+    profile = ProfilePublicSerializer()
+    main_photo_id = ImageSerializer()
+
     class Meta:
         model = Album
-        fields = ['name_album', 'description_album', ]
+        fields = ['name_album', 'description_album', 'id', 'main_photo_id', 'profile', ]
 
 
 class AlbumCreateSerializer(serializers.ModelSerializer):
@@ -27,9 +30,11 @@ class AlbumCreateSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         profile = self.context['profile']
-        user_albums = Album.oobjects.filter(profile=profile, name_album=data.get('name_album'))
+        user_albums = Album.objects.filter(profile=profile, name_album=data.get('name_album'))
         if user_albums:
             raise serializers.ValidationError({'error': 'Альбом с таким названием уже существует'})
+        if not data.get('main_photo_id'):
+            data['main_photo_id'] = Image.objects.filter(profile__user__username='admin').first()
         return data
 
 
@@ -74,10 +79,10 @@ class GalleryCreateSerializer(serializers.ModelSerializer):
         model = Gallery
         fields = '__all__'
 
-    # def validate(self, data):
-    #     if not data.get('album'):
-    #         raise serializers.ValidationError({'error': 'Альбом с таким названием уже существует'})
-    #     return data
+    def validate(self, data):
+        if not data.get('album'):
+            data['album'] = [Album.objects.filter(profile=self.context['profile']).first(), ]
+        return data
 
 
 class GalleryForCardListSerializer(serializers.ModelSerializer):

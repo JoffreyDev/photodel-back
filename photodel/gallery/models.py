@@ -20,7 +20,7 @@ class Image(models.Model):
 class Album(models.Model):
     name_album = models.CharField(max_length=40)
     description_album = models.TextField(blank=True)
-    main_photo_id = models.IntegerField(null=True, blank=True)
+    main_photo_id = models.ForeignKey(Image, on_delete=models.DO_NOTHING, blank=True, null=True)
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
 
     def __str__(self):

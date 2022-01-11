@@ -42,6 +42,7 @@ class ImageViewSet(viewsets.ViewSet):
 class AlbumViewSet(viewsets.ViewSet):
     permission_classes_by_action = {
         'create_album': [permissions.IsAuthenticated, ],
+        'delete_photo_from_album': [permissions.IsAuthenticated, ],
         }
 
     def create_album(self, request):
@@ -203,7 +204,7 @@ class GalleryViewSet(viewsets.ViewSet):
     def create_photo(self, request):
         logger.info(f'Пользователь {request.user} хочет добавить фото')
         profile = Profile.objects.get(user=request.user)
-        serializer = GalleryCreateSerializer(data=request.data | {"profile": profile.id})
+        serializer = GalleryCreateSerializer(data=request.data | {"profile": profile.id}, context={'profile': profile})
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             logger.info(f'Пользователь {request.user} успешно создал фото')

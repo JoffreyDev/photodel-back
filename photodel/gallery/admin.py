@@ -5,12 +5,12 @@ from .models import Image, Album, Gallery, GalleryComment, GalleryLike, GalleryF
 
 @admin.register(Image)
 class GalleryImageAdmin(admin.ModelAdmin):
-    list_display = ['photo', ]
+    list_display = ['id', 'photo', 'profile', ]
 
 
 @admin.register(Album)
 class AlbumAdmin(admin.ModelAdmin):
-    list_display = ['name_album', ]
+    list_display = ['name_album', 'id', ]
 
 
 @admin.register(AlbumComment)

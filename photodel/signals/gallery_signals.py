@@ -17,5 +17,7 @@ def scale_image_after_save(sender, instance, created, **kwargs):
     """
     Сигнал масштабирование фото в таблице Image
     """
-    if instance.old_photo != instance.photo:
+    if created:
+        instance.photo = scale_image(instance.photo)
+    elif instance.old_photo != instance.photo:
         instance.photo = scale_image(instance.photo)
