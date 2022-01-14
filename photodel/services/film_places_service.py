@@ -22,24 +22,11 @@ class ImageBase64Field(serializers.ImageField):
         Функция преобразования картинки в base64
         """
         try:
-            image = Image.open(str(settings.BASE_DIR) + obj.url)
-            buff = io.BytesIO()
-            image.save(buff, format="JPEG")
-            img_str = base64.b64encode(buff.getvalue())
-            return img_str
-        except FileNotFoundError:
-            return None
-        except UnidentifiedImageError:
-            return None
-        except OSError:
-            image = Image.open(str(settings.BASE_DIR) + obj.url)
-            buff = io.BytesIO()
-            image.save(buff, format="PNG")
-            img_str = base64.b64encode(buff.getvalue())
-            return img_str
+            with open(str(settings.BASE_DIR) + obj.url, "rb") as img_file:
+                return base64.b64encode(img_file.read()).decode('utf-8')
         except ValueError:
             return None
-        except AttributeError:
+        except FileNotFoundError:
             return None
 
 

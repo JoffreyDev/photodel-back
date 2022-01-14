@@ -58,6 +58,8 @@ class Gallery(models.Model):
     name_image = models.CharField(max_length=50)
     description = models.TextField(blank=True)
     place_location = gis_models.PointField(srid=4326)
+    string_place_location = gis_models.PointField(srid=4326, null=True)
+    tags = models.TextField(blank=True, null=True)
     photo_camera = models.CharField(max_length=40)
     focal_len = models.CharField(max_length=40)
     excerpt = models.CharField(max_length=40)

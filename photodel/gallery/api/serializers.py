@@ -77,7 +77,8 @@ class AlbumCommentListSerializer(serializers.ModelSerializer):
 class GalleryCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Gallery
-        fields = '__all__'
+        fields = ['gallery_image', 'name_image', 'description', 'place_location', 'string_place_location',
+                  'photo_camera', 'focal_len', 'excerpt', 'flash', 'category', 'tags', 'album', 'profile', ]
 
     def validate(self, data):
         if not data.get('album'):
@@ -109,7 +110,8 @@ class GalleryListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Gallery
         fields = ['gallery_image', 'name_image', 'description', 'place_location',
-                  'photo_camera', 'focal_len', 'excerpt', 'flash', 'views', ]
+                  'photo_camera', 'focal_len', 'excerpt', 'flash', 'views', 'string_place_location',
+                  'tags', 'category', 'album', 'profile', ]
 
 
 class PhotoSessionCreateSerializer(serializers.ModelSerializer):
