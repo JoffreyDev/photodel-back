@@ -21,6 +21,7 @@ class Album(models.Model):
     name_album = models.CharField(max_length=40)
     description_album = models.TextField(blank=True)
     main_photo_id = models.ForeignKey(Image, on_delete=models.DO_NOTHING, blank=True, null=True)
+    city = models.CharField(max_length=60, null=True, blank=True)
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -58,7 +59,7 @@ class Gallery(models.Model):
     name_image = models.CharField(max_length=50)
     description = models.TextField(blank=True)
     place_location = gis_models.PointField(srid=4326)
-    string_place_location = gis_models.PointField(srid=4326, null=True)
+    string_place_location = models.CharField(max_length=40, null=True, blank=True)
     tags = models.TextField(blank=True, null=True)
     photo_camera = models.CharField(max_length=40)
     focal_len = models.CharField(max_length=40)

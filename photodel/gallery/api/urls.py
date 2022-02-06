@@ -11,11 +11,13 @@ urlpatterns = [
 
      path('album/create/', AlbumViewSet.as_view({'post': "create_album"}),
           name='create_album'),
+     path('album/update/<int:pk>/', AlbumViewSet.as_view({'post': "partial_update"}),
+          name='partial_update'),
      path('album/list/<int:pk>/', AlbumViewSet.as_view({'get': "list_user_albums"}),
           name='list_user_albums'),
      path('album/list_photos/<int:pk>/', AlbumViewSet.as_view({'get': "list_album_photos"}),
           name='list_album_photos'),
-     path('album/delete/<int:album_id>/<int:photo_id>/', AlbumViewSet.as_view({'get': "delete_photo_from_album"}),
+     path('album/delete/<int:album_id>/<int:photo_id>/', AlbumViewSet.as_view({'delete': "delete_photo_from_album"}),
           name='delete_photo_from_album'),
      path('album/like/create/', AlbumLikeViewSet.as_view({'post': "create_like"}),
           name='album_create_like'),
@@ -34,6 +36,8 @@ urlpatterns = [
 
      path('photo/create/', GalleryViewSet.as_view({'post': "create_photo"}),
           name='create_photo'),
+     path('photo/update/<int:pk>/', GalleryViewSet.as_view({'post': "partial_update_photo"}),
+          name='partial_update_photo'),
      path('photo/<int:pk>/', GalleryViewSet.as_view({'get': "retrieve_photo"}),
           name='retrieve_photo'),
      path('photo/list/<int:pk>/', GalleryViewSet.as_view({'get': "list_photos"}),

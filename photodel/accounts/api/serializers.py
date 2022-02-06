@@ -173,7 +173,7 @@ class ProfilePrivateSerializer(serializers.ModelSerializer):
                   'photo_technics', 'languages', 'about', 'status', 'type_pro', 'string_location',
                   'location', 'phone', 'site', 'email', 'instagram', 'facebook', 'vk', 'avatar',
                   'location_now', 'date_stay_start', 'date_stay_end', 'message', 'is_show_nu_photo', 'is_adult',
-                  'spec_model_or_photographer', 'ready_status', ]
+                  'spec_model_or_photographer', 'ready_status', 'id', ]
 
     def get_spec_model_or_photographer(self, obj):
         return json.dumps([{i.id: i.name_spec} for i in obj.spec_model_or_photographer.all()])

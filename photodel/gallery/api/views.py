@@ -12,7 +12,8 @@ from .serializers import AlbumListSerializer, AlbumCreateSerializer, GalleryList
     GalleryFavoriteListSerializer, GalleryLikeCreateSerializer, GalleryCommentListSerializer, \
     GalleryCommentCreateSerializer, PhotoSessionCreateSerializer, ImageSerializer, \
     AlbumFavoriteCreateSerializer, AlbumFavoriteListSerializer, AlbumLikeCreateSerializer, \
-    AlbumCommentCreateSerializer, AlbumCommentListSerializer
+    AlbumCommentCreateSerializer, AlbumCommentListSerializer, AlbumUpdateSerializer
+from .permissions import IsOwnerImage, IsDeletePhotoFromAlbum, IsCreatePhoto
 
 import logging
 
@@ -41,8 +42,9 @@ class ImageViewSet(viewsets.ViewSet):
 
 class AlbumViewSet(viewsets.ViewSet):
     permission_classes_by_action = {
-        'create_album': [permissions.IsAuthenticated, ],
-        'delete_photo_from_album': [permissions.IsAuthenticated, ],
+        'create_album': [permissions.IsAuthenticated, IsOwnerImage, ],
+        'partial_update': [permissions.IsAuthenticated, ],
+        'delete_photo_from_album': [permissions.IsAuthenticated, IsDeletePhotoFromAlbum, ],
         }
 
     def create_album(self, request):
@@ -56,6 +58,26 @@ class AlbumViewSet(viewsets.ViewSet):
         logger.error(f'Пользователь {request.user} не смог добавить новый альбом')
         return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Создание альбома не было выполнено. '
                                                                              'Пожалуйства обратитесь в поддержку'})
+
+    def partial_update(self, request, pk):
+        """
+        Частитичное или полное обновление полей в таблицу профиле
+        """
+        try:
+            logger.info(f'Пользователь {request.user} хочет изменить альбом')
+            instance = Album.objects.get(pk=pk)
+            profile = Profile.objects.get(user=request.user)
+            serializer = AlbumUpdateSerializer(instance, data=request.data, partial=True, context={'profile': profile})
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()
+                logger.info(f'Пользователь {request.user} успешно изменил альбом')
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            logger.error(f'Обновление альбома для пользователя {request.user} не было выполнено')
+            return Response(status=status.HTTP_400_BAD_REQUEST, data='Обновление альбома не было выполнено '
+                                                                     'Пожалуйства обратитесь в поддержку')
+        except Album.DoesNotExist:
+            logger.error(f'Альбом для пользователя {request.user} не был найден')
+            return Response(status=status.HTTP_400_BAD_REQUEST, data="Альбом не был найден")
 
     def list_user_albums(self, request, pk):
         albums = Album.objects.filter(profile=pk)
@@ -198,7 +220,7 @@ class AlbumCommentViewSet(viewsets.ViewSet):
 
 class GalleryViewSet(viewsets.ViewSet):
     permission_classes_by_action = {
-        'create_photo': [permissions.IsAuthenticated, ],
+        'create_photo': [permissions.IsAuthenticated, IsCreatePhoto, ],
     }
 
     def create_photo(self, request):
@@ -212,6 +234,26 @@ class GalleryViewSet(viewsets.ViewSet):
         logger.error(f'Пользователь {request.user} не смог добавить фото')
         return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Создание фото не было выполнено. '
                                                                              'Пожалуйства обратитесь в поддержку'})
+
+    def partial_update_photo(self, request, pk):
+        """
+        Частитичное или полное обновление полей в таблицу профиле
+        """
+        try:
+            logger.info(f'Пользователь {request.user} хочет изменить фото')
+            instance = Gallery.objects.get(pk=pk)
+            profile = Profile.objects.get(user=request.user)
+            serializer = GalleryCreateSerializer(instance, data=request.data, partial=True, context={'profile': profile})
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()
+                logger.info(f'Пользователь {request.user} успешно изменил фото')
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            logger.error(f'Обновление фото для пользователя {request.user} не было выполнено')
+            return Response(status=status.HTTP_400_BAD_REQUEST, data='Обновление фото не было выполнено '
+                                                                     'Пожалуйства обратитесь в поддержку')
+        except Gallery.DoesNotExist:
+            logger.error(f'Фото для пользователя {request.user} не было найдено')
+            return Response(status=status.HTTP_400_BAD_REQUEST, data="Фото не было найдено")
 
     def retrieve_photo(self, request, pk):
         try:

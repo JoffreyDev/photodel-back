@@ -23,7 +23,7 @@ class ProCategory(models.Model):
 class Profile(models.Model):
     name = models.CharField(max_length=50)
     surname = models.CharField(max_length=50)
-    avatar = models.ImageField(upload_to='avatars/', default='avatars/anonymous.jpg')
+    avatar = models.ImageField(upload_to='avatars/', default='default_images/anonymous.jpg')
     date_register = models.DateTimeField(default=timezone.localtime)
     last_date_in = models.DateTimeField(null=True, blank=True)
     last_ip = models.CharField(max_length=15, blank=True)
@@ -63,11 +63,11 @@ class Profile(models.Model):
     is_hide = models.BooleanField(default=False)
     user = models.OneToOneField(User, on_delete=models.CASCADE)
 
-    def save(self, *args, **kwargs):
-        if self.type_pro and (self.type_pro.name_category != 'Модели' and self.type_pro.name_category != 'Фотографы') \
-                and self.spec_model_or_photographer.all():
-            raise ValidationError({"error": "Вы не являетесь моделью или фотографом для выбора специализации"})
-        super().save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     if self.type_pro and (self.type_pro.name_category != 'Модели' and self.type_pro.name_category != 'Фотографы') \
+    #             and self.spec_model_or_photographer.all():
+    #         raise ValidationError({"error": "Вы не являетесь моделью или фотографом для выбора специализации"})
+    #     super().save(*args, **kwargs)
 
     def __str__(self):
         return self.user.username
