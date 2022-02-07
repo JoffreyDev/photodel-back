@@ -4,7 +4,7 @@ from gallery.models import Image, Album, Gallery
 from services.scale_image_service import scale_image
 
 
-@receiver(post_init, sender=Image)
+@receiver(post_init, sender=Image, dispatch_uid="image_post_init")
 def post_init_handler(instance, **kwargs):
     """
     Создание переменных для сохранение значения поля перед изменением
@@ -12,7 +12,7 @@ def post_init_handler(instance, **kwargs):
     instance.old_photo = instance.photo
 
 
-@receiver(post_save, sender=Image)
+@receiver(post_save, sender=Image, dispatch_uid="image_scale_image")
 def scale_image_after_save(sender, instance, created, **kwargs):
     """
     Сигнал масштабирование фото в таблице Image

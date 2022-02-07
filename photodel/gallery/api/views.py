@@ -13,7 +13,7 @@ from .serializers import AlbumListSerializer, AlbumCreateSerializer, GalleryList
     GalleryCommentCreateSerializer, PhotoSessionCreateSerializer, ImageSerializer, \
     AlbumFavoriteCreateSerializer, AlbumFavoriteListSerializer, AlbumLikeCreateSerializer, \
     AlbumCommentCreateSerializer, AlbumCommentListSerializer, AlbumUpdateSerializer
-from .permissions import IsOwnerImage, IsDeletePhotoFromAlbum, IsCreatePhoto
+from .permissions import IsOwnerImage, IsAddOrDeletePhotoFromAlbum, IsCreatePhoto
 
 import logging
 
@@ -44,7 +44,8 @@ class AlbumViewSet(viewsets.ViewSet):
     permission_classes_by_action = {
         'create_album': [permissions.IsAuthenticated, IsOwnerImage, ],
         'partial_update': [permissions.IsAuthenticated, ],
-        'delete_photo_from_album': [permissions.IsAuthenticated, IsDeletePhotoFromAlbum, ],
+        'add_to_album_photos': [permissions.IsAuthenticated, IsAddOrDeletePhotoFromAlbum, ],
+        'delete_from_album_photos': [permissions.IsAuthenticated, IsAddOrDeletePhotoFromAlbum, ],
         }
 
     def create_album(self, request):
@@ -73,11 +74,11 @@ class AlbumViewSet(viewsets.ViewSet):
                 logger.info(f'Пользователь {request.user} успешно изменил альбом')
                 return Response(serializer.data, status=status.HTTP_200_OK)
             logger.error(f'Обновление альбома для пользователя {request.user} не было выполнено')
-            return Response(status=status.HTTP_400_BAD_REQUEST, data='Обновление альбома не было выполнено '
-                                                                     'Пожалуйства обратитесь в поддержку')
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Обновление альбома не было выполнено.'
+                                                                                 ' Пожалуйства обратитесь в поддержку'})
         except Album.DoesNotExist:
             logger.error(f'Альбом для пользователя {request.user} не был найден')
-            return Response(status=status.HTTP_400_BAD_REQUEST, data="Альбом не был найден")
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": "Альбом не был найден"})
 
     def list_user_albums(self, request, pk):
         albums = Album.objects.filter(profile=pk)
@@ -89,13 +90,43 @@ class AlbumViewSet(viewsets.ViewSet):
         serializer = GalleryForCardListSerializer(albums, many=True)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
-    def delete_photo_from_album(self, request, album_id, photo_id):
+    def add_to_album_photos(self, request):
         try:
-            instance = Gallery.objects.get(id=photo_id)
-            instance.album.remove(album_id)
+            if not request.data.get('album_id') or not request.data.get('photos_id'):
+                return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Не были переданы обязательные '
+                                                                          'параметры. Пожалуйства обратитесь '
+                                                                          'в поддержку'})
+            album = Album.objects.get(id=request.data.get('album_id'))
+            for photo in request.data.get('photos_id'):
+                gallery = Gallery.objects.get(id=photo)
+                gallery.album.add(album)
+                gallery.save()
             return Response(status=status.HTTP_200_OK)
+        except Album.DoesNotExist:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Альбом не был найден. '
+                                                                      'Пожалуйства обратитесь в поддержку'})
         except Gallery.DoesNotExist:
-            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Фото из галерии не было найдено'})
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Фото не было найдено. '
+                                                                      'Пожалуйства обратитесь в поддержку'})
+
+    def delete_from_album_photos(self, request):
+        try:
+            if not request.data.get('album_id') or not request.data.get('photos_id'):
+                return Response(status=status.HTTP_400_BAD_REQUEST, data={"message" 'Не были переданы обязательные '
+                                                                          'параметры. Пожалуйства обратитесь '
+                                                                          'в поддержку'})
+            album = Album.objects.get(id=request.data.get('album_id'))
+            for photo in request.data.get('photos_id'):
+                gallery = Gallery.objects.get(id=photo)
+                gallery.album.remove(album)
+                gallery.save()
+            return Response(status=status.HTTP_200_OK)
+        except Album.DoesNotExist:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message" 'Альбом не был найден. '
+                                                                      'Пожалуйства обратитесь в поддержку'})
+        except Gallery.DoesNotExist:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message" 'Фото не было найдено. '
+                                                                      'Пожалуйства обратитесь в поддержку'})
 
     def get_permissions(self):
         try:

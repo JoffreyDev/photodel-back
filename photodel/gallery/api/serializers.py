@@ -15,12 +15,24 @@ class ImageSerializer(serializers.ModelSerializer):
 
 
 class AlbumListSerializer(serializers.ModelSerializer):
+    likes = serializers.SerializerMethodField()
+    comments = serializers.SerializerMethodField()
+    favorites = serializers.SerializerMethodField()
     profile = ProfilePublicSerializer()
     main_photo_id = ImageSerializer()
 
     class Meta:
         model = Album
-        fields = ['name_album', 'description_album', 'id', 'main_photo_id', 'profile', 'city', ]
+        fields = ['name_album', 'id', 'main_photo_id', 'profile', 'city', 'likes', 'comments', 'favorites', ]
+
+    def get_likes(self, obj):
+        return AlbumLike.objects.filter(album=obj.id).count()
+
+    def get_comments(self, obj):
+        return AlbumComment.objects.filter(album=obj.id).count()
+
+    def get_favorites(self, obj):
+        return AlbumFavorite.objects.filter(album=obj.id).count()
 
 
 class AlbumCreateSerializer(serializers.ModelSerializer):
@@ -90,10 +102,16 @@ class AlbumCommentListSerializer(serializers.ModelSerializer):
 class GalleryCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Gallery
-        fields = ['gallery_image', 'name_image', 'description', 'place_location', 'string_place_location',
-                  'photo_camera', 'focal_len', 'excerpt', 'flash', 'category', 'tags', 'album', 'profile', ]
+        fields = ['gallery_image', 'name_image', 'description', 'place_location',
+                  'string_place_location', 'photo_camera', 'focal_len', 'excerpt', 'flash',
+                  'category', 'tags', 'album', 'profile', 'aperture', ]
 
     def validate(self, data):
+        """
+        Если при создании фото не передан альбом, то фото добавляется в альбом Разное.
+        Если при создании переданы альбомы, то проверяется,
+        если в альбоме стоит дефолтная фотка, то на обложку альбома ставится фотка которая создается
+        """
         if not data.get('album'):
             data['album'] = [Album.objects.filter(profile=self.context['profile']).first(), ]
         else:

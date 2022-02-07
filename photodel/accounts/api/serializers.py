@@ -144,6 +144,22 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
                   'location_now', 'date_stay_start', 'date_stay_end', 'message', 'is_show_nu_photo',
                   'is_adult', 'avatar', 'spec_model_or_photographer', 'ready_status', ]
 
+    def validate(self, data):
+        """
+        Проверка пользователя на тип профиля и специализацию.
+        """
+        type_pro = data.get('type_pro')
+        spec = data.get('spec_model_or_photographer')
+        if not type_pro and not spec:
+            return data
+        if not type_pro and spec:
+            raise serializers.ValidationError({"error": 'Вы не можете указать специальность '
+                                                        'без указаного типа профиля'})
+        if (type_pro.name_category != 'Модели' and type_pro.name_category != 'Фотографы') and spec:
+            raise serializers.ValidationError({"error": "Вы не являетесь моделью или "
+                                                        "фотографом для выбора специализации"})
+        return data
+
 
 class ProfilePublicSerializer(serializers.ModelSerializer):
     avatar = ImageBase64Field()

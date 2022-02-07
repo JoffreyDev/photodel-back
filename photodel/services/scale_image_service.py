@@ -48,6 +48,6 @@ def scale_image(photo):
     crop_width, crop_height = 1200, 1200
     img_width, img_height = start_image.size
     resize_side = generate_ratio_for_image(img_width, img_height, crop_width, crop_height)
-    end_img = generate_resize_image(start_image, crop_width, crop_height, resize_side)
+    end_img = generate_resize_image(start_image, crop_width, crop_height, resize_side).convert('RGB')
     end_img.save('media/' + photo.name)
     return photo.name

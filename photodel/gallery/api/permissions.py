@@ -19,26 +19,24 @@ class IsOwnerImage(permissions.BasePermission):
         return True
 
 
-class IsDeletePhotoFromAlbum(permissions.BasePermission):
+class IsAddOrDeletePhotoFromAlbum(permissions.BasePermission):
     """
-    Проверка на принадлежность фотки обложки альбома тому же юзеру, который создает альбом
+    Проверка на принадлежность фотки и альбома юзеру, который хочет удалить или добавить фотку в альбом
     """
-    message = {"error": "Вы не можете удалить чужую фотографию с альбома"}
+    message = {"error": "Вы не можете удалить или добавить чужую фотографию с альбома"}
 
     def has_permission(self, request, view):
         if request.method in SAFE_METHODS:
             return True
         try:
-            album_id = view.kwargs.get('album_id')
-            photo_id = view.kwargs.get('photo_id')
-            if album_id and photo_id:
+            album_id = request.data.get('album_id')
+            photos_id = request.data.get('photos_id')
+            if album_id and photos_id:
                 album = Album.objects.get(id=album_id)
-                photo = Gallery.objects.get(id=photo_id)
-                return request.user == album.profile.user and request.user == photo.profile.user
-            return False
+                photos = Gallery.objects.filter(id__in=photos_id, profile__user=request.user).count()
+                return request.user == album.profile.user and photos == len(photos_id)
+            return True
         except Album.DoesNotExist:
-            return False
-        except Gallery.DoesNotExist:
             return False
 
 

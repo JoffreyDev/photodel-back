@@ -3,7 +3,6 @@ from django.utils import timezone
 from django.contrib.gis.db import models as gis_models
 from django.contrib.auth.models import User
 from additional_entities.models import Country, Language
-from rest_framework.exceptions import ValidationError
 
 
 class Specialization(models.Model):
@@ -62,12 +61,6 @@ class Profile(models.Model):
     is_show_nu_photo = models.BooleanField(default=False)
     is_hide = models.BooleanField(default=False)
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-
-    # def save(self, *args, **kwargs):
-    #     if self.type_pro and (self.type_pro.name_category != 'Модели' and self.type_pro.name_category != 'Фотографы') \
-    #             and self.spec_model_or_photographer.all():
-    #         raise ValidationError({"error": "Вы не являетесь моделью или фотографом для выбора специализации"})
-    #     super().save(*args, **kwargs)
 
     def __str__(self):
         return self.user.username

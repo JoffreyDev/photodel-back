@@ -20,8 +20,7 @@ class Image(models.Model):
 class Album(models.Model):
     name_album = models.CharField(max_length=40)
     description_album = models.TextField(blank=True)
-    main_photo_id = models.ForeignKey(Image, on_delete=models.DO_NOTHING, blank=True, null=True)
-    city = models.CharField(max_length=60, null=True, blank=True)
+    main_photo_id = models.ForeignKey(Image, on_delete=models.SET_NULL, blank=True, null=True)
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -64,10 +63,11 @@ class Gallery(models.Model):
     photo_camera = models.CharField(max_length=40)
     focal_len = models.CharField(max_length=40)
     excerpt = models.CharField(max_length=40)
+    aperture = models.CharField(max_length=40, null=True)
     flash = models.CharField(max_length=40)
     last_ip_user = models.CharField(max_length=18, null=True, blank=True)
     views = models.IntegerField(default=0, validators=[MinValueValidator(0)])
-    category = models.ForeignKey(Specialization, on_delete=models.CASCADE, null=True)
+    category = models.ManyToManyField(Specialization, null=True)
     album = models.ManyToManyField(Album, blank=True)
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
 
