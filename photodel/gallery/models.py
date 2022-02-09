@@ -9,6 +9,11 @@ def image_path(instance, filename):
     return f'gallery/{instance.profile.id}.jpg'
 
 
+def get_photo():
+    image = Image.objects.filter(profile__user__username='admin').first()
+    return image
+
+
 class Image(models.Model):
     photo = models.ImageField(upload_to=image_path)
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True)
@@ -20,7 +25,7 @@ class Image(models.Model):
 class Album(models.Model):
     name_album = models.CharField(max_length=40)
     description_album = models.TextField(blank=True)
-    main_photo_id = models.ForeignKey(Image, on_delete=models.SET_NULL, blank=True, null=True)
+    main_photo_id = models.ForeignKey(Image, on_delete=models.SET(get_photo), blank=True, null=True)
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -67,7 +72,7 @@ class Gallery(models.Model):
     flash = models.CharField(max_length=40)
     last_ip_user = models.CharField(max_length=18, null=True, blank=True)
     views = models.IntegerField(default=0, validators=[MinValueValidator(0)])
-    category = models.ManyToManyField(Specialization, null=True)
+    category = models.ManyToManyField(Specialization)
     album = models.ManyToManyField(Album, blank=True)
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
 
