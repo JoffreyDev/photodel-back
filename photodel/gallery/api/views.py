@@ -44,6 +44,7 @@ class AlbumViewSet(viewsets.ViewSet):
     permission_classes_by_action = {
         'create_album': [permissions.IsAuthenticated, IsOwnerImage, ],
         'partial_update': [permissions.IsAuthenticated, ],
+        'list_photos_not_in_album': [permissions.IsAuthenticated, ],
         'add_to_album_photos': [permissions.IsAuthenticated, IsAddOrDeletePhotoFromAlbum, ],
         'delete_from_album_photos': [permissions.IsAuthenticated, IsAddOrDeletePhotoFromAlbum, ],
         }
@@ -86,9 +87,20 @@ class AlbumViewSet(viewsets.ViewSet):
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
     def list_album_photos(self, request, pk):
-        albums = Gallery.objects.filter(album=pk)
-        serializer = GalleryForCardListSerializer(albums, many=True)
+        galleries = Gallery.objects.filter(album=pk)
+        serializer = GalleryForCardListSerializer(galleries, many=True)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
+
+    def list_photos_not_in_album(self, request, pk):
+        try:
+            album = Album.objects.get(id=pk)
+            galleries = Gallery.objects.filter(profile__user=request.user).\
+                exclude(id__in=[gallery.id for gallery in album.gallery_set.all()])
+            serializer = GalleryForCardListSerializer(galleries, many=True)
+            return Response(status=status.HTTP_200_OK, data=serializer.data)
+        except Album.DoesNotExist:
+            logger.error(f'Альбом для пользователя {request.user} не был найден')
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": "Альбом не был найден"})
 
     def add_to_album_photos(self, request):
         try:
@@ -137,7 +149,7 @@ class AlbumViewSet(viewsets.ViewSet):
 
 class AlbumFavoriteViewSet(viewsets.ViewSet):
     permission_classes_by_action = {
-        'list': [permissions.IsAuthenticated, ],
+        'list_favorite': [permissions.IsAuthenticated, ],
         'create_favorite': [permissions.IsAuthenticated, ],
         'delete_favorite': [permissions.IsAuthenticated, ],
     }
@@ -252,6 +264,7 @@ class AlbumCommentViewSet(viewsets.ViewSet):
 class GalleryViewSet(viewsets.ViewSet):
     permission_classes_by_action = {
         'create_photo': [permissions.IsAuthenticated, IsCreatePhoto, ],
+        'partial_update_photo': [permissions.IsAuthenticated, ],
     }
 
     def create_photo(self, request):
@@ -267,9 +280,6 @@ class GalleryViewSet(viewsets.ViewSet):
                                                                              'Пожалуйства обратитесь в поддержку'})
 
     def partial_update_photo(self, request, pk):
-        """
-        Частитичное или полное обновление полей в таблицу профиле
-        """
         try:
             logger.info(f'Пользователь {request.user} хочет изменить фото')
             instance = Gallery.objects.get(pk=pk)

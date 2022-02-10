@@ -20,11 +20,13 @@ INSTALLED_APPS = [
     'rest_framework',
     'djoser',
     'django_cleanup.apps.CleanupConfig',
+    'channels',
 
     'accounts',
     'additional_entities',
     'film_places',
     'gallery',
+    'chat',
 ]
 
 MIDDLEWARE = [
@@ -57,6 +59,25 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'photodel.wsgi.application'
+ASGI_APPLICATION = 'photodel.routing.application'
+
+
+# To production
+# CHANNEL_LAYERS = {
+#     'default': {
+#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
+#         'CONFIG': {
+#             "hosts": [('127.0.0.1', 6379)],
+#         },
+#     },
+# }
+
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.mail.ru'

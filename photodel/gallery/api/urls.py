@@ -17,6 +17,8 @@ urlpatterns = [
           name='list_user_albums'),
      path('album/list_photos/<int:pk>/', AlbumViewSet.as_view({'get': "list_album_photos"}),
           name='list_album_photos'),
+     path('album/list_photos_without_album/<int:pk>/', AlbumViewSet.as_view({'get': "list_photos_not_in_album"}),
+          name='list_photos_not_in_album'),
      path('album/add_photos/', AlbumViewSet.as_view({'post': "add_to_album_photos"}),
           name='list_user_albums'),
      path('album/delete_photos/', AlbumViewSet.as_view({'post': "delete_from_album_photos"}),

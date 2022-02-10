@@ -60,6 +60,7 @@ class Profile(models.Model):
     is_adult = models.BooleanField(default=False)
     is_show_nu_photo = models.BooleanField(default=False)
     is_hide = models.BooleanField(default=False)
+    user_channel_name = models.CharField(max_length=255, null=True, blank=True)
     user = models.OneToOneField(User, on_delete=models.CASCADE)
 
     def __str__(self):

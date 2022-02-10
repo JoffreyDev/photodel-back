@@ -23,7 +23,7 @@ class AlbumListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Album
-        fields = ['name_album', 'id', 'main_photo_id', 'profile', 'city', 'likes', 'comments', 'favorites', ]
+        fields = ['name_album', 'id', 'main_photo_id', 'profile', 'likes', 'comments', 'favorites', ]
 
     def get_likes(self, obj):
         return AlbumLike.objects.filter(album=obj.id).count()
@@ -33,6 +33,18 @@ class AlbumListSerializer(serializers.ModelSerializer):
 
     def get_favorites(self, obj):
         return AlbumFavorite.objects.filter(album=obj.id).count()
+
+
+class AlbumForGallerySerializer(serializers.ModelSerializer):
+    main_photo_id = ImageSerializer()
+    count_photos = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Album
+        fields = ['name_album', 'main_photo_id', 'count_photos', ]
+
+    def get_count_photos(self, data):
+        return data.gallery_set.all().count()
 
 
 class AlbumCreateSerializer(serializers.ModelSerializer):
@@ -104,7 +116,7 @@ class GalleryCreateSerializer(serializers.ModelSerializer):
         model = Gallery
         fields = ['gallery_image', 'name_image', 'description', 'place_location',
                   'string_place_location', 'photo_camera', 'focal_len', 'excerpt', 'flash',
-                  'category', 'tags', 'album', 'profile', 'aperture', ]
+                  'category', 'tags', 'album', 'profile', 'aperture', 'is_sell', ]
 
     def validate(self, data):
         """
@@ -131,7 +143,8 @@ class GalleryForCardListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Gallery
-        fields = ['gallery_image', 'id', 'views', 'likes', 'comments', 'favorites', ]
+        fields = ['gallery_image', 'id', 'views', 'likes', 'comments',
+                  'favorites', 'name_image', 'string_place_location', ]
 
     def get_likes(self, obj):
         return GalleryLike.objects.filter(gallery=obj.id).count()
@@ -144,11 +157,13 @@ class GalleryForCardListSerializer(serializers.ModelSerializer):
 
 
 class GalleryListSerializer(serializers.ModelSerializer):
+    album = AlbumForGallerySerializer(read_only=True, many=True)
+
     class Meta:
         model = Gallery
         fields = ['gallery_image', 'name_image', 'description', 'place_location',
                   'photo_camera', 'focal_len', 'excerpt', 'flash', 'views', 'string_place_location',
-                  'tags', 'category', 'album', 'profile', ]
+                  'tags', 'category', 'album', 'profile', 'was_added', 'is_sell', ]
 
 
 class PhotoSessionCreateSerializer(serializers.ModelSerializer):
