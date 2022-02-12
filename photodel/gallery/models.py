@@ -27,6 +27,7 @@ class Album(models.Model):
     description_album = models.TextField(blank=True)
     main_photo_id = models.ForeignKey(Image, on_delete=models.SET(get_photo), blank=True, null=True)
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    is_hidden = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name_album
@@ -74,6 +75,7 @@ class Gallery(models.Model):
     last_ip_user = models.CharField(max_length=18, null=True, blank=True)
     views = models.IntegerField(default=0, validators=[MinValueValidator(0)])
     was_added = models.DateTimeField(default=timezone.localtime)
+    is_hidden = models.BooleanField(default=False)
     category = models.ManyToManyField(Specialization)
     album = models.ManyToManyField(Album, blank=True)
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)

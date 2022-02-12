@@ -3,11 +3,12 @@ from gallery.models import Album, Gallery, Image, GalleryComment, GalleryLike, G
     AlbumComment, AlbumLike, AlbumFavorite, PhotoSessionComment, PhotoSessionLike, \
     PhotoSessionFavorite, PhotoSession
 from services.film_places_service import ImageBase64Field, Base64ImageField
-from accounts.api.serializers import ProfilePublicSerializer
+from accounts.api.serializers import ProfilePublicSerializer, SpecializationListSerializer, \
+    ProfileForGallerySerializer
 
 
 class ImageSerializer(serializers.ModelSerializer):
-    photo = Base64ImageField(max_length=None, use_url=True)
+    photo = ImageBase64Field(max_length=None, use_url=True, allow_null=True)
 
     class Meta:
         model = Image
@@ -41,7 +42,7 @@ class AlbumForGallerySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Album
-        fields = ['name_album', 'main_photo_id', 'count_photos', ]
+        fields = ['name_album', 'main_photo_id', 'count_photos', 'id', ]
 
     def get_count_photos(self, data):
         return data.gallery_set.all().count()
@@ -103,7 +104,7 @@ class AlbumCommentCreateSerializer(serializers.ModelSerializer):
 
 
 class AlbumCommentListSerializer(serializers.ModelSerializer):
-    sender_comment = ProfilePublicSerializer()
+    sender_comment = ProfileForGallerySerializer()
     album = AlbumListSerializer()
 
     class Meta:
@@ -116,7 +117,7 @@ class GalleryCreateSerializer(serializers.ModelSerializer):
         model = Gallery
         fields = ['gallery_image', 'name_image', 'description', 'place_location',
                   'string_place_location', 'photo_camera', 'focal_len', 'excerpt', 'flash',
-                  'category', 'tags', 'album', 'profile', 'aperture', 'is_sell', ]
+                  'category', 'tags', 'album', 'profile', 'aperture', 'is_sell', 'is_hidden', ]
 
     def validate(self, data):
         """
@@ -157,13 +158,29 @@ class GalleryForCardListSerializer(serializers.ModelSerializer):
 
 
 class GalleryListSerializer(serializers.ModelSerializer):
+    gallery_image = ImageSerializer()
     album = AlbumForGallerySerializer(read_only=True, many=True)
+    category = SpecializationListSerializer(read_only=True, many=True)
+    likes = serializers.SerializerMethodField()
+    comments = serializers.SerializerMethodField()
+    favorites = serializers.SerializerMethodField()
+    profile = ProfileForGallerySerializer()
 
     class Meta:
         model = Gallery
-        fields = ['gallery_image', 'name_image', 'description', 'place_location',
+        fields = ['gallery_image', 'name_image', 'description', 'place_location', 'is_sell',
                   'photo_camera', 'focal_len', 'excerpt', 'flash', 'views', 'string_place_location',
-                  'tags', 'category', 'album', 'profile', 'was_added', 'is_sell', ]
+                  'tags', 'category', 'album', 'profile', 'was_added', 'likes',
+                  'comments', 'favorites']
+
+    def get_likes(self, obj):
+        return GalleryLike.objects.filter(gallery=obj.id).count()
+
+    def get_comments(self, obj):
+        return GalleryComment.objects.filter(gallery=obj.id).count()
+
+    def get_favorites(self, obj):
+        return GalleryFavorite.objects.filter(gallery=obj.id).count()
 
 
 class PhotoSessionCreateSerializer(serializers.ModelSerializer):
@@ -200,7 +217,7 @@ class GalleryCommentCreateSerializer(serializers.ModelSerializer):
 
 
 class GalleryCommentListSerializer(serializers.ModelSerializer):
-    sender_comment = ProfilePublicSerializer()
+    sender_comment = ProfileForGallerySerializer()
     gallery = GalleryForCardListSerializer()
 
     class Meta:

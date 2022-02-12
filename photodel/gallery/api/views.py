@@ -140,6 +140,15 @@ class AlbumViewSet(viewsets.ViewSet):
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message" 'Фото не было найдено. '
                                                                       'Пожалуйства обратитесь в поддержку'})
 
+    def delete_album(self, request, pk):
+        #  TODO permissions
+        try:
+            instance = Album.objects.get(id=pk)
+            instance.delete()
+            return Response(status=status.HTTP_200_OK)
+        except AlbumFavorite.DoesNotExist:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Альбом не был найден'})
+
     def get_permissions(self):
         try:
             return [permission() for permission in self.permission_classes_by_action[self.action]]
@@ -311,6 +320,15 @@ class GalleryViewSet(viewsets.ViewSet):
         photos = Gallery.objects.filter(profile=pk)
         serializer = GalleryForCardListSerializer(photos, many=True)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
+
+    def delete_photo(self, request, pk):
+        #  TODO permissions
+        try:
+            instance = Gallery.objects.get(id=pk)
+            instance.delete()
+            return Response(status=status.HTTP_200_OK)
+        except Gallery.DoesNotExist:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Фото не был найдено'})
 
     def get_permissions(self):
         try:

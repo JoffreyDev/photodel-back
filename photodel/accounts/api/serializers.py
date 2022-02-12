@@ -176,6 +176,14 @@ class ProfilePublicSerializer(serializers.ModelSerializer):
                   'spec_model_or_photographer', 'ready_status', ]
 
 
+class ProfileForGallerySerializer(serializers.ModelSerializer):
+    avatar = ImageBase64Field()
+
+    class Meta:
+        model = Profile
+        fields = ['id', 'name', 'surname', 'avatar', 'user_channel_name', ]
+
+
 class ProfilePrivateSerializer(serializers.ModelSerializer):
     filming_geo = serializers.SerializerMethodField()
     languages = serializers.SerializerMethodField()
