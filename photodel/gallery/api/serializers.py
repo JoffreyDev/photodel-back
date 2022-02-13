@@ -8,7 +8,6 @@ from accounts.api.serializers import ProfilePublicSerializer, SpecializationList
 
 
 class ImageSerializer(serializers.ModelSerializer):
-    photo = ImageBase64Field(max_length=None, use_url=True, allow_null=True)
 
     class Meta:
         model = Image
@@ -115,7 +114,7 @@ class AlbumCommentListSerializer(serializers.ModelSerializer):
 class GalleryCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Gallery
-        fields = ['gallery_image', 'name_image', 'description', 'place_location',
+        fields = ['gallery_image', 'name_image', 'description', 'place_location', 'iso',
                   'string_place_location', 'photo_camera', 'focal_len', 'excerpt', 'flash',
                   'category', 'tags', 'album', 'profile', 'aperture', 'is_sell', 'is_hidden', ]
 
@@ -168,10 +167,10 @@ class GalleryListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Gallery
-        fields = ['gallery_image', 'name_image', 'description', 'place_location', 'is_sell',
+        fields = ['id', 'gallery_image', 'name_image', 'description', 'place_location', 'is_sell',
                   'photo_camera', 'focal_len', 'excerpt', 'flash', 'views', 'string_place_location',
-                  'tags', 'category', 'album', 'profile', 'was_added', 'likes',
-                  'comments', 'favorites']
+                  'tags', 'category', 'album', 'profile', 'was_added', 'likes', 'is_hidden',
+                  'comments', 'favorites', 'aperture', 'iso', ]
 
     def get_likes(self, obj):
         return GalleryLike.objects.filter(gallery=obj.id).count()

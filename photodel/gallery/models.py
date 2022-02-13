@@ -70,6 +70,7 @@ class Gallery(models.Model):
     focal_len = models.CharField(max_length=40)
     excerpt = models.CharField(max_length=40)
     aperture = models.CharField(max_length=40, null=True)
+    iso = models.CharField(max_length=40, null=True)
     flash = models.CharField(max_length=40)
     is_sell = models.BooleanField(default=False)
     last_ip_user = models.CharField(max_length=18, null=True, blank=True)

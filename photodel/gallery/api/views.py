@@ -13,7 +13,7 @@ from .serializers import AlbumListSerializer, AlbumCreateSerializer, GalleryList
     GalleryCommentCreateSerializer, PhotoSessionCreateSerializer, ImageSerializer, \
     AlbumFavoriteCreateSerializer, AlbumFavoriteListSerializer, AlbumLikeCreateSerializer, \
     AlbumCommentCreateSerializer, AlbumCommentListSerializer, AlbumUpdateSerializer
-from .permissions import IsOwnerImage, IsAddOrDeletePhotoFromAlbum, IsCreatePhoto
+from .permissions import IsOwnerImage, IsAddOrDeletePhotoFromAlbum, IsCreatePhoto, IsDeleteAlbum
 
 import logging
 
@@ -47,6 +47,7 @@ class AlbumViewSet(viewsets.ViewSet):
         'list_photos_not_in_album': [permissions.IsAuthenticated, ],
         'add_to_album_photos': [permissions.IsAuthenticated, IsAddOrDeletePhotoFromAlbum, ],
         'delete_from_album_photos': [permissions.IsAuthenticated, IsAddOrDeletePhotoFromAlbum, ],
+        'delete_album': [permissions.IsAuthenticated, IsDeleteAlbum, ],
         }
 
     def create_album(self, request):
@@ -141,12 +142,11 @@ class AlbumViewSet(viewsets.ViewSet):
                                                                       'Пожалуйства обратитесь в поддержку'})
 
     def delete_album(self, request, pk):
-        #  TODO permissions
         try:
             instance = Album.objects.get(id=pk)
             instance.delete()
             return Response(status=status.HTTP_200_OK)
-        except AlbumFavorite.DoesNotExist:
+        except Album.DoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Альбом не был найден'})
 
     def get_permissions(self):
@@ -274,6 +274,7 @@ class GalleryViewSet(viewsets.ViewSet):
     permission_classes_by_action = {
         'create_photo': [permissions.IsAuthenticated, IsCreatePhoto, ],
         'partial_update_photo': [permissions.IsAuthenticated, ],
+        'delete_photo': [permissions.IsAuthenticated, IsDeleteAlbum, ],
     }
 
     def create_photo(self, request):
@@ -324,10 +325,12 @@ class GalleryViewSet(viewsets.ViewSet):
     def delete_photo(self, request, pk):
         #  TODO permissions
         try:
-            instance = Gallery.objects.get(id=pk)
+            instance = Image.objects.get(id=Gallery.objects.get(id=pk).gallery_image.id)
             instance.delete()
             return Response(status=status.HTTP_200_OK)
         except Gallery.DoesNotExist:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Фото не был найдено'})
+        except Image.DoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Фото не был найдено'})
 
     def get_permissions(self):
