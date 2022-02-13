@@ -36,6 +36,7 @@ class Album(models.Model):
 class AlbumComment(models.Model):
     content = models.TextField()
     timestamp = models.DateTimeField(default=timezone.localtime)
+    answer_id_comment = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True)
     sender_comment = models.ForeignKey(Profile, on_delete=models.CASCADE)
     album = models.ForeignKey(Album, on_delete=models.CASCADE)
 
@@ -88,6 +89,7 @@ class Gallery(models.Model):
 class GalleryComment(models.Model):
     content = models.TextField()
     timestamp = models.DateTimeField(default=timezone.localtime)
+    answer_id_comment = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True)
     sender_comment = models.ForeignKey(Profile, on_delete=models.CASCADE)
     gallery = models.ForeignKey(Gallery, on_delete=models.CASCADE)
 
@@ -115,9 +117,13 @@ class PhotoSession(models.Model):
     session_name = models.CharField(max_length=40)
     session_description = models.TextField(blank=True)
     session_location = gis_models.PointField(srid=4326)
+    string_session_location = gis_models.PointField(srid=4326, null=True, blank=True)
     session_date = models.DateField()
-    session_type = models.CharField(max_length=50)
+    session_сategory = models.ForeignKey(Specialization, on_delete=models.SET_NULL, null=True)
     photos = models.ManyToManyField(Image)
+    last_ip_user = models.CharField(max_length=18, null=True, blank=True)
+    views = models.IntegerField(default=0, validators=[MinValueValidator(0)])
+    is_hidden = models.BooleanField(default=False)
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -127,6 +133,7 @@ class PhotoSession(models.Model):
 class PhotoSessionComment(models.Model):
     content = models.TextField()
     timestamp = models.DateTimeField(default=timezone.localtime)
+    answer_id_comment = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True)
     sender_comment = models.ForeignKey(Profile, on_delete=models.CASCADE)
     photo_session = models.ForeignKey(PhotoSession, on_delete=models.CASCADE)
 

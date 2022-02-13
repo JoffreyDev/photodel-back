@@ -7,6 +7,7 @@ from accounts.api.serializers import ProfilePublicSerializer, SpecializationList
     ProfileForGallerySerializer
 
 
+# сериализаторы фото
 class ImageSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -14,6 +15,7 @@ class ImageSerializer(serializers.ModelSerializer):
         fields = ['id', 'photo', 'profile', ]
 
 
+# сериализаторы альбома
 class AlbumListSerializer(serializers.ModelSerializer):
     likes = serializers.SerializerMethodField()
     comments = serializers.SerializerMethodField()
@@ -108,9 +110,10 @@ class AlbumCommentListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AlbumComment
-        fields = ['content', 'timestamp', 'sender_comment', 'album', ]
+        fields = ['content', 'timestamp', 'sender_comment', 'album', 'answer_id_comment', ]
 
 
+# сериализаторы фото в галерее
 class GalleryCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Gallery
@@ -182,12 +185,6 @@ class GalleryListSerializer(serializers.ModelSerializer):
         return GalleryFavorite.objects.filter(gallery=obj.id).count()
 
 
-class PhotoSessionCreateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PhotoSession
-        fields = '__all__'
-
-
 class GalleryFavoriteCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = GalleryFavorite
@@ -221,4 +218,89 @@ class GalleryCommentListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GalleryComment
-        fields = ['content', 'timestamp', 'sender_comment', 'gallery', ]
+        fields = ['content', 'timestamp', 'sender_comment', 'gallery', 'answer_id_comment', ]
+
+
+# сериализаторы фотоессий
+class PhotoSessionCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PhotoSession
+        fields = '__all__'
+
+    def validate(self, data):
+        profile = self.context['profile']
+        user_photo_session = PhotoSession.objects.filter(profile=profile, session_name=data.get('session_name'))
+        if user_photo_session:
+            raise serializers.ValidationError({'error': 'Фотосессия с таким названием уже существует'})
+        return data
+
+
+class PhotoSessionForCardListSerializer(serializers.ModelSerializer):
+    main_photo = serializers.SerializerMethodField()
+    likes = serializers.SerializerMethodField()
+    comments = serializers.SerializerMethodField()
+    favorites = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Gallery
+        fields = ['id', 'views', 'likes', 'comments', 'favorites', 'main_photo', ]
+
+    def get_likes(self, obj):
+        return PhotoSessionLike.objects.filter(photo_session=obj.id).count()
+
+    def get_comments(self, obj):
+        return PhotoSessionComment.objects.filter(photo_session=obj.id).count()
+
+    def get_favorites(self, obj):
+        return PhotoSessionFavorite.objects.filter(photo_session=obj.id).count()
+
+    def get_main_photo(self, data):
+        return '' if not data.photos.all() else data.photos.first().photo.url
+
+
+class PhotoSessionListSerializer(serializers.ModelSerializer):
+    session_сategory = SpecializationListSerializer()
+    photos = ImageSerializer(read_only=True, many=True)
+    profile = ProfileForGallerySerializer()
+
+    class Meta:
+        model = PhotoSession
+        fields = ['id', 'session_name', 'session_description', 'session_location',
+                  'string_session_location', 'session_date', 'session_сategory',
+                  'photos', 'views', 'is_hidden', 'profile', ]
+
+
+class PhotoSessionFavoriteCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PhotoSessionFavorite
+        fields = '__all__'
+
+
+class PhotoSessionFavoriteListSerializer(serializers.ModelSerializer):
+    profile = ProfilePublicSerializer()
+    photo_session = PhotoSessionListSerializer()
+
+    class Meta:
+        model = PhotoSessionFavorite
+        fields = ['profile', 'photo_session', ]
+
+
+class PhotoSessionLikeCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PhotoSessionLike
+        fields = '__all__'
+
+
+class PhotoSessionCommentCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PhotoSessionComment
+        fields = '__all__'
+
+
+class PhotoSessionCommentListSerializer(serializers.ModelSerializer):
+    sender_comment = ProfileForGallerySerializer()
+    photo_session = PhotoSessionListSerializer()
+
+    class Meta:
+        model = PhotoSessionComment
+        fields = ['content', 'timestamp', 'sender_comment', 'photo_session', 'answer_id_comment', ]

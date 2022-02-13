@@ -16,7 +16,7 @@ def is_unique_favorite(obj_id, profile_id, model):
         return False
     if model == 'album' and AlbumFavorite.objects.filter(album=obj_id, profile=profile_id):
         return False
-    if model == 'photo_session' and PhotoSessionLike.objects.filter(gallery=obj_id, profile=profile_id):
+    if model == 'photo_session' and PhotoSessionFavorite.objects.filter(photo_session=obj_id, profile=profile_id):
         return False
     return True
 
@@ -33,7 +33,7 @@ def is_unique_like(obj_id, profile_id, model):
         return False
     if model == 'album' and AlbumLike.objects.filter(album=obj_id, profile=profile_id):
         return False
-    if model == 'photo_session' and PhotoSessionFavorite.objects.filter(gallery=obj_id, profile=profile_id):
+    if model == 'photo_session' and PhotoSessionLike.objects.filter(photo_session=obj_id, profile=profile_id):
         return False
     return True
 

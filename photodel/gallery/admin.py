@@ -50,7 +50,7 @@ class GalleryFavoriteAdmin(admin.ModelAdmin):
 
 @admin.register(PhotoSession)
 class PhotoSessionAdmin(admin.ModelAdmin):
-    list_display = ['session_name', 'session_location', 'session_date', 'profile', ]
+    list_display = ['session_name', 'session_location', 'session_date', 'profile', 'id', ]
 
 
 @admin.register(PhotoSessionComment)
