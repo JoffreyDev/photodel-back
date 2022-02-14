@@ -1,7 +1,7 @@
 from accounts.models import Profile
 from django.db.models import Q
 from django.contrib.gis.measure import D
-from services.film_places_service import convert_string_coordinates_to_point_obj
+from services.accounts_service import convert_string_coordinates_to_point_obj
 from django.utils import timezone
 
 from itertools import chain

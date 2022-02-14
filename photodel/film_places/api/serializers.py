@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from film_places.models import CategoryFilmPlaces, FilmPlaces, FilmPlacesFavorite, FilmPlacesComment, FilmPlacesLike
-from services.film_places_service import check_unique_film_places
-from accounts.api.serializers import ProfilePublicSerializer
+from accounts.api.serializers import ProfileForGallerySerializer
+from gallery.api.serializers import ImageSerializer
+from services.gallery_service import diff_between_two_points
 
 
 class CategoryFilmPlacesListSerializer(serializers.ModelSerializer):
@@ -10,7 +11,7 @@ class CategoryFilmPlacesListSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = CategoryFilmPlaces
-        fields = ['name_category', ]
+        fields = ['name_category', 'id', ]
 
 
 class FilmPlacesCreateSerializer(serializers.ModelSerializer):
@@ -19,21 +20,46 @@ class FilmPlacesCreateSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = FilmPlaces
-        fields = ['name_place', 'description', 'photo_camera',
-                  'cost', 'payment', 'place_location', 'category', 'profile', 'rel_object', ]
+        fields = ['name_place', 'description', 'photo_camera', 'place_image', 'string_place_location',
+                  'cost', 'payment', 'place_location', 'category', 'profile', 'is_hidden', ]
 
     def validate(self, data):
-        place = check_unique_film_places(data['place_location'])
-        if place:
-            data['rel_object'] = place
+        profile = self.context['profile']
+        user_place = FilmPlaces.objects.filter(profile=profile, name_place=data.get('name_place'))
+        if user_place:
+            raise serializers.ValidationError({'error': 'Место съемки с таким названием уже существует'})
         return data
 
 
-class FilmPlacesListSerializer(serializers.ModelSerializer):
+class FilmPlacesForCardSerializer(serializers.ModelSerializer):
+    likes = serializers.SerializerMethodField()
+    comments = serializers.SerializerMethodField()
+    favorites = serializers.SerializerMethodField()
+
     class Meta:
         model = FilmPlaces
-        fields = ['name_place', 'description', 'photo_camera', 'place_image', 'views',
-                  'cost', 'payment', 'place_location', 'category', 'profile', 'rel_object', ]
+        fields = ['id', 'views', 'likes', 'comments', 'favorites', ]
+
+    def get_likes(self, obj):
+        return FilmPlacesLike.objects.filter(place=obj.id).count()
+
+    def get_comments(self, obj):
+        return FilmPlacesComment.objects.filter(place=obj.id).count()
+
+    def get_favorites(self, obj):
+        return FilmPlacesFavorite.objects.filter(place=obj.id).count()
+
+
+class FilmPlacesListSerializer(serializers.ModelSerializer):
+    place_image = ImageSerializer(read_only=True, many=True)
+    category = CategoryFilmPlacesListSerializer(read_only=True, many=True)
+    profile = ProfileForGallerySerializer()
+
+    class Meta:
+        model = FilmPlaces
+        fields = ['id', 'name_place', 'description', 'photo_camera', 'place_image',
+                  'views', 'string_place_location', 'cost', 'payment',
+                  'place_location', 'category', 'profile', 'is_hidden', ]
 
 
 class FilmPlacesFavoriteCreateSerializer(serializers.ModelSerializer):
@@ -43,12 +69,28 @@ class FilmPlacesFavoriteCreateSerializer(serializers.ModelSerializer):
 
 
 class FilmPlacesFavoriteListSerializer(serializers.ModelSerializer):
-    profile = ProfilePublicSerializer()
+    profile = ProfileForGallerySerializer()
     place = FilmPlacesListSerializer()
+    likes = serializers.SerializerMethodField()
+    comments = serializers.SerializerMethodField()
+    favorites = serializers.SerializerMethodField()
+    diff_distance = serializers.SerializerMethodField()
 
     class Meta:
         model = FilmPlacesFavorite
-        fields = ['profile', 'place', ]
+        fields = ['profile', 'place', 'likes', 'comments', 'favorites', 'id', 'diff_distance', ]
+
+    def get_likes(self, obj):
+        return FilmPlacesLike.objects.filter(place=obj.place.id).count()
+
+    def get_comments(self, obj):
+        return FilmPlacesComment.objects.filter(place=obj.place.id).count()
+
+    def get_favorites(self, obj):
+        return FilmPlacesFavorite.objects.filter(place=obj.place.id).count()
+
+    def get_diff_distance(self, data):
+        return diff_between_two_points(self.context.get('user_coords'), data.place.place_location)
 
 
 class FilmPlacesLikeCreateSerializer(serializers.ModelSerializer):
@@ -62,12 +104,20 @@ class FilmPlacesCommentCreateSerializer(serializers.ModelSerializer):
         model = FilmPlacesComment
         fields = '__all__'
 
+    def validate(self, data):
+        comment = data.get('answer_id_comment')
+        if not comment:
+            return data
+        if comment.answer_id_comment:
+            raise serializers.ValidationError({'error': 'Вы не можете ответить на ответ другого пользователя'})
+        return data
+
 
 class FilmPlacesCommentListSerializer(serializers.ModelSerializer):
-    sender_comment = ProfilePublicSerializer()
+    sender_comment = ProfileForGallerySerializer()
     place = FilmPlacesListSerializer()
 
     class Meta:
         model = FilmPlacesComment
-        fields = ['content', 'timestamp', 'sender_comment', 'place', ]
+        fields = ['content', 'timestamp', 'sender_comment', 'place', 'id', ]
 

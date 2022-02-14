@@ -21,10 +21,11 @@ class FilmPlaces(models.Model):
     cost = models.FloatField(validators=[MinValueValidator(0.0)])
     payment = models.CharField(max_length=40)
     place_location = gis_models.PointField(srid=4326)
+    string_place_location = models.CharField(max_length=40, null=True, blank=True)
     views = models.IntegerField(default=0, validators=[MinValueValidator(0.0)])
+    last_ip_user = models.CharField(max_length=18, null=True, blank=True)
+    is_hidden = models.BooleanField(default=False)
     category = models.ManyToManyField(CategoryFilmPlaces)
-    rel_object = models.ForeignKey('self', on_delete=models.DO_NOTHING, blank=True, null=True)
-    is_main = models.BooleanField(default=True)
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -34,6 +35,7 @@ class FilmPlaces(models.Model):
 class FilmPlacesComment(models.Model):
     content = models.TextField()
     timestamp = models.DateTimeField(default=timezone.localtime)
+    answer_id_comment = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True)
     sender_comment = models.ForeignKey(Profile, on_delete=models.CASCADE)
     place = models.ForeignKey(FilmPlaces, on_delete=models.CASCADE)
 

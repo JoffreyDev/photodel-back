@@ -6,10 +6,21 @@ from .views import FilmPlacesViewSet, CategoryFilmPlacesViewSet, \
 app_name = 'film_places'
 
 urlpatterns = [
+    path('category/list/', CategoryFilmPlacesViewSet.as_view({'get': "list_category"}),
+         name='list_category'),
+
     path('create/', FilmPlacesViewSet.as_view({'post': "create_place"}),
          name='create_place'),
-    path('list/', CategoryFilmPlacesViewSet.as_view({'get': "list_category"}),
-         name='list_category'),
+
+    path('update/<int:pk>/', FilmPlacesViewSet.as_view({'post': "partial_update_place"}),
+         name='partial_update_place'),
+    path('<int:pk>/', FilmPlacesViewSet.as_view({'get': "retrieve_place"}),
+         name='retrieve_place'),
+    path('list/<int:pk>/', FilmPlacesViewSet.as_view({'get': "list_place"}),
+         name='list_place'),
+    path('delete/<int:pk>/', FilmPlacesViewSet.as_view({'delete': "delete_place"}),
+         name='delete_place'),
+
     path('like/create/', FilmPlacesLikeViewSet.as_view({'post': "create_like"}),
          name='place_create_like'),
     path('like/delete/<int:pk>/', FilmPlacesLikeViewSet.as_view({'delete': "delete_like"}),

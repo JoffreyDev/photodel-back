@@ -4,7 +4,7 @@ from .models import FilmPlaces, CategoryFilmPlaces, FilmPlacesComment, FilmPlace
 
 @admin.register(FilmPlaces)
 class FilmPlacesAdmin(admin.ModelAdmin):
-    list_display = ['profile', 'rel_object', 'id', ]
+    list_display = ['profile', 'id', ]
 
 
 @admin.register(CategoryFilmPlaces)
@@ -14,7 +14,7 @@ class CategoryFilmPlacesAdmin(admin.ModelAdmin):
 
 @admin.register(FilmPlacesComment)
 class FilmPlacesCommentAdmin(admin.ModelAdmin):
-    list_display = ['content', 'timestamp', 'sender_comment', 'place', ]
+    list_display = ['id', 'timestamp', 'sender_comment', 'place', ]
 
 
 @admin.register(FilmPlacesLike)

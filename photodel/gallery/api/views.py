@@ -16,7 +16,7 @@ from .serializers import AlbumListSerializer, AlbumCreateSerializer, GalleryList
     PhotoSessionFavoriteCreateSerializer, PhotoSessionFavoriteListSerializer, \
     PhotoSessionLikeCreateSerializer, PhotoSessionCommentListSerializer, \
     PhotoSessionCommentCreateSerializer, PhotoSessionForCardListSerializer, PhotoSessionListSerializer
-from .permissions import IsOwnerImage, IsAddOrDeletePhotoFromAlbum, IsCreatePhoto, IsDeleteAlbum
+from .permissions import IsOwnerImage, IsAddOrDeletePhotoFromAlbum, IsCreatePhoto
 
 import logging
 
@@ -280,7 +280,7 @@ class GalleryViewSet(viewsets.ViewSet):
     permission_classes_by_action = {
         'create_photo': [permissions.IsAuthenticated, IsCreatePhoto, ],
         'partial_update_photo': [permissions.IsAuthenticated, ],
-        'delete_photo': [permissions.IsAuthenticated, IsDeleteAlbum, ],
+        'delete_photo': [permissions.IsAuthenticated, ],
     }
 
     def create_photo(self, request):
@@ -329,7 +329,6 @@ class GalleryViewSet(viewsets.ViewSet):
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
     def delete_photo(self, request, pk):
-        #  TODO ПЕРЕДЕЛАТЬ!!!!!!!!!!!!!!
         try:
             instance = Image.objects.get(id=Gallery.objects.get(id=pk).gallery_image.id, profile__user=request.user)
             instance.delete()
@@ -544,7 +543,8 @@ class PhotoSessionFavoriteViewSet(viewsets.ViewSet):
     def list_favorite(self, request):
         logger.info(f'Пользователь {request.user} хочет получить список избранных фотосессий')
         queryset = PhotoSessionFavorite.objects.filter(profile__user=request.user).select_related()
-        serializer = PhotoSessionFavoriteListSerializer(queryset, many=True)
+        serializer = PhotoSessionFavoriteListSerializer(queryset, many=True,
+                                                        context={'user_coords': request.GET.get('user_coords')})
         logger.info(f'Пользователь {request.user} успешно получил список избранных фотосессий')
         return Response(serializer.data, status=status.HTTP_200_OK)
 

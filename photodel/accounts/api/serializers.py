@@ -3,12 +3,14 @@ from django.contrib.auth.models import User, AnonymousUser
 from rest_framework import serializers
 from accounts.models import Profile, VerificationCode, ProCategory, Specialization, \
     ProfileComment, ProfileLike, ProfileFavorite
-from services.film_places_service import ImageBase64Field, Base64ImageField
+from services.gallery_service import ImageBase64Field, Base64ImageField, diff_between_two_points
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import password_validation
 from django.contrib.auth.models import update_last_login
 from additional_entities.api.serializers import CountryListSerializer, LanguageListSerializer
+from services.accounts_service import check_profile_location
 import json
+
 
 
 def get_tokens_for_user(user):
@@ -214,6 +216,29 @@ class ProfilePrivateSerializer(serializers.ModelSerializer):
         return json.dumps([{obj.type_pro.id: obj.type_pro.name_category}])
 
 
+class ProfileForFavoriteSerializer(serializers.ModelSerializer):
+    spec_model_or_photographer = SpecializationListSerializer(read_only=True, many=True)
+    type_pro = ProCategoryListSerializer()
+    rating = serializers.SerializerMethodField()
+    diff_distance = serializers.SerializerMethodField()
+    likes = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Profile
+        fields = ['id', 'name', 'surname', 'user_channel_name', 'type_pro',
+                  'spec_model_or_photographer', 'likes', 'diff_distance', 'rating', ]
+
+    def get_likes(self, obj):
+        return ProfileLike.objects.filter(receiver_like=obj.id).count()
+
+    def get_rating(self, obj):
+        return ''
+
+    def get_diff_distance(self, obj):
+        location = check_profile_location(obj)
+        return diff_between_two_points(self.context.get('user_coords'), location)
+
+
 class ProfileFavoriteCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProfileFavorite
@@ -221,8 +246,7 @@ class ProfileFavoriteCreateSerializer(serializers.ModelSerializer):
 
 
 class ProfileFavoriteListSerializer(serializers.ModelSerializer):
-    sender_favorite = ProfilePublicSerializer()
-    receiver_favorite = ProfilePublicSerializer()
+    receiver_favorite = ProfileForFavoriteSerializer()
 
     class Meta:
         model = ProfileFavorite
@@ -239,6 +263,14 @@ class ProfileCommentCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProfileComment
         fields = '__all__'
+
+    def validate(self, data):
+        comment = data.get('answer_id_comment')
+        if not comment:
+            return data
+        if comment.answer_id_comment:
+            raise serializers.ValidationError({'error': 'Вы не можете ответить на ответ другого пользователя'})
+        return data
 
 
 class ProfileCommentListSerializer(serializers.ModelSerializer):

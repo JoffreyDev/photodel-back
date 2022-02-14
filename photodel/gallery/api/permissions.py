@@ -61,21 +61,3 @@ class IsCreatePhoto(permissions.BasePermission):
             return False
         except Gallery.DoesNotExist:
             return False
-
-
-class IsDeleteAlbum(permissions.BasePermission):
-    """
-    Проверка на удаление альбома
-    """
-    message = {"error": "Вы не можете удалить альбом, альбом не являеется вашими"}
-
-    def has_permission(self, request, view):
-        if request.method in SAFE_METHODS:
-            return True
-        try:
-            album = view.kwargs['pk']
-            if album and Album.objects.get(id=album).profile.user != request.user:
-                return False
-            return True
-        except Album.DoesNotExist:
-            return False

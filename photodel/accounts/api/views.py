@@ -255,7 +255,8 @@ class ProfileFavoriteViewSet(viewsets.ViewSet):
     def list_favorite(self, request):
         logger.info(f'Пользователь {request.user} хочет получить список избранных профилей')
         queryset = ProfileFavorite.objects.filter(sender_favorite__user=request.user).select_related()
-        serializer = ProfileFavoriteListSerializer(queryset, many=True)
+        serializer = ProfileFavoriteListSerializer(queryset, many=True,
+                                                   context={'user_coords': request.GET.get('user_coords')})
         logger.info(f'Пользователь {request.user} успешно получил список профилей')
         return Response(serializer.data, status=status.HTTP_200_OK)
 

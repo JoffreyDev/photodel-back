@@ -5,11 +5,12 @@ from django.core.validators import validate_email
 from django.core.mail import send_mail
 from django.conf import settings
 from rest_framework import serializers
-
+from django.contrib.gis.geos import Point
 from accounts.models import VerificationCode, Profile
-from gallery.models import GalleryFavorite, GalleryLike
 from smtplib import SMTPException
+from django.utils import timezone
 import random
+
 
 
 def custom_paginator(queryset, request):
@@ -133,3 +134,32 @@ def check_is_unique_email(email, user):
     profile = Profile.objects.filter(email=email).exclude(user=user)
     if email and profile.exists():
         raise serializers.ValidationError("Такой емейл уже существует")
+
+
+def convert_string_coordinates_to_point_obj(coordinates):
+    """
+    Функция конвертации координат в Point объект
+    КоОрдинаты могут быть двух типов SRID=4326;POINT (27.449901 53.903557) и 27.449901 53.903557
+    Если переданные координаты не кооректны для одно из типов, то возврващается координаты г.Москвы
+    """
+    try:
+        split_coord = coordinates.split()
+        if 'SRID' in coordinates:
+            first, second = split_coord[1][1:], split_coord[2][:-1]
+        else:
+            first, second = split_coord[0], split_coord[1]
+        pnt = Point(float(first), float(second))
+        return pnt
+    except Exception:
+        return Point(55.753220, 37.622513)
+
+
+def check_profile_location(queryset):
+    """
+    Функция провери местонахождения профиля
+    Если текущее время больше date_stay_end, значит координаты берутся с location_now
+    иначе координаты берутся location
+    """
+    if queryset.date_stay_end and queryset.date_stay_end > timezone.localtime():
+        return queryset.location_now
+    return queryset.location

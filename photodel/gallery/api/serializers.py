@@ -2,9 +2,9 @@ from rest_framework import serializers
 from gallery.models import Album, Gallery, Image, GalleryComment, GalleryLike, GalleryFavorite, \
     AlbumComment, AlbumLike, AlbumFavorite, PhotoSessionComment, PhotoSessionLike, \
     PhotoSessionFavorite, PhotoSession
-from services.film_places_service import ImageBase64Field, Base64ImageField
 from accounts.api.serializers import ProfilePublicSerializer, SpecializationListSerializer, \
     ProfileForGallerySerializer
+from services.gallery_service import diff_between_two_points
 
 
 # сериализаторы фото
@@ -103,6 +103,14 @@ class AlbumCommentCreateSerializer(serializers.ModelSerializer):
         model = AlbumComment
         fields = '__all__'
 
+    def validate(self, data):
+        comment = data.get('answer_id_comment')
+        if not comment:
+            return data
+        if comment.answer_id_comment:
+            raise serializers.ValidationError({'error': 'Вы не можете ответить на ответ другого пользователя'})
+        return data
+
 
 class AlbumCommentListSerializer(serializers.ModelSerializer):
     sender_comment = ProfileForGallerySerializer()
@@ -192,12 +200,24 @@ class GalleryFavoriteCreateSerializer(serializers.ModelSerializer):
 
 
 class GalleryFavoriteListSerializer(serializers.ModelSerializer):
-    profile = ProfilePublicSerializer()
     gallery = GalleryForCardListSerializer()
+    likes = serializers.SerializerMethodField()
+    comments = serializers.SerializerMethodField()
+    favorites = serializers.SerializerMethodField()
+    profile = ProfileForGallerySerializer()
 
     class Meta:
         model = GalleryFavorite
-        fields = ['profile', 'gallery', ]
+        fields = ['profile', 'gallery', 'id', 'likes', 'favorites', 'comments', ]
+
+    def get_likes(self, obj):
+        return GalleryLike.objects.filter(gallery=obj.id).count()
+
+    def get_comments(self, obj):
+        return GalleryComment.objects.filter(gallery=obj.id).count()
+
+    def get_favorites(self, obj):
+        return GalleryFavorite.objects.filter(gallery=obj.id).count()
 
 
 class GalleryLikeCreateSerializer(serializers.ModelSerializer):
@@ -210,6 +230,14 @@ class GalleryCommentCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = GalleryComment
         fields = '__all__'
+
+    def validate(self, data):
+        comment = data.get('answer_id_comment')
+        if not comment:
+            return data
+        if comment.answer_id_comment:
+            raise serializers.ValidationError({'error': 'Вы не можете ответить на ответ другого пользователя'})
+        return data
 
 
 class GalleryCommentListSerializer(serializers.ModelSerializer):
@@ -225,7 +253,9 @@ class GalleryCommentListSerializer(serializers.ModelSerializer):
 class PhotoSessionCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PhotoSession
-        fields = '__all__'
+        fields = ['session_name', 'session_description', 'session_location',
+                  'string_session_location', 'session_date', 'session_сategory',
+                  'photos', 'is_hidden', 'profile', ]
 
     def validate(self, data):
         profile = self.context['profile']
@@ -259,14 +289,14 @@ class PhotoSessionForCardListSerializer(serializers.ModelSerializer):
 
 
 class PhotoSessionListSerializer(serializers.ModelSerializer):
-    session_сategory = SpecializationListSerializer()
+    session_category = SpecializationListSerializer()
     photos = ImageSerializer(read_only=True, many=True)
     profile = ProfileForGallerySerializer()
 
     class Meta:
         model = PhotoSession
         fields = ['id', 'session_name', 'session_description', 'session_location',
-                  'string_session_location', 'session_date', 'session_сategory',
+                  'string_session_location', 'session_date', 'session_category',
                   'photos', 'views', 'is_hidden', 'profile', ]
 
 
@@ -277,12 +307,28 @@ class PhotoSessionFavoriteCreateSerializer(serializers.ModelSerializer):
 
 
 class PhotoSessionFavoriteListSerializer(serializers.ModelSerializer):
-    profile = ProfilePublicSerializer()
+    profile = ProfileForGallerySerializer()
     photo_session = PhotoSessionListSerializer()
+    likes = serializers.SerializerMethodField()
+    comments = serializers.SerializerMethodField()
+    favorites = serializers.SerializerMethodField()
+    diff_distance = serializers.SerializerMethodField()
 
     class Meta:
         model = PhotoSessionFavorite
-        fields = ['profile', 'photo_session', ]
+        fields = ['id', 'profile', 'photo_session', 'likes', 'comments', 'favorites', 'diff_distance', ]
+
+    def get_likes(self, obj):
+        return GalleryLike.objects.filter(gallery=obj.gallery.id).count()
+
+    def get_comments(self, obj):
+        return GalleryComment.objects.filter(gallery=obj.gallery.id).count()
+
+    def get_favorites(self, obj):
+        return GalleryFavorite.objects.filter(gallery=obj.gallery.id).count()
+
+    def get_diff_distance(self, data):
+        return diff_between_two_points(self.context.get('user_coords'), data.photo_session.session_location)
 
 
 class PhotoSessionLikeCreateSerializer(serializers.ModelSerializer):
@@ -295,6 +341,14 @@ class PhotoSessionCommentCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PhotoSessionComment
         fields = '__all__'
+
+    def validate(self, data):
+        comment = data.get('answer_id_comment')
+        if not comment:
+            return data
+        if comment.answer_id_comment:
+            raise serializers.ValidationError({'error': 'Вы не можете ответить на ответ другого пользователя'})
+        return data
 
 
 class PhotoSessionCommentListSerializer(serializers.ModelSerializer):

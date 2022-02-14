@@ -80,7 +80,6 @@ urlpatterns = [
           name='list_photo_sessions'),
      path('photo_session/delete/<int:pk>/', PhotoSessionViewSet.as_view({'delete': "delete_photo_session"}),
           name='delete_photo_session'),
-
      path('photo_session/favorite/list/', PhotoSessionFavoriteViewSet.as_view({'get': "list_favorite"}),
           name='list_favorite'),
      path('photo_session/favorite/create/', PhotoSessionFavoriteViewSet.as_view({'post': "create_favorite"}),
