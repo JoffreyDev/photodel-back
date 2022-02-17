@@ -1,11 +1,10 @@
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.core.serializers.json import DjangoJSONEncoder
 from django.contrib.auth.models import AnonymousUser
-from channels.db import database_sync_to_async
-from django.db.models import Q, Case, When
-from asgiref.sync import sync_to_async
-
-from datetime import timedelta
+from services.chat_service import get_chat_messages, messages_to_json, \
+    create_new_messages, is_user_in_chat, update_profile_channel_name, \
+    delete_profile_channel_name, filter_chat, chats_to_json, deleting_chat, \
+    update_chat_status
 
 import channels.layers
 import asyncio
@@ -13,27 +12,65 @@ import json
 
 
 class ChatConsumer(AsyncWebsocketConsumer):
-    async def connect(self):
-        self.room_name = self.scope['url_route']['kwargs']['room_name']
-        self.room_group_name = 'chat_%s' % self.room_name
 
-        await self.channel_layer.group_add(
-            self.room_group_name,
-            self.channel_name
-        )
+    async def fetch_messages(self, data):
+        """
+        Команда для возврата всех сообшений чата
+        Передается chat_id
+        """
+        messages = await get_chat_messages(self.room_name)
+        content = {
+            "messages": await messages_to_json(messages, self.scope['user'], self.room_name),
+        }
+        await self.send_message(content)
 
-        await self.accept()
+    async def new_messages(self, data):
+        """
+        Команда для создания нового сообщения
+        и возврат его в json
+        """
+        message = await create_new_messages(data, self.room_name)
+        if not message:
+            return await self.send_chat_message({
+                'command': 'new_message',
+                'message': {
+                    'error': 'Сообщение не было отправлено',
+                }})
+        if message:
+            content = {
+                'command': 'new_message',
+                'message': {
+                        'author_id': message.author.id,
+                        'content': message.content,
+                        'timestamp': str(message.timestamp),
+                        'sender_id': message.author.id,
+                        'chat_id': message.chat.id,
+                        'message_id': message.id,
+                    }
+            }
+            return await self.send_chat_message(content)
 
-    async def disconnect(self, close_code):
-        await self.channel_layer.group_discard(
-            self.room_group_name,
-            self.channel_name
-        )
+    async def update_chat_status(self, data):
+        """
+        Обновление статусов сообщений в чате по списку id
+        """
+        response = await update_chat_status(data, self.room_name)
+        return await self.send_message(response)
 
-    async def receive(self, text_data):
-        text_data_json = json.loads(text_data)
-        message = text_data_json['message']
+    commands = {
+        'fetch_messages': fetch_messages,
+        'new_message': new_messages,
+        'update_chat_status': update_chat_status,
+    }
 
+    async def send_message(self, message):
+        await self.send(text_data=json.dumps(message, cls=DjangoJSONEncoder))
+
+    async def chat_message(self, event):
+        message = event['message']
+        await self.send(text_data=json.dumps(message))
+
+    async def send_chat_message(self, message):
         await self.channel_layer.group_send(
             self.room_group_name,
             {
@@ -42,8 +79,81 @@ class ChatConsumer(AsyncWebsocketConsumer):
             }
         )
 
-    async def chat_message(self, event):
-        message = event['message']
-        await self.send(text_data=json.dumps({
-            'message': message
-        }))
+    async def connect(self):
+        self.room_name = self.scope['url_route']['kwargs']['room_name']
+        self.room_group_name = f'chat_{self.room_name}'
+        await self.accept()
+        if isinstance(self.scope['user'], AnonymousUser) or \
+                not await is_user_in_chat(self.scope['user'], self.room_name):
+            return await self.close(code=4123)
+        await self.channel_layer.group_add(
+            self.room_group_name,
+            self.channel_name
+        )
+
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(
+            self.room_group_name,
+            self.channel_name
+        )
+
+    async def receive(self, text_data):
+        data = json.loads(text_data)
+        if 'command' in data:
+            await self.commands[data['command']](self, data)
+
+
+class SiteConsumer(AsyncWebsocketConsumer):
+
+    async def history_chat(self, data):
+        """
+        Список истории чатов пользоватля
+        """
+        filter_queryset_chats = await filter_chat(self.scope['user'])
+        content = {
+            'chat_info': await chats_to_json(filter_queryset_chats, self.scope['user'])
+        }
+        await self.send_message(content)
+
+    async def delete_chat(self, data):
+        """
+        Удаление чата по id и возвращение истории чатов пользователя
+        """
+        await deleting_chat(data)
+        await self.history_chat(data)
+
+    commands = {
+        'history_chat': history_chat,
+        'delete_chat': delete_chat,
+    }
+
+    async def send_message(self, message):
+        await self.send(text_data=json.dumps(message, cls=DjangoJSONEncoder))
+
+    async def connect(self):
+        """
+        Первоначальное соединение с вебсокетом,
+        закрытие соединения если пользователь не авторизован
+        добавление user_channel_name если пользователь успещно подключился к сокету
+        """
+        user = self.scope['user']
+        if not isinstance(user, AnonymousUser):
+            await update_profile_channel_name(user, self.channel_name)
+            return await self.accept()
+        return await self.close(code=4123)
+
+    async def disconnect(self, close_code):
+        """
+        Закрытие вебоскета с пользователем и удаление имени канала из его профиля
+        """
+        if isinstance(self.scope['user'], AnonymousUser):
+            return await self.close(code=4123)
+        return await delete_profile_channel_name(self.scope['user'])
+
+    async def receive(self, text_data):
+        """
+        Метод получения данных по вебсокету
+        """
+        data = json.loads(text_data)
+        if 'command' in data:
+            await self.commands[data['command']](self, data)
