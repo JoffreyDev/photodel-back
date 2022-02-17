@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import Image, Album, Gallery, GalleryComment, GalleryLike, GalleryFavorite, \
-    AlbumComment, AlbumLike, AlbumFavorite, PhotoSession, PhotoSessionComment, PhotoSessionLike, PhotoSessionFavorite
+     PhotoSession, PhotoSessionComment, PhotoSessionLike, PhotoSessionFavorite
 
 
 @admin.register(Image)
@@ -11,21 +11,6 @@ class GalleryImageAdmin(admin.ModelAdmin):
 @admin.register(Album)
 class AlbumAdmin(admin.ModelAdmin):
     list_display = ['name_album', 'id', ]
-
-
-@admin.register(AlbumComment)
-class AlbumCommentAdmin(admin.ModelAdmin):
-    list_display = ['content', 'timestamp', 'sender_comment', 'album', ]
-
-
-@admin.register(AlbumLike)
-class AlbumLikeCommentAdmin(admin.ModelAdmin):
-    list_display = ['profile', 'album', ]
-
-
-@admin.register(AlbumFavorite)
-class AlbumFavoriteCommentAdmin(admin.ModelAdmin):
-    list_display = ['profile', 'album', ]
 
 
 @admin.register(Gallery)

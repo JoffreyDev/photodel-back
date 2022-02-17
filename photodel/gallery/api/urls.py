@@ -1,7 +1,6 @@
 from django.urls import path
 from .views import AlbumViewSet, GalleryViewSet, GalleryFavoriteViewSet, \
-     GalleryLikeViewSet, GalleryCommentViewSet, ImageViewSet, AlbumLikeViewSet, \
-     AlbumFavoriteViewSet, AlbumCommentViewSet, PhotoSessionViewSet, \
+     GalleryLikeViewSet, GalleryCommentViewSet, ImageViewSet,PhotoSessionViewSet, \
      PhotoSessionFavoriteViewSet, PhotoSessionLikeViewSet, PhotoSessionCommentViewSet
 
 app_name = 'gallery'
@@ -20,28 +19,16 @@ urlpatterns = [
           name='list_user_albums'),
      path('album/list_photos/<int:pk>/', AlbumViewSet.as_view({'get': "list_album_photos"}),
           name='list_album_photos'),
+     path('album/<int:pk>/', AlbumViewSet.as_view({'get': "retrieve_album"}),
+          name='retrieve_album'),
      path('album/list_photos_without_album/<int:pk>/', AlbumViewSet.as_view({'get': "list_photos_not_in_album"}),
           name='list_photos_not_in_album'),
      path('album/add_photos/', AlbumViewSet.as_view({'post': "add_to_album_photos"}),
           name='list_user_albums'),
      path('album/delete_photos/', AlbumViewSet.as_view({'post': "delete_from_album_photos"}),
           name='list_user_albums'),
-     path('album/delete/<int:pk>/', AlbumViewSet.as_view({'delete': "delete_album"}),
+     path('album/delete/', AlbumViewSet.as_view({'post': "delete_album"}),
           name='delete_album'),
-     path('album/favorite/list/', AlbumFavoriteViewSet.as_view({'get': "list_favorite"}),
-          name='album_list_favorite'),
-     path('album/favorite/create/', AlbumFavoriteViewSet.as_view({'post': "create_favorite"}),
-          name='album_create_favorite'),
-     path('album/favorite/delete/<int:pk>/', AlbumFavoriteViewSet.as_view({'delete': "delete_favorite"}),
-          name='album_delete_favorite'),
-     path('album/like/create/', AlbumLikeViewSet.as_view({'post': "create_like"}),
-          name='album_create_like'),
-     path('album/like/delete/<int:pk>/', AlbumLikeViewSet.as_view({'delete': "delete_like"}),
-          name='album_delete_like'),
-     path('album/comment/list/<int:pk>/', AlbumCommentViewSet.as_view({'get': "list_comments"}),
-          name='album_list_comments'),
-     path('album/comment/create/', AlbumCommentViewSet.as_view({'post': "create_comment"}),
-          name='album_create_comment'),
 
      # урлы фото в галлерее
      path('photo/create/', GalleryViewSet.as_view({'post': "create_photo"}),
@@ -52,7 +39,7 @@ urlpatterns = [
           name='retrieve_photo'),
      path('photo/list/<int:pk>/', GalleryViewSet.as_view({'get': "list_photos"}),
           name='list_photos'),
-     path('photo/delete/<int:pk>/', GalleryViewSet.as_view({'delete': "delete_photo"}),
+     path('photo/delete/', GalleryViewSet.as_view({'post': "delete_photo"}),
           name='delete_photo'),
      path('photo/favorite/list/', GalleryFavoriteViewSet.as_view({'get': "list_favorite"}),
           name='list_favorite'),

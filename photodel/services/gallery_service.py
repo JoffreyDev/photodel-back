@@ -1,4 +1,4 @@
-from gallery.models import GalleryFavorite, GalleryLike, AlbumLike, AlbumFavorite,\
+from gallery.models import GalleryFavorite, GalleryLike, \
     PhotoSessionLike, PhotoSessionFavorite
 from film_places.models import FilmPlacesLike, FilmPlacesFavorite
 from accounts.models import ProfileLike, ProfileFavorite
@@ -68,8 +68,6 @@ def is_unique_favorite(obj_id, profile_id, model):
         return False
     if model == 'places' and FilmPlacesFavorite.objects.filter(place=obj_id, profile=profile_id):
         return False
-    if model == 'album' and AlbumFavorite.objects.filter(album=obj_id, profile=profile_id):
-        return False
     if model == 'photo_session' and PhotoSessionFavorite.objects.filter(photo_session=obj_id, profile=profile_id):
         return False
     return True
@@ -84,8 +82,6 @@ def is_unique_like(obj_id, profile_id, model):
     if model == 'profile' and ProfileLike.objects.filter(receiver_like=obj_id, sender_like=profile_id):
         return False
     if model == 'places' and FilmPlacesLike.objects.filter(place=obj_id, profile=profile_id):
-        return False
-    if model == 'album' and AlbumLike.objects.filter(album=obj_id, profile=profile_id):
         return False
     if model == 'photo_session' and PhotoSessionLike.objects.filter(photo_session=obj_id, profile=profile_id):
         return False

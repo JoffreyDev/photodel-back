@@ -33,33 +33,6 @@ class Album(models.Model):
         return self.name_album
 
 
-class AlbumComment(models.Model):
-    content = models.TextField()
-    timestamp = models.DateTimeField(default=timezone.localtime)
-    answer_id_comment = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True)
-    sender_comment = models.ForeignKey(Profile, on_delete=models.CASCADE)
-    album = models.ForeignKey(Album, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return self.content
-
-
-class AlbumLike(models.Model):
-    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
-    album = models.ForeignKey(Album, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return str(self.id)
-
-
-class AlbumFavorite(models.Model):
-    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
-    album = models.ForeignKey(Album, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return str(self.id)
-
-
 class Gallery(models.Model):
     gallery_image = models.ForeignKey(Image, on_delete=models.CASCADE)
     name_image = models.CharField(max_length=50)

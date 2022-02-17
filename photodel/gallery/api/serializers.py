@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from gallery.models import Album, Gallery, Image, GalleryComment, GalleryLike, GalleryFavorite, \
-    AlbumComment, AlbumLike, AlbumFavorite, PhotoSessionComment, PhotoSessionLike, \
+    PhotoSessionComment, PhotoSessionLike, \
     PhotoSessionFavorite, PhotoSession
 from accounts.api.serializers import ProfilePublicSerializer, SpecializationListSerializer, \
     ProfileForGallerySerializer
@@ -17,24 +17,16 @@ class ImageSerializer(serializers.ModelSerializer):
 
 # сериализаторы альбома
 class AlbumListSerializer(serializers.ModelSerializer):
-    likes = serializers.SerializerMethodField()
-    comments = serializers.SerializerMethodField()
-    favorites = serializers.SerializerMethodField()
     profile = ProfilePublicSerializer()
     main_photo_id = ImageSerializer()
+    count_photos = serializers.SerializerMethodField()
 
     class Meta:
         model = Album
-        fields = ['name_album', 'id', 'main_photo_id', 'profile', 'likes', 'comments', 'favorites', ]
+        fields = ['name_album', 'id', 'main_photo_id', 'profile', 'count_photos', ]
 
-    def get_likes(self, obj):
-        return AlbumLike.objects.filter(album=obj.id).count()
-
-    def get_comments(self, obj):
-        return AlbumComment.objects.filter(album=obj.id).count()
-
-    def get_favorites(self, obj):
-        return AlbumFavorite.objects.filter(album=obj.id).count()
+    def get_count_photos(self, data):
+        return data.gallery_set.all().count()
 
 
 class AlbumForGallerySerializer(serializers.ModelSerializer):
@@ -47,6 +39,38 @@ class AlbumForGallerySerializer(serializers.ModelSerializer):
 
     def get_count_photos(self, data):
         return data.gallery_set.all().count()
+
+
+class AlbumRetrieveSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Album
+        fields = ['name_album', 'id', 'description_album', 'is_hidden', ]
+
+
+class AlbumGalleryRetrieveSerializer(serializers.ModelSerializer):
+    gallery_image = ImageSerializer()
+    likes = serializers.SerializerMethodField()
+    comments = serializers.SerializerMethodField()
+    favorites = serializers.SerializerMethodField()
+    custom_album = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Gallery
+        fields = ['gallery_image', 'id', 'likes', 'comments', 'favorites', 'custom_album', ]
+
+    def get_custom_album(self, obj):
+        album = AlbumRetrieveSerializer()
+        return album.to_representation(self.context['album'])
+
+    def get_likes(self, obj):
+        return GalleryLike.objects.filter(gallery=obj.id).count()
+
+    def get_comments(self, obj):
+        return GalleryComment.objects.filter(gallery=obj.id).count()
+
+    def get_favorites(self, obj):
+        return GalleryFavorite.objects.filter(gallery=obj.id).count()
 
 
 class AlbumCreateSerializer(serializers.ModelSerializer):
@@ -75,50 +99,6 @@ class AlbumUpdateSerializer(serializers.ModelSerializer):
         if user_albums:
             raise serializers.ValidationError({'error': 'Альбом с таким названием уже существует'})
         return data
-
-
-class AlbumFavoriteCreateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = AlbumFavorite
-        fields = '__all__'
-
-
-class AlbumFavoriteListSerializer(serializers.ModelSerializer):
-    profile = ProfilePublicSerializer()
-    album = AlbumListSerializer()
-
-    class Meta:
-        model = AlbumFavorite
-        fields = ['profile', 'album', ]
-
-
-class AlbumLikeCreateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = AlbumLike
-        fields = '__all__'
-
-
-class AlbumCommentCreateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = AlbumComment
-        fields = '__all__'
-
-    def validate(self, data):
-        comment = data.get('answer_id_comment')
-        if not comment:
-            return data
-        if comment.answer_id_comment:
-            raise serializers.ValidationError({'error': 'Вы не можете ответить на ответ другого пользователя'})
-        return data
-
-
-class AlbumCommentListSerializer(serializers.ModelSerializer):
-    sender_comment = ProfileForGallerySerializer()
-    album = AlbumListSerializer()
-
-    class Meta:
-        model = AlbumComment
-        fields = ['content', 'timestamp', 'sender_comment', 'album', 'answer_id_comment', ]
 
 
 # сериализаторы фото в галерее
