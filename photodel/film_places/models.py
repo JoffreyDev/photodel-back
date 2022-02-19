@@ -57,3 +57,25 @@ class FilmPlacesFavorite(models.Model):
 
     def __str__(self):
         return str(self.id)
+
+
+class FilmRequest(models.Model):
+    FILMING_STATUS_CHOICES = [
+        ('NEW', 'Новый'),
+        ('ACCEPTED', 'Принят'),
+        ('COMPLETED', 'Завершен'),
+        ('REJECTED', 'Отклонен'),
+    ]
+
+    filming_timestamp = models.DateTimeField()
+    hours_duration = models.IntegerField()
+    string_filming_location = models.CharField(max_length=40, blank=True)
+    filming_type = models.CharField(max_length=40)
+    filming_status = models.CharField(max_length=10, choices=FILMING_STATUS_CHOICES, default='NEW')
+    count_person = models.IntegerField()
+    filming_budget = models.FloatField()
+    need_makeup_artist = models.BooleanField(default=False)
+    description = models.TextField(blank=True)
+    was_added = models.DateTimeField(default=timezone.localtime)
+    place = models.ForeignKey(FilmPlaces, on_delete=models.CASCADE)
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)

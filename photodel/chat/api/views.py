@@ -22,15 +22,15 @@ class ChatViewSet(viewsets.ViewSet):
         Создание нового чата
         """
         try:
-            chat_id = is_chat_unique(request.data['item'], request.data['sender_id'], request.data['receiver_id'])
+            chat_id = is_chat_unique(request.data['sender_id'], request.data['receiver_id'])
             if not chat_id:
                 serializer = ChatCreateSerializer(data=request.data)
                 if serializer.is_valid(raise_exception=True):
                     serializer.save()
                     return Response(serializer.data, status=status.HTTP_200_OK)
-            return Response(status=status.HTTP_400_BAD_REQUEST, data=f'Такой чат уже был создан id={chat_id}')
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": f'Такой чат уже был создан id={chat_id}'})
         except KeyError:
-            return Response(status=status.HTTP_400_BAD_REQUEST, data='sender or receiver ids not given')
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'sender or receiver ids not given'})
 
     def get_permissions(self):
         try:

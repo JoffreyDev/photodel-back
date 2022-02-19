@@ -4,10 +4,18 @@ from gallery.models import Album, Gallery, Image, GalleryComment, GalleryLike, G
     PhotoSessionFavorite, PhotoSession
 from accounts.api.serializers import ProfilePublicSerializer, SpecializationListSerializer, \
     ProfileForGallerySerializer
-from services.gallery_service import diff_between_two_points
+from services.gallery_service import diff_between_two_points, Base64ImageField
 
 
 # сериализаторы фото
+class ImageCreateSerializer(serializers.ModelSerializer):
+    photo = Base64ImageField()
+
+    class Meta:
+        model = Image
+        fields = ['id', 'photo', 'profile', ]
+
+
 class ImageSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -57,7 +65,8 @@ class AlbumGalleryRetrieveSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Gallery
-        fields = ['gallery_image', 'id', 'likes', 'comments', 'favorites', 'custom_album', ]
+        fields = ['gallery_image', 'id', 'likes', 'comments', 'favorites',
+                  'custom_album', 'string_place_location', 'name_image', ]
 
     def get_custom_album(self, obj):
         album = AlbumRetrieveSerializer()
@@ -162,6 +171,27 @@ class GalleryListSerializer(serializers.ModelSerializer):
                   'photo_camera', 'focal_len', 'excerpt', 'flash', 'views', 'string_place_location',
                   'tags', 'category', 'album', 'profile', 'was_added', 'likes', 'is_hidden',
                   'comments', 'favorites', 'aperture', 'iso', ]
+
+    def get_likes(self, obj):
+        return GalleryLike.objects.filter(gallery=obj.id).count()
+
+    def get_comments(self, obj):
+        return GalleryComment.objects.filter(gallery=obj.id).count()
+
+    def get_favorites(self, obj):
+        return GalleryFavorite.objects.filter(gallery=obj.id).count()
+
+
+class GalleryAllListSerializer(serializers.ModelSerializer):
+    gallery_image = ImageSerializer()
+    likes = serializers.SerializerMethodField()
+    comments = serializers.SerializerMethodField()
+    favorites = serializers.SerializerMethodField()
+    profile = ProfileForGallerySerializer()
+
+    class Meta:
+        model = Gallery
+        fields = ['id', 'gallery_image', 'name_image', 'profile', 'likes', 'comments', 'favorites', ]
 
     def get_likes(self, obj):
         return GalleryLike.objects.filter(gallery=obj.id).count()

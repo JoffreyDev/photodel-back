@@ -8,13 +8,13 @@ from datetime import timedelta
 import json
 
 
-def is_chat_unique(item_id, sender_id, receiver_id):
+def is_chat_unique(sender_id, receiver_id):
     """
     Проверка чата, при создании, на уникальность
     Проверка отправителя получателя и вещи
     """
-    chat1 = Chat.objects.filter(Q(item=item_id) & Q(sender_id=sender_id) & Q(receiver_id=receiver_id)).first()
-    chat2 = Chat.objects.filter(Q(item=item_id) & Q(sender_id=receiver_id) & Q(receiver_id=sender_id)).first()
+    chat1 = Chat.objects.filter(Q(sender_id=sender_id) & Q(receiver_id=receiver_id)).first()
+    chat2 = Chat.objects.filter(Q(sender_id=receiver_id) & Q(receiver_id=sender_id)).first()
     if chat1:
         return chat1.id
     elif chat2:
@@ -115,7 +115,7 @@ def last_message_status(messages, user_id):
 
 
 @database_sync_to_async
-def update_chat_status(data, chat_id):
+def update_messages_status(data, chat_id):
     """
     Обновление статуса прочитанных сообщений.
     Если прочитано status_read = True
@@ -167,7 +167,8 @@ def filter_chat(user):
         order_list = Chat.objects.filter(Q(sender_id__user=user) | Q(receiver_id__user=user)) \
             .select_related('sender_id', 'receiver_id')
     else:
-        order_list = Chat.objects.filter(Q(id__in=list_chat_id) | Q(sender_id__user=user) | Q(receiver_id__user=user))\
+        chat = Chat.objects.filter(Q(sender_id__user=user) | Q(receiver_id__user=user))
+        order_list = chat.filter(Q(id__in=list_chat_id))\
                                  .order_by(Case(*[When(id=n, then=i) for i, n in enumerate(list_chat_id)]))\
                                  .select_related('sender_id', 'receiver_id')
     return order_list

@@ -8,9 +8,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import password_validation
 from django.contrib.auth.models import update_last_login
 from additional_entities.api.serializers import CountryListSerializer, LanguageListSerializer
-from services.accounts_service import check_profile_location
+from services.accounts_service import check_profile_location, collect_favorite, collect_like
 import json
-
 
 
 def get_tokens_for_user(user):
@@ -214,6 +213,36 @@ class ProfilePrivateSerializer(serializers.ModelSerializer):
         if not obj.type_pro:
             return []
         return json.dumps([{obj.type_pro.id: obj.type_pro.name_category}])
+
+
+class ProfilListSerializer(serializers.ModelSerializer):
+    avatar = ImageBase64Field()
+    type_pro = ProCategoryListSerializer()
+    spec_model_or_photographer = SpecializationListSerializer(read_only=True, many=True)
+    diff_distance = serializers.SerializerMethodField()
+    count_favorites = serializers.SerializerMethodField()
+    count_likes = serializers.SerializerMethodField()
+    rating = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Profile
+        fields = ['name', 'surname', 'string_location_now', 'location_now', 'avatar',
+                  'type_pro', 'string_location', 'location', 'diff_distance',
+                  'spec_model_or_photographer', 'user_channel_name', 'count_favorites',
+                  'count_likes', 'rating', ]
+
+    def get_diff_distance(self, obj):
+        location = check_profile_location(obj)
+        return diff_between_two_points(self.context.get('user_coords'), location)
+
+    def get_count_favorites(self, obj):
+        return collect_favorite(obj.user)
+
+    def get_count_likes(self, obj):
+        return collect_like(obj.user)
+
+    def get_rating(self, obj):
+        return ''
 
 
 class ProfileForFavoriteSerializer(serializers.ModelSerializer):

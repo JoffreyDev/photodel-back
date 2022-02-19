@@ -14,11 +14,15 @@ def save_or_create_profile(sender, instance, created, **kwargs):
     if created:
         profile = Profile.objects.create(user=instance)
         image = Image.objects.filter(profile__user__username='admin').first()
-        Album.objects.create(profile=profile, name_album='Разное', main_photo_id=image)
+        Album.objects.create(profile=profile, name_album='Разное',
+                             description_album='Альбом с разными фотографиями, которые не вошли в другие альбомы',
+                             main_photo_id=image)
     else:
         try:
             instance.profile.save()
         except ObjectDoesNotExist:
             profile = Profile.objects.create(user=instance)
             image = Image.objects.filter(profile__user__username='admin').first()
-            Album.objects.create(profile=profile, name_album='Разное', main_photo_id=image)
+            Album.objects.create(profile=profile, name_album='Разное',
+                                 description_album='Альбом с разными фотографиями, которые не вошли в другие альбомы',
+                                 main_photo_id=image)

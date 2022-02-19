@@ -14,7 +14,7 @@ from .serializers import ProfileUpdateSerializer, ChangePasswordSerializer, \
     ProCategoryListSerializer, SpecializationListSerializer, \
     ProfilePrivateSerializer, ProfilePublicSerializer, ProfileFavoriteCreateSerializer, \
     ProfileFavoriteListSerializer, ProfileLikeCreateSerializer, ProfileCommentCreateSerializer, \
-    ProfileCommentListSerializer
+    ProfileCommentListSerializer, ProfilListSerializer
 
 from .serializers import UserRegisterSerializer, UserSerializer, CustomJWTSerializer
 import logging
@@ -219,6 +219,19 @@ class ProfileViewSet(viewsets.ViewSet):
             logger.error(f'Обновление профиля для пользователя {user} не было завершено')
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Обновление не было выполнено '
                                                                                  'Пожалуйства обратитесь в поддержку'})
+        except KeyError:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Не был передан email. '
+                                                                                 'Пожалуйства обратитесь в поддержку'})
+
+    def list_profiles(self, request):
+        """
+        Частитичное или полное обновление полей в таблицу Profile
+        """
+        try:
+            profiles = Profile.objects.filter(is_hide=False)
+            serializer = ProfilListSerializer(profiles, many=True,
+                                              context={'user_coords': request.GET.get('user_coords')})
+            return Response(status=status.HTTP_200_OK, data=serializer.data)
         except KeyError:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Не был передан email. '
                                                                                  'Пожалуйства обратитесь в поддержку'})

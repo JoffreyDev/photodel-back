@@ -1,7 +1,8 @@
 from django.urls import path
 
 from .views import FilmPlacesViewSet, CategoryFilmPlacesViewSet, \
-    FilmPlacesFavoriteViewSet, FilmPlacesLikeViewSet, FilmPlacesCommentViewSet
+    FilmPlacesFavoriteViewSet, FilmPlacesLikeViewSet, FilmPlacesCommentViewSet, \
+    FilmRequestViewSet
 
 app_name = 'film_places'
 
@@ -18,6 +19,8 @@ urlpatterns = [
          name='retrieve_place'),
     path('list/<int:pk>/', FilmPlacesViewSet.as_view({'get': "list_place"}),
          name='list_place'),
+    path('list/', FilmPlacesViewSet.as_view({'get': "list_all_place"}),
+         name='list_all_place'),
     path('delete/<int:pk>/', FilmPlacesViewSet.as_view({'delete': "delete_place"}),
          name='delete_place'),
 
@@ -35,5 +38,8 @@ urlpatterns = [
          name='place_list_comments'),
     path('comment/create/', FilmPlacesCommentViewSet.as_view({'post': "create_comment"}),
          name='place_create_comment'),
+
+    path('film_request/create/', FilmRequestViewSet.as_view({'post': "create_film_request"}),
+         name='create_film_request'),
 ]
 

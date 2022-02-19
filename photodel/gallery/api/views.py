@@ -9,11 +9,11 @@ from services.ip_service import get_ip
 from .serializers import AlbumListSerializer, AlbumCreateSerializer, GalleryListSerializer, \
     GalleryForCardListSerializer, GalleryCreateSerializer, GalleryFavoriteCreateSerializer, \
     GalleryFavoriteListSerializer, GalleryLikeCreateSerializer, GalleryCommentListSerializer, \
-    GalleryCommentCreateSerializer, PhotoSessionCreateSerializer, ImageSerializer, \
+    GalleryCommentCreateSerializer, PhotoSessionCreateSerializer, \
     AlbumUpdateSerializer, PhotoSessionFavoriteCreateSerializer, PhotoSessionFavoriteListSerializer, \
     PhotoSessionLikeCreateSerializer, PhotoSessionCommentListSerializer, \
     PhotoSessionCommentCreateSerializer, PhotoSessionForCardListSerializer, PhotoSessionListSerializer, \
-    AlbumGalleryRetrieveSerializer
+    AlbumGalleryRetrieveSerializer, ImageCreateSerializer, GalleryAllListSerializer
 from .permissions import IsOwnerImage, IsAddOrDeletePhotoFromAlbum, IsCreatePhoto
 
 import logging
@@ -29,7 +29,7 @@ class ImageViewSet(viewsets.ViewSet):
 
     def create_image(self, request):
         profile = Profile.objects.get(user=request.user)
-        serializer = ImageSerializer(data=request.data | {"profile": profile.id})
+        serializer = ImageCreateSerializer(data=request.data | {"profile": profile.id})
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -54,6 +54,9 @@ class AlbumViewSet(viewsets.ViewSet):
         }
 
     def create_album(self, request):
+        """
+        Создание альбома
+        """
         logger.info(f'Пользователь {request.user} хочет создать альбом')
         profile = Profile.objects.get(user=request.user)
         serializer = AlbumCreateSerializer(data=request.data | {"profile": profile.id}, context={'profile': profile})
@@ -67,7 +70,7 @@ class AlbumViewSet(viewsets.ViewSet):
 
     def partial_update(self, request, pk):
         """
-        Частитичное или полное обновление полей в таблицу профиле
+        Частитичное или полное обновление полей в альбома
         """
         try:
             logger.info(f'Пользователь {request.user} хочет изменить альбом')
@@ -86,20 +89,37 @@ class AlbumViewSet(viewsets.ViewSet):
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": "Альбом не был найден"})
 
     def list_user_albums(self, request, pk):
+        """
+        Список альбомов пользователя с помощью id профиля
+        """
         albums = Album.objects.filter(profile=pk)
         serializer = AlbumListSerializer(albums, many=True)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
+    def list_album_photos(self, request, pk):
+        """
+        Список фото из альбома
+        """
+        galleries = Gallery.objects.filter(album=pk)
+        serializer = GalleryForCardListSerializer(galleries, many=True)
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
+
     def retrieve_album(self, request, pk):
+        """
+        Получение информации из одного альюома
+        """
         try:
             album = Album.objects.get(id=pk)
-            galleries = Gallery.objects.filter(profile__user=request.user, album=album)
+            galleries = Gallery.objects.filter(album=album)
             serializer = AlbumGalleryRetrieveSerializer(galleries, many=True, context={"album": album})
             return Response(status=status.HTTP_200_OK, data=serializer.data)
         except Album.DoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": "Альбом не был найден"})
 
     def list_photos_not_in_album(self, request, pk):
+        """
+        Список фоток не в альбоме
+        """
         try:
             album = Album.objects.get(id=pk)
             galleries = Gallery.objects.filter(profile__user=request.user).\
@@ -111,6 +131,9 @@ class AlbumViewSet(viewsets.ViewSet):
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": "Альбом не был найден"})
 
     def add_to_album_photos(self, request):
+        """
+        Добавление фото в альбом с помощью списка фото
+        """
         try:
             if not request.data.get('album_id') or not request.data.get('photos_id'):
                 return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Не были переданы обязательные '
@@ -130,6 +153,9 @@ class AlbumViewSet(viewsets.ViewSet):
                                                                       'Пожалуйства обратитесь в поддержку'})
 
     def delete_from_album_photos(self, request):
+        """
+        Удаление фото из альбома с помощью списка фото
+        """
         try:
             if not request.data.get('album_id') or not request.data.get('photos_id'):
                 return Response(status=status.HTTP_400_BAD_REQUEST, data={"message" 'Не были переданы обязательные '
@@ -149,6 +175,9 @@ class AlbumViewSet(viewsets.ViewSet):
                                                                       'Пожалуйства обратитесь в поддержку'})
 
     def delete_album(self, request):
+        """
+        Удаление альбома/ов c помощью списка id
+        """
         try:
             albums_id = request.data.get('albums_id')
             for album_id in albums_id:
@@ -216,6 +245,11 @@ class GalleryViewSet(viewsets.ViewSet):
     def list_photos(self, request, pk):
         photos = Gallery.objects.filter(profile=pk)
         serializer = GalleryForCardListSerializer(photos, many=True)
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
+
+    def list_all_photos(self, request):
+        photos = Gallery.objects.filter(is_hidden=False)
+        serializer = GalleryAllListSerializer(photos, many=True)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
     def delete_photo(self, request):

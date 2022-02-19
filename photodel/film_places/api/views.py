@@ -5,9 +5,10 @@ from accounts.models import Profile
 from .serializers import FilmPlacesCreateSerializer, CategoryFilmPlacesListSerializer, \
     FilmPlacesFavoriteCreateSerializer, FilmPlacesFavoriteListSerializer, FilmPlacesLikeCreateSerializer, \
     FilmPlacesCommentCreateSerializer, FilmPlacesCommentListSerializer, FilmPlacesForCardSerializer, \
-    FilmPlacesListSerializer
+    FilmPlacesListSerializer, FilmRequestCreateSerializer, FilmPlacesAllListSerializer
 from services.gallery_service import is_unique_favorite, is_unique_like, \
     protection_cheating_views, add_view
+from services.request_chat_service import create_request_chat_and_message
 from services.ip_service import get_ip
 
 import logging
@@ -82,8 +83,14 @@ class FilmPlacesViewSet(viewsets.ViewSet):
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Место съемки не было найдено'})
 
     def list_place(self, request, pk):
-        photo_sessions = FilmPlaces.objects.filter(profile=pk)
-        serializer = FilmPlacesForCardSerializer(photo_sessions, many=True)
+        places = FilmPlaces.objects.filter(profile=pk)
+        serializer = FilmPlacesForCardSerializer(places, many=True)
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
+
+    def list_all_place(self, request):
+        places = FilmPlaces.objects.filter(is_hidden=False)
+        serializer = FilmPlacesAllListSerializer(places, many=True,
+                                                 context={'user_coords': request.GET.get('user_coords')})
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
     def delete_place(self, request, pk):
@@ -210,6 +217,32 @@ class FilmPlacesCommentViewSet(viewsets.ViewSet):
             return Response(serializer.data, status=status.HTTP_200_OK)
         logger.error(f'Пользователь {request.user} не добавил комментарий к месту съемки')
         return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Добавление комментария не было выполнено.'
+                                                                             ' Пожалуйства обратитесь в поддержку'})
+
+    def get_permissions(self):
+        try:
+            return [permission() for permission in self.permission_classes_by_action[self.action]]
+        except KeyError:
+            return [permission() for permission in self.permission_classes]
+
+
+class FilmRequestViewSet(viewsets.ViewSet):
+    permission_classes_by_action = {
+        'create_film_request': [permissions.IsAuthenticated, ],
+    }
+
+    def create_film_request(self, request):
+        logger.info(f'Пользователь {request.user} хочет создать запрос')
+        profile = Profile.objects.get(user=request.user).id
+        serializer = FilmRequestCreateSerializer(data=request.data | {"profile": profile})
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            create_request_chat_and_message(serializer.data.get('profile'), serializer.data.get('place'),
+                                            serializer.data.get('id'))
+            logger.info(f'Пользователь {request.user} успешно создал запрос')
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        logger.error(f'Пользователь {request.user} не создал запрос')
+        return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'создание запроса не было выполнено.'
                                                                              ' Пожалуйства обратитесь в поддержку'})
 
     def get_permissions(self):

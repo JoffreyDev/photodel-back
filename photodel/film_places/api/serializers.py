@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from film_places.models import CategoryFilmPlaces, FilmPlaces, FilmPlacesFavorite, FilmPlacesComment, FilmPlacesLike
+from film_places.models import CategoryFilmPlaces, FilmPlaces, FilmPlacesFavorite, \
+    FilmPlacesComment, FilmPlacesLike, FilmRequest
 from accounts.api.serializers import ProfileForGallerySerializer
 from gallery.api.serializers import ImageSerializer
 from services.gallery_service import diff_between_two_points
@@ -62,6 +63,32 @@ class FilmPlacesListSerializer(serializers.ModelSerializer):
                   'place_location', 'category', 'profile', 'is_hidden', ]
 
 
+class FilmPlacesAllListSerializer(serializers.ModelSerializer):
+    place_image = ImageSerializer(read_only=True, many=True)
+    profile = ProfileForGallerySerializer()
+    likes = serializers.SerializerMethodField()
+    comments = serializers.SerializerMethodField()
+    favorites = serializers.SerializerMethodField()
+    diff_distance = serializers.SerializerMethodField()
+
+    class Meta:
+        model = FilmPlaces
+        fields = ['id', 'name_place', 'place_image', 'string_place_location',
+                  'place_location', 'profile', 'likes', 'comments', 'favorites', 'diff_distance', ]
+
+    def get_likes(self, obj):
+        return FilmPlacesLike.objects.filter(place=obj.id).count()
+
+    def get_comments(self, obj):
+        return FilmPlacesComment.objects.filter(place=obj.id).count()
+
+    def get_favorites(self, obj):
+        return FilmPlacesFavorite.objects.filter(place=obj.id).count()
+
+    def get_diff_distance(self, data):
+        return diff_between_two_points(self.context.get('user_coords'), data.place_location)
+
+
 class FilmPlacesFavoriteCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = FilmPlacesFavorite
@@ -120,4 +147,11 @@ class FilmPlacesCommentListSerializer(serializers.ModelSerializer):
     class Meta:
         model = FilmPlacesComment
         fields = ['content', 'timestamp', 'sender_comment', 'place', 'id', ]
+
+
+class FilmRequestCreateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = FilmRequest
+        fields = '__all__'
 

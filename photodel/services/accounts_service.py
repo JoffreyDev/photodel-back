@@ -7,10 +7,11 @@ from django.conf import settings
 from rest_framework import serializers
 from django.contrib.gis.geos import Point
 from accounts.models import VerificationCode, Profile
+from gallery.models import GalleryLike, GalleryFavorite, PhotoSessionLike, PhotoSessionFavorite
+from film_places.models import FilmPlacesLike, FilmPlacesFavorite
 from smtplib import SMTPException
 from django.utils import timezone
 import random
-
 
 
 def custom_paginator(queryset, request):
@@ -163,3 +164,23 @@ def check_profile_location(queryset):
     if queryset.date_stay_end and queryset.date_stay_end > timezone.localtime():
         return queryset.location_now
     return queryset.location
+
+
+def collect_favorite(user):
+    """
+    Фотки, места фотосессии пользователя, которые добавили к себе в избранное другие пользователи
+    """
+    places_count = FilmPlacesFavorite.objects.filter(place__profile__user=user).count()
+    galleries_count = GalleryFavorite.objects.filter(gallery__profile__user=user).count()
+    photo_session_count = PhotoSessionFavorite.objects.filter(photo_session__profile__user=user).count()
+    return places_count + galleries_count + photo_session_count
+
+
+def collect_like(user):
+    """
+    Фотки, места фотосессии пользователя, на которые поставили лайки другие пользователи
+    """
+    places_count = FilmPlacesLike.objects.filter(place__profile__user=user).count()
+    galleries_count = GalleryLike.objects.filter(gallery__profile__user=user).count()
+    photo_session_count = PhotoSessionLike.objects.filter(photo_session__profile__user=user).count()
+    return places_count + galleries_count + photo_session_count
