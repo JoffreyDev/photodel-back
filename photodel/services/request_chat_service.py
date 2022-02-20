@@ -112,17 +112,17 @@ def filter_request_chat(user):
 
 @database_sync_to_async
 def change_request_status(user, data):
-    if not data.get('request_status') or not data.get('request_id'):
+    if not data.get('filming_status') or not data.get('request_id'):
         return json.dumps({'error': 'not given parameters'})
     try:
         request = FilmRequest.objects.get(id=data.get('request_id'))
-        if request.request_status == 'NEW' and request.place.profile.user != user:
+        if request.filming_status == 'NEW' and request.place.profile.user != user:
             return json.dumps({'error': 'Only owner film_places can accept or reject request'})
-        if request.request_status == 'ACCEPTED' and request.profile.user != user:
+        if request.filming_status == 'ACCEPTED' and request.profile.user != user:
             return json.dumps({'error': 'Only owner request can completed request'})
-        request.request_status = data.get('request_status')
+        request.filming_status = data.get('filming_status')
+        request.save()
         return json.dumps({'message': 'ok'})
-        pass
     except FilmRequest.DoesNotExist:
         return json.dumps({'error': 'not found request'})
 

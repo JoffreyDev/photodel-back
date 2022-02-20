@@ -445,10 +445,12 @@ class PhotoSessionViewSet(viewsets.ViewSet):
         serializer = PhotoSessionForCardListSerializer(photo_sessions, many=True)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
-    def delete_photo_session(self, request, pk):
+    def delete_photo_session(self, request):
         try:
-            instance = PhotoSession.objects.get(id=pk, profile__user=request.user)
-            instance.delete()
+            photo_sessions = request.data.get('photo_sessions_id')
+            for photo_sessions in photo_sessions:
+                instance = PhotoSession.objects.get(id=photo_sessions, profile__user=request.user)
+                instance.delete()
             return Response(status=status.HTTP_200_OK)
         except PhotoSession.DoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Фотосессия не была найдена'})

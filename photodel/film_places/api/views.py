@@ -93,10 +93,12 @@ class FilmPlacesViewSet(viewsets.ViewSet):
                                                  context={'user_coords': request.GET.get('user_coords')})
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
-    def delete_place(self, request, pk):
+    def delete_place(self, request):
         try:
-            instance = FilmPlaces.objects.get(id=pk, profile__user=request.user)
-            instance.delete()
+            places = request.data.get('places_id')
+            for place in places:
+                instance = FilmPlaces.objects.get(id=place, profile__user=request.user)
+                instance.delete()
             return Response(status=status.HTTP_200_OK)
         except FilmPlaces.DoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Место съемки не было найдено'})
