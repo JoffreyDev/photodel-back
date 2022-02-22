@@ -1,3 +1,4 @@
+from django.db.models import Count
 from rest_framework_simplejwt.serializers import TokenObtainSerializer
 from django.contrib.auth.models import User, AnonymousUser
 from rest_framework import serializers
@@ -258,7 +259,7 @@ class ProfileForFavoriteSerializer(serializers.ModelSerializer):
                   'spec_model_or_photographer', 'likes', 'diff_distance', 'rating', ]
 
     def get_likes(self, obj):
-        return ProfileLike.objects.filter(receiver_like=obj.id).count()
+        return len(ProfileLike.objects.filter(receiver_like=obj.id).select_related('sender_like', 'receiver_like'))
 
     def get_rating(self, obj):
         return ''

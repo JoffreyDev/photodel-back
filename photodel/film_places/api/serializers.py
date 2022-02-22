@@ -74,7 +74,7 @@ class FilmPlacesAllListSerializer(serializers.ModelSerializer):
     class Meta:
         model = FilmPlaces
         fields = ['id', 'name_place', 'place_image', 'string_place_location',
-                  'place_location', 'profile', 'likes', 'comments', 'favorites', 'diff_distance', ]
+                  'place_location', 'profile', 'likes', 'comments', 'favorites', 'diff_distance', 'last_views']
 
     def get_likes(self, obj):
         return FilmPlacesLike.objects.filter(place=obj.id).count()

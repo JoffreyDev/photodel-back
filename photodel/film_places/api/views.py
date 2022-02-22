@@ -7,7 +7,7 @@ from .serializers import FilmPlacesCreateSerializer, CategoryFilmPlacesListSeria
     FilmPlacesCommentCreateSerializer, FilmPlacesCommentListSerializer, FilmPlacesForCardSerializer, \
     FilmPlacesListSerializer, FilmRequestCreateSerializer, FilmPlacesAllListSerializer
 from services.gallery_service import is_unique_favorite, is_unique_like, \
-    protection_cheating_views, add_view
+    protection_cheating_views, add_view, filter_queryset_by_param
 from services.request_chat_service import create_request_chat_and_message
 from services.ip_service import get_ip
 
@@ -89,7 +89,12 @@ class FilmPlacesViewSet(viewsets.ViewSet):
 
     def list_all_place(self, request):
         places = FilmPlaces.objects.filter(is_hidden=False)
-        serializer = FilmPlacesAllListSerializer(places, many=True,
+        queryset = filter_queryset_by_param(places,
+                                            request.GET.get('sort_type', ''),
+                                            request.GET.get('filter_field', ''))\
+            .select_related('profile')\
+            .prefetch_related('place_image')
+        serializer = FilmPlacesAllListSerializer(queryset, many=True,
                                                  context={'user_coords': request.GET.get('user_coords')})
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 

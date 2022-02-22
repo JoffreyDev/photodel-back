@@ -4,9 +4,9 @@ from gallery.models import Album, Gallery, Image, GalleryComment, GalleryLike, G
     PhotoSessionComment, PhotoSessionLike, PhotoSessionFavorite, PhotoSession
 from accounts.models import Profile
 from services.gallery_service import is_unique_favorite, is_unique_like, \
-    protection_cheating_views, add_view
+    protection_cheating_views, add_view, filter_queryset_by_param
 from services.ip_service import get_ip
-from .serializers import AlbumListSerializer, AlbumCreateSerializer, GalleryListSerializer, \
+from .serializers import AlbumListSerializer, AlbumCreateSerializer, GalleryRetrieveSerializer, \
     GalleryForCardListSerializer, GalleryCreateSerializer, GalleryFavoriteCreateSerializer, \
     GalleryFavoriteListSerializer, GalleryLikeCreateSerializer, GalleryCommentListSerializer, \
     GalleryCommentCreateSerializer, PhotoSessionCreateSerializer, \
@@ -76,7 +76,8 @@ class AlbumViewSet(viewsets.ViewSet):
             logger.info(f'Пользователь {request.user} хочет изменить альбом')
             profile = Profile.objects.get(user=request.user)
             instance = Album.objects.get(pk=pk, profile=profile)
-            serializer = AlbumUpdateSerializer(instance, data=request.data, partial=True, context={'profile': profile})
+            serializer = AlbumUpdateSerializer(instance, data=request.data, partial=True,
+                                               context={'profile': profile, 'updated_album': instance})
             if serializer.is_valid(raise_exception=True):
                 serializer.save()
                 logger.info(f'Пользователь {request.user} успешно изменил альбом')
@@ -93,14 +94,18 @@ class AlbumViewSet(viewsets.ViewSet):
         Список альбомов пользователя с помощью id профиля
         """
         albums = Album.objects.filter(profile=pk)
-        serializer = AlbumListSerializer(albums, many=True)
+        queryset = filter_queryset_by_param(albums,
+                                            request.GET.get('sort_type', ''),
+                                            request.GET.get('filter_field', ''))\
+            .select_related('profile', 'main_photo_id')
+        serializer = AlbumListSerializer(queryset, many=True)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
     def list_album_photos(self, request, pk):
         """
         Список фото из альбома
         """
-        galleries = Gallery.objects.filter(album=pk)
+        galleries = Gallery.objects.filter(album=pk).select_related('gallery_image')
         serializer = GalleryForCardListSerializer(galleries, many=True)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
@@ -122,8 +127,9 @@ class AlbumViewSet(viewsets.ViewSet):
         """
         try:
             album = Album.objects.get(id=pk)
-            galleries = Gallery.objects.filter(profile__user=request.user).\
-                exclude(id__in=[gallery.id for gallery in album.gallery_set.all()])
+            galleries = Gallery.objects.filter(profile__user=request.user)\
+                .exclude(id__in=[gallery.id for gallery in album.gallery_set.all()])\
+                .select_related('gallery_image')
             serializer = GalleryForCardListSerializer(galleries, many=True)
             return Response(status=status.HTTP_200_OK, data=serializer.data)
         except Album.DoesNotExist:
@@ -237,19 +243,23 @@ class GalleryViewSet(viewsets.ViewSet):
             instance = Gallery.objects.get(id=pk)
             if protection_cheating_views(instance, user_ip):
                 add_view(instance)
-            serializer = GalleryListSerializer(instance)
+            serializer = GalleryRetrieveSerializer(instance, context={"user": request.user})
             return Response(status=status.HTTP_200_OK, data=serializer.data)
         except Gallery.DoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Фото из галерии не было найдено'})
 
     def list_photos(self, request, pk):
-        photos = Gallery.objects.filter(profile=pk)
+        photos = Gallery.objects.filter(profile=pk).select_related('gallery_image')
         serializer = GalleryForCardListSerializer(photos, many=True)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
     def list_all_photos(self, request):
         photos = Gallery.objects.filter(is_hidden=False)
-        serializer = GalleryAllListSerializer(photos, many=True)
+        queryset = filter_queryset_by_param(photos,
+                                            request.GET.get('sort_type', ''),
+                                            request.GET.get('filter_field', ''))\
+            .select_related('gallery_image', 'profile')
+        serializer = GalleryAllListSerializer(queryset, many=True)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
     def delete_photo(self, request):
@@ -281,7 +291,7 @@ class GalleryFavoriteViewSet(viewsets.ViewSet):
 
     def list_favorite(self, request):
         logger.info(f'Пользователь {request.user} хочет получить список избранных фото')
-        queryset = GalleryFavorite.objects.filter(profile__user=request.user).select_related()
+        queryset = GalleryFavorite.objects.filter(profile__user=request.user).select_related('profile', 'gallery')
         serializer = GalleryFavoriteListSerializer(queryset, many=True)
         logger.info(f'Пользователь {request.user} успешно получил список избранных фото')
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -364,7 +374,7 @@ class GalleryCommentViewSet(viewsets.ViewSet):
     }
 
     def list_comments(self, request, pk):
-        queryset = GalleryComment.objects.filter(gallery=pk).select_related()
+        queryset = GalleryComment.objects.filter(gallery=pk).select_related('sender_comment', 'gallery')
         serializer = GalleryCommentListSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -435,14 +445,17 @@ class PhotoSessionViewSet(viewsets.ViewSet):
             instance = PhotoSession.objects.get(id=pk)
             if protection_cheating_views(instance, user_ip):
                 add_view(instance)
-            serializer = PhotoSessionListSerializer(instance)
+            serializer = PhotoSessionListSerializer(instance, context={"user": request.user})
             return Response(status=status.HTTP_200_OK, data=serializer.data)
         except PhotoSession.DoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Фотосессия не была найдена'})
 
     def list_photo_sessions(self, request, pk):
         photo_sessions = PhotoSession.objects.filter(profile=pk)
-        serializer = PhotoSessionForCardListSerializer(photo_sessions, many=True)
+        queryset = filter_queryset_by_param(photo_sessions,
+                                            request.GET.get('sort_type', ''),
+                                            request.GET.get('filter_field', ''))
+        serializer = PhotoSessionForCardListSerializer(queryset, many=True)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
     def delete_photo_session(self, request):
@@ -471,7 +484,8 @@ class PhotoSessionFavoriteViewSet(viewsets.ViewSet):
 
     def list_favorite(self, request):
         logger.info(f'Пользователь {request.user} хочет получить список избранных фотосессий')
-        queryset = PhotoSessionFavorite.objects.filter(profile__user=request.user).select_related()
+        queryset = PhotoSessionFavorite.objects.filter(profile__user=request.user)\
+            .select_related('photo_session__session_category', 'profile')
         serializer = PhotoSessionFavoriteListSerializer(queryset, many=True,
                                                         context={'user_coords': request.GET.get('user_coords')})
         logger.info(f'Пользователь {request.user} успешно получил список избранных фотосессий')
@@ -555,7 +569,8 @@ class PhotoSessionCommentViewSet(viewsets.ViewSet):
     }
 
     def list_comments(self, request, pk):
-        queryset = PhotoSessionComment.objects.filter(photo_session=pk).select_related()
+        queryset = PhotoSessionComment.objects.filter(photo_session=pk)\
+            .select_related('sender_comment', 'photo_session__session_category')
         serializer = PhotoSessionCommentListSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 

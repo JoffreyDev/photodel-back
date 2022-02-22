@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.contrib.auth.models import AnonymousUser
 from gallery.models import Album, Gallery, Image, GalleryComment, GalleryLike, GalleryFavorite, \
     PhotoSessionComment, PhotoSessionLike, \
     PhotoSessionFavorite, PhotoSession
@@ -25,7 +26,7 @@ class ImageSerializer(serializers.ModelSerializer):
 
 # сериализаторы альбома
 class AlbumListSerializer(serializers.ModelSerializer):
-    profile = ProfilePublicSerializer()
+    profile = ProfileForGallerySerializer()
     main_photo_id = ImageSerializer()
     count_photos = serializers.SerializerMethodField()
 
@@ -105,6 +106,9 @@ class AlbumUpdateSerializer(serializers.ModelSerializer):
     def validate(self, data):
         profile = self.context['profile']
         user_albums = Album.objects.filter(profile=profile, name_album=data.get('name_album'))
+        album = Album.objects.filter(profile=profile).first()
+        if album == self.context['instance']:
+            raise serializers.ValidationError({'error': 'Данный альбом редактировать нельзя'})
         if user_albums:
             raise serializers.ValidationError({'error': 'Альбом с таким названием уже существует'})
         return data
@@ -156,7 +160,7 @@ class GalleryForCardListSerializer(serializers.ModelSerializer):
         return GalleryFavorite.objects.filter(gallery=obj.id).count()
 
 
-class GalleryListSerializer(serializers.ModelSerializer):
+class GalleryRetrieveSerializer(serializers.ModelSerializer):
     gallery_image = ImageSerializer()
     album = AlbumForGallerySerializer(read_only=True, many=True)
     category = SpecializationListSerializer(read_only=True, many=True)
@@ -164,13 +168,15 @@ class GalleryListSerializer(serializers.ModelSerializer):
     comments = serializers.SerializerMethodField()
     favorites = serializers.SerializerMethodField()
     profile = ProfileForGallerySerializer()
+    is_liked = serializers.SerializerMethodField()
+    in_favorite = serializers.SerializerMethodField()
 
     class Meta:
         model = Gallery
         fields = ['id', 'gallery_image', 'name_image', 'description', 'place_location', 'is_sell',
                   'photo_camera', 'focal_len', 'excerpt', 'flash', 'views', 'string_place_location',
                   'tags', 'category', 'album', 'profile', 'was_added', 'likes', 'is_hidden',
-                  'comments', 'favorites', 'aperture', 'iso', ]
+                  'comments', 'favorites', 'aperture', 'iso', 'is_liked', 'in_favorite', ]
 
     def get_likes(self, obj):
         return GalleryLike.objects.filter(gallery=obj.id).count()
@@ -180,6 +186,16 @@ class GalleryListSerializer(serializers.ModelSerializer):
 
     def get_favorites(self, obj):
         return GalleryFavorite.objects.filter(gallery=obj.id).count()
+
+    def get_is_liked(self, obj):
+        if isinstance(self.context['user'], AnonymousUser):
+            return ''
+        return bool(GalleryLike.objects.filter(gallery=obj.id, profile__user=self.context['user']))
+
+    def get_in_favorite(self, obj):
+        if isinstance(self.context['user'], AnonymousUser):
+            return ''
+        return bool(GalleryFavorite.objects.filter(gallery=obj.id, profile__user=self.context['user']))
 
 
 class GalleryAllListSerializer(serializers.ModelSerializer):
@@ -191,7 +207,8 @@ class GalleryAllListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Gallery
-        fields = ['id', 'gallery_image', 'name_image', 'profile', 'likes', 'comments', 'favorites', ]
+        fields = ['id', 'gallery_image', 'name_image', 'profile', 'likes', 'comments',
+                  'favorites', ]
 
     def get_likes(self, obj):
         return GalleryLike.objects.filter(gallery=obj.id).count()
@@ -302,12 +319,24 @@ class PhotoSessionListSerializer(serializers.ModelSerializer):
     session_category = SpecializationListSerializer()
     photos = ImageSerializer(read_only=True, many=True)
     profile = ProfileForGallerySerializer()
+    is_liked = serializers.SerializerMethodField()
+    in_favorite = serializers.SerializerMethodField()
 
     class Meta:
         model = PhotoSession
         fields = ['id', 'session_name', 'session_description', 'session_location',
                   'string_session_location', 'session_date', 'session_category',
-                  'photos', 'views', 'is_hidden', 'profile', ]
+                  'photos', 'views', 'is_hidden', 'profile', 'is_liked', 'in_favorite', ]
+
+    def get_is_liked(self, obj):
+        if isinstance(self.context['user'], AnonymousUser):
+            return ''
+        return bool(PhotoSessionLike.objects.filter(photo_session=obj.id, profile__user=self.context['user']))
+
+    def get_in_favorite(self, obj):
+        if isinstance(self.context['user'], AnonymousUser):
+            return ''
+        return bool(PhotoSessionFavorite.objects.filter(photo_session=obj.id, profile__user=self.context['user']))
 
 
 class PhotoSessionFavoriteCreateSerializer(serializers.ModelSerializer):
@@ -329,13 +358,13 @@ class PhotoSessionFavoriteListSerializer(serializers.ModelSerializer):
         fields = ['id', 'profile', 'photo_session', 'likes', 'comments', 'favorites', 'diff_distance', ]
 
     def get_likes(self, obj):
-        return GalleryLike.objects.filter(gallery=obj.gallery.id).count()
+        return PhotoSessionLike.objects.filter(photo_session=obj.photo_session.id).count()
 
     def get_comments(self, obj):
-        return GalleryComment.objects.filter(gallery=obj.gallery.id).count()
+        return PhotoSessionComment.objects.filter(photo_session=obj.photo_session.id).count()
 
     def get_favorites(self, obj):
-        return GalleryFavorite.objects.filter(gallery=obj.gallery.id).count()
+        return PhotoSessionFavorite.objects.filter(photo_session=obj.photo_session.id).count()
 
     def get_diff_distance(self, data):
         return diff_between_two_points(self.context.get('user_coords'), data.photo_session.session_location)

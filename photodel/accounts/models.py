@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.contrib.gis.db import models as gis_models
 from django.contrib.auth.models import User
 from additional_entities.models import Country, Language
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 
 class Specialization(models.Model):
@@ -60,6 +61,8 @@ class Profile(models.Model):
     is_adult = models.BooleanField(default=False)
     is_show_nu_photo = models.BooleanField(default=False)
     is_hide = models.BooleanField(default=False)
+    views = models.IntegerField(default=0, validators=[MinValueValidator(0)])
+    last_views = models.IntegerField(default=0, validators=[MinValueValidator(0)])
     user_channel_name = models.CharField(max_length=255, null=True, blank=True)
     user = models.OneToOneField(User, on_delete=models.CASCADE)
 

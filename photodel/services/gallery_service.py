@@ -1,3 +1,4 @@
+from django.core.exceptions import FieldDoesNotExist
 from gallery.models import GalleryFavorite, GalleryLike, \
     PhotoSessionLike, PhotoSessionFavorite
 from film_places.models import FilmPlacesLike, FilmPlacesFavorite
@@ -88,6 +89,14 @@ def is_unique_like(obj_id, profile_id, model):
     return True
 
 
+def check_exist_field(model, field):
+    try:
+        model._meta.get_field(field)
+        return True
+    except FieldDoesNotExist:
+        return False
+
+
 def protection_cheating_views(instance, ip):
     """
     Защита от накрутки просмотров вещи, путем
@@ -105,7 +114,11 @@ def add_view(instance):
     """
     Функция добавления просмотра
     """
-    instance.views += 1
+    if check_exist_field(instance, 'last_views'):
+        instance.views += 1
+        instance.last_views += 1
+    else:
+        instance.views += 1
     instance.save()
 
 
@@ -118,3 +131,19 @@ def diff_between_two_points(user_coordinates, field_with_location):
         return ''
     diff = field_with_location.distance(convert_string_coordinates_to_point_obj(user_coordinates)) * 100
     return f'{math.ceil(diff)}км'
+
+
+def filter_queryset_by_param(queryset, sort_type, filter_field):
+    try:
+        if not filter_field:
+            return queryset
+        if filter_field == 'date':
+            return queryset.order_by(f'{sort_type}id')
+        if filter_field == 'views':
+            if check_exist_field(queryset.first(), 'last_views'):
+                return queryset.order_by(f'{sort_type}last_views')
+            return queryset.order_by(f'{sort_type}views')
+        return queryset
+    except Exception:
+        return queryset
+

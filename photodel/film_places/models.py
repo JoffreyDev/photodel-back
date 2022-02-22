@@ -23,6 +23,7 @@ class FilmPlaces(models.Model):
     place_location = gis_models.PointField(srid=4326)
     string_place_location = models.CharField(max_length=40, null=True, blank=True)
     views = models.IntegerField(default=0, validators=[MinValueValidator(0.0)])
+    last_views = models.IntegerField(default=0, validators=[MinValueValidator(0)])
     last_ip_user = models.CharField(max_length=18, null=True, blank=True)
     is_hidden = models.BooleanField(default=False)
     category = models.ManyToManyField(CategoryFilmPlaces)
