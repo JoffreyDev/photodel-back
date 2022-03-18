@@ -6,8 +6,6 @@ BASE_URL = 'https://googletestphotodel.com/'
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-DEBUG = True
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -45,7 +43,7 @@ ROOT_URLCONF = 'photodel.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'DIRS': [os.path.join(BASE_DIR, 'templates'), os.path.join(BASE_DIR, 'build')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -57,6 +55,7 @@ TEMPLATES = [
         },
     },
 ]
+
 
 WSGI_APPLICATION = 'photodel.wsgi.application'
 ASGI_APPLICATION = 'photodel.routing.application'

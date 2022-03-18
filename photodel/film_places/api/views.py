@@ -1,14 +1,16 @@
 from rest_framework import permissions, status, viewsets
+from django.db.models import Count, Case, When
 from rest_framework.response import Response
 from film_places.models import CategoryFilmPlaces, FilmPlaces, FilmPlacesFavorite, FilmPlacesComment, FilmPlacesLike
 from accounts.models import Profile
 from .serializers import FilmPlacesCreateSerializer, CategoryFilmPlacesListSerializer, \
     FilmPlacesFavoriteCreateSerializer, FilmPlacesFavoriteListSerializer, FilmPlacesLikeCreateSerializer, \
     FilmPlacesCommentCreateSerializer, FilmPlacesCommentListSerializer, FilmPlacesForCardSerializer, \
-    FilmPlacesListSerializer, FilmRequestCreateSerializer, FilmPlacesAllListSerializer
+    FilmPlacesListSerializer, FilmRequestCreateSerializer, FilmPlacesAllListSerializer, FilmPlacesBestSerializer
 from services.gallery_service import is_unique_favorite, is_unique_like, \
     protection_cheating_views, add_view, filter_queryset_by_param
 from services.request_chat_service import create_request_chat_and_message
+from services.film_places_service import get_popular_places
 from services.ip_service import get_ip
 
 import logging
@@ -85,6 +87,11 @@ class FilmPlacesViewSet(viewsets.ViewSet):
     def list_place(self, request, pk):
         places = FilmPlaces.objects.filter(profile=pk)
         serializer = FilmPlacesForCardSerializer(places, many=True)
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
+
+    def the_best_places(self, request):
+        places = get_popular_places()
+        serializer = FilmPlacesBestSerializer(places, many=True)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
     def list_all_place(self, request):

@@ -241,6 +241,18 @@ class ProfileViewSet(viewsets.ViewSet):
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Не был передан email. '
                                                                                  'Пожалуйства обратитесь в поддержку'})
 
+    def popular_profiles(self, request):
+        """
+        Частитичное или полное обновление полей в таблицу Profile
+        """
+        try:
+            profiles = Profile.objects.filter(is_hide=False)[:10]
+            serializer = ProfilePublicSerializer(profiles, many=True)
+            return Response(status=status.HTTP_200_OK, data=serializer.data)
+        except KeyError:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Не был передан email. '
+                                                                                 'Пожалуйства обратитесь в поддержку'})
+
     def search_profiles(self, request):
         """
         Частитичное или полное обновление полей в таблицу Profile

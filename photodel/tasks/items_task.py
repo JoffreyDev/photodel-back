@@ -1,7 +1,6 @@
 from photodel.celery import app
 from accounts.models import Profile
 from film_places.models import FilmPlaces
-from django.conf import settings
 
 
 @app.task

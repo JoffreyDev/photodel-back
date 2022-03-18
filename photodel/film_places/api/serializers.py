@@ -51,6 +51,18 @@ class FilmPlacesForCardSerializer(serializers.ModelSerializer):
         return FilmPlacesFavorite.objects.filter(place=obj.id).count()
 
 
+class FilmPlacesBestSerializer(serializers.ModelSerializer):
+    likes = serializers.SerializerMethodField()
+
+    class Meta:
+        model = FilmPlaces
+        fields = ['id', 'views', 'likes', ]
+
+    def get_likes(self, obj):
+        # FilmPlacesLike.objects.values('place').annotate(dcount=Count('place')).order_by('-dcount')
+        return obj.id
+
+
 class FilmPlacesListSerializer(serializers.ModelSerializer):
     place_image = ImageSerializer(read_only=True, many=True)
     category = CategoryFilmPlacesListSerializer(read_only=True, many=True)

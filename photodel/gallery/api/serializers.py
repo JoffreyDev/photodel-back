@@ -281,8 +281,8 @@ class PhotoSessionCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PhotoSession
         fields = ['session_name', 'session_description', 'session_location',
-                  'string_session_location', 'session_date', 'session_сategory',
-                  'photos', 'is_hidden', 'profile', ]
+                  'string_session_location', 'session_date', 'photos', 'is_hidden',
+                  'profile', 'session_category', 'main_photo', ]
 
     def validate(self, data):
         profile = self.context['profile']
@@ -299,8 +299,9 @@ class PhotoSessionForCardListSerializer(serializers.ModelSerializer):
     favorites = serializers.SerializerMethodField()
 
     class Meta:
-        model = Gallery
-        fields = ['id', 'views', 'likes', 'comments', 'favorites', 'main_photo', ]
+        model = PhotoSession
+        fields = ['id', 'views', 'likes', 'comments', 'favorites',
+                  'main_photo', 'session_name', 'string_session_location', ]
 
     def get_likes(self, obj):
         return PhotoSessionLike.objects.filter(photo_session=obj.id).count()

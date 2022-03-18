@@ -13,7 +13,7 @@ app.autodiscover_tasks()
 
 app.conf.CELERYBEAT_SCHEDULE = {
     'task_delete_last_views': {
-        'task': 'tasks.items_task.task_delete_last_views',
+        'task': 'tasks.accounts_task.task_delete_last_views',
         'schedule': crontab(hour=23, day_of_week='sunday'),
     }
 }

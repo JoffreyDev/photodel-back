@@ -21,6 +21,8 @@ urlpatterns = [
          name='list_place'),
     path('list/', FilmPlacesViewSet.as_view({'get': "list_all_place"}),
          name='list_all_place'),
+    path('best/list/', FilmPlacesViewSet.as_view({'get': "the_best_places"}),
+         name='the_best_places'),
     path('delete/', FilmPlacesViewSet.as_view({'post': "delete_place"}),
          name='delete_place'),
 

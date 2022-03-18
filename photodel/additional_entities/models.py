@@ -16,3 +16,10 @@ class Country(models.Model):
 
 class Language(models.Model):
     name_language = models.CharField(max_length=15)
+
+
+class Advertisement(models.Model):
+    ad_image = models.ImageField(upload_to='ad/')
+    ad_title = models.CharField(max_length=255)
+    ad_link = models.CharField(max_length=255)
+    ad_count_click = models.IntegerField(default=0)

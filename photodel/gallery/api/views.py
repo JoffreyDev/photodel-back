@@ -248,6 +248,11 @@ class GalleryViewSet(viewsets.ViewSet):
         except Gallery.DoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Фото из галерии не было найдено'})
 
+    def popular_photos(self, request):
+        photos = Gallery.objects.order_by('views').select_related('gallery_image')[:10]
+        serializer = GalleryForCardListSerializer(photos, many=True)
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
+
     def list_photos(self, request, pk):
         photos = Gallery.objects.filter(profile=pk).select_related('gallery_image')
         serializer = GalleryForCardListSerializer(photos, many=True)
