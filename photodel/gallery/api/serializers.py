@@ -273,7 +273,7 @@ class GalleryCommentListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GalleryComment
-        fields = ['content', 'timestamp', 'sender_comment', 'gallery', 'answer_id_comment', ]
+        fields = ['content', 'timestamp', 'sender_comment', 'gallery', 'answer_id_comment', 'quote_id', ]
 
 
 # сериализаторы фотоессий
@@ -322,12 +322,25 @@ class PhotoSessionListSerializer(serializers.ModelSerializer):
     profile = ProfileForGallerySerializer()
     is_liked = serializers.SerializerMethodField()
     in_favorite = serializers.SerializerMethodField()
+    likes = serializers.SerializerMethodField()
+    comments = serializers.SerializerMethodField()
+    favorites = serializers.SerializerMethodField()
 
     class Meta:
         model = PhotoSession
         fields = ['id', 'session_name', 'session_description', 'session_location',
                   'string_session_location', 'session_date', 'session_category',
-                  'photos', 'views', 'is_hidden', 'profile', 'is_liked', 'in_favorite', ]
+                  'photos', 'views', 'is_hidden', 'profile', 'is_liked', 'in_favorite',
+                  'likes', 'comments', 'favorites', ]
+
+    def get_likes(self, obj):
+        return PhotoSessionLike.objects.filter(photo_session=obj.id).count()
+
+    def get_comments(self, obj):
+        return PhotoSessionComment.objects.filter(photo_session=obj.id).count()
+
+    def get_favorites(self, obj):
+        return PhotoSessionFavorite.objects.filter(photo_session=obj.id).count()
 
     def get_is_liked(self, obj):
         if isinstance(self.context['user'], AnonymousUser):
@@ -397,4 +410,4 @@ class PhotoSessionCommentListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PhotoSessionComment
-        fields = ['content', 'timestamp', 'sender_comment', 'photo_session', 'answer_id_comment', ]
+        fields = ['content', 'timestamp', 'sender_comment', 'photo_session', 'answer_id_comment', 'quote_id', ]

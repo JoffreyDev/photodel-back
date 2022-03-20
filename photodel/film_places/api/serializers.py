@@ -51,28 +51,28 @@ class FilmPlacesForCardSerializer(serializers.ModelSerializer):
         return FilmPlacesFavorite.objects.filter(place=obj.id).count()
 
 
-class FilmPlacesBestSerializer(serializers.ModelSerializer):
-    likes = serializers.SerializerMethodField()
-
-    class Meta:
-        model = FilmPlaces
-        fields = ['id', 'views', 'likes', ]
-
-    def get_likes(self, obj):
-        # FilmPlacesLike.objects.values('place').annotate(dcount=Count('place')).order_by('-dcount')
-        return obj.id
-
-
 class FilmPlacesListSerializer(serializers.ModelSerializer):
     place_image = ImageSerializer(read_only=True, many=True)
     category = CategoryFilmPlacesListSerializer(read_only=True, many=True)
     profile = ProfileForGallerySerializer()
+    likes = serializers.SerializerMethodField()
+    comments = serializers.SerializerMethodField()
+    favorites = serializers.SerializerMethodField()
 
     class Meta:
         model = FilmPlaces
         fields = ['id', 'name_place', 'description', 'photo_camera', 'place_image',
-                  'views', 'string_place_location', 'cost', 'payment',
-                  'place_location', 'category', 'profile', 'is_hidden', ]
+                  'views', 'string_place_location', 'cost', 'payment', 'place_location',
+                  'category', 'profile', 'is_hidden', 'likes', 'comments', 'favorites', ]
+
+    def get_likes(self, obj):
+        return FilmPlacesLike.objects.filter(place=obj.id).count()
+
+    def get_comments(self, obj):
+        return FilmPlacesComment.objects.filter(place=obj.id).count()
+
+    def get_favorites(self, obj):
+        return FilmPlacesFavorite.objects.filter(place=obj.id).count()
 
 
 class FilmPlacesAllListSerializer(serializers.ModelSerializer):
@@ -158,7 +158,7 @@ class FilmPlacesCommentListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FilmPlacesComment
-        fields = ['content', 'timestamp', 'sender_comment', 'place', 'id', ]
+        fields = ['content', 'timestamp', 'sender_comment', 'place', 'id', 'quote_id', ]
 
 
 class FilmRequestCreateSerializer(serializers.ModelSerializer):

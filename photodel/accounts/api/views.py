@@ -246,7 +246,11 @@ class ProfileViewSet(viewsets.ViewSet):
         Частитичное или полное обновление полей в таблицу Profile
         """
         try:
-            profiles = Profile.objects.filter(is_hide=False)[:10]
+            spec = request.GET.get('spec')
+            if spec:
+                profiles = Profile.objects.filter(is_hide=False, spec_model_or_photographer__name_spec=spec)[:10]
+            else:
+                profiles = Profile.objects.filter(is_hide=False)[:10]
             serializer = ProfilePublicSerializer(profiles, many=True)
             return Response(status=status.HTTP_200_OK, data=serializer.data)
         except KeyError:

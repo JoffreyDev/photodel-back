@@ -36,7 +36,10 @@ class FilmPlaces(models.Model):
 class FilmPlacesComment(models.Model):
     content = models.TextField()
     timestamp = models.DateTimeField(default=timezone.localtime)
-    answer_id_comment = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True)
+    answer_id_comment = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True,
+                                          related_name='film_places_comment_answer')
+    quote_id = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True,
+                                 related_name='film_places_comment_quote')
     sender_comment = models.ForeignKey(Profile, on_delete=models.CASCADE)
     place = models.ForeignKey(FilmPlaces, on_delete=models.CASCADE)
 

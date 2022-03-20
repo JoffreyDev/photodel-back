@@ -62,7 +62,10 @@ class Gallery(models.Model):
 class GalleryComment(models.Model):
     content = models.TextField()
     timestamp = models.DateTimeField(default=timezone.localtime)
-    answer_id_comment = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True)
+    answer_id_comment = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True,
+                                          related_name='gallery_comment_answer')
+    quote_id = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True,
+                                 related_name='gallery_comment_quote')
     sender_comment = models.ForeignKey(Profile, on_delete=models.CASCADE)
     gallery = models.ForeignKey(Gallery, on_delete=models.CASCADE)
 
@@ -107,7 +110,10 @@ class PhotoSession(models.Model):
 class PhotoSessionComment(models.Model):
     content = models.TextField()
     timestamp = models.DateTimeField(default=timezone.localtime)
-    answer_id_comment = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True)
+    answer_id_comment = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True,
+                                          related_name='photo_session_comment_answer')
+    quote_id = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True,
+                                 related_name='photo_session_gallery_comment_quote')
     sender_comment = models.ForeignKey(Profile, on_delete=models.CASCADE)
     photo_session = models.ForeignKey(PhotoSession, on_delete=models.CASCADE)
 

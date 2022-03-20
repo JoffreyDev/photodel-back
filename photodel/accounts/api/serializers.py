@@ -309,4 +309,4 @@ class ProfileCommentListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProfileComment
-        fields = ['content', 'timestamp', 'sender_comment', 'receiver_comment', 'answer_id_comment', ]
+        fields = ['content', 'timestamp', 'sender_comment', 'receiver_comment', 'answer_id_comment', 'quote_id', ]
