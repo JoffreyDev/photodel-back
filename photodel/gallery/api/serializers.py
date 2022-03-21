@@ -208,7 +208,7 @@ class GalleryAllListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Gallery
         fields = ['id', 'gallery_image', 'name_image', 'profile', 'likes', 'comments',
-                  'favorites', ]
+                  'favorites', 'place_location', ]
 
     def get_likes(self, obj):
         return GalleryLike.objects.filter(gallery=obj.id).count()

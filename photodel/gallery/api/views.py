@@ -4,7 +4,9 @@ from gallery.models import Album, Gallery, Image, GalleryComment, GalleryLike, G
     PhotoSessionComment, PhotoSessionLike, PhotoSessionFavorite, PhotoSession
 from accounts.models import Profile
 from services.gallery_service import is_unique_favorite, is_unique_like, \
-    protection_cheating_views, add_view, filter_queryset_by_param
+    protection_cheating_views, add_view
+from services.gallery_search_service import filter_gallery_queryset
+
 from services.ip_service import get_ip
 from .serializers import AlbumListSerializer, AlbumCreateSerializer, GalleryRetrieveSerializer, \
     GalleryForCardListSerializer, GalleryCreateSerializer, GalleryFavoriteCreateSerializer, \
@@ -260,10 +262,7 @@ class GalleryViewSet(viewsets.ViewSet):
 
     def list_all_photos(self, request):
         photos = Gallery.objects.filter(is_hidden=False)
-        queryset = filter_queryset_by_param(photos,
-                                            request.GET.get('sort_type', ''),
-                                            request.GET.get('filter_field', ''))\
-            .select_related('gallery_image', 'profile')
+        queryset = filter_gallery_queryset(photos, request.GET)
         serializer = GalleryAllListSerializer(queryset, many=True)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 

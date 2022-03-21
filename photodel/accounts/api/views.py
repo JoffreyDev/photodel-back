@@ -8,7 +8,8 @@ from services.accounts_service import check_email_verification_code, update_or_c
     create_random_code, check_is_unique_email, return_user_use_reset_token, custom_paginator
 from services.ip_service import get_ip
 from services.search_profile_service import filter_by_all_parameters
-from services.gallery_service import is_unique_favorite, is_unique_like, filter_queryset_by_param
+from services.gallery_service import is_unique_favorite, is_unique_like
+from services.gallery_search_service import filter_gallery_queryset
 from tasks.accounts_task import task_send_email_to_user, task_send_reset_password_to_email
 from .serializers import ProfileUpdateSerializer, ChangePasswordSerializer, \
     ProCategoryListSerializer, SpecializationListSerializer, \
@@ -229,9 +230,9 @@ class ProfileViewSet(viewsets.ViewSet):
         """
         try:
             profiles = Profile.objects.filter(is_hide=False)
-            queryset = filter_queryset_by_param(profiles,
-                                                request.GET.get('sort_type', ''),
-                                                request.GET.get('filter_field', ''))\
+            queryset = filter_gallery_queryset(profiles,
+                                               request.GET.get('sort_type', ''),
+                                               request.GET.get('filter_field', ''))\
                 .select_related('user',  'type_pro')\
                 .prefetch_related('spec_model_or_photographer')
             serializer = ProfilListSerializer(queryset, many=True,

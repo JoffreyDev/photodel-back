@@ -22,7 +22,7 @@ class FilmPlacesCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = FilmPlaces
         fields = ['name_place', 'description', 'photo_camera', 'place_image', 'string_place_location',
-                  'cost', 'payment', 'place_location', 'category', 'profile', 'is_hidden', ]
+                  'cost', 'payment', 'place_location', 'category', 'profile', 'is_hidden', 'main_photo', ]
 
     def validate(self, data):
         profile = self.context['profile']
@@ -85,7 +85,7 @@ class FilmPlacesAllListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FilmPlaces
-        fields = ['id', 'name_place', 'place_image', 'string_place_location',
+        fields = ['id', 'name_place', 'place_image', 'string_place_location', 'main_photo',
                   'place_location', 'profile', 'likes', 'comments', 'favorites', 'diff_distance', 'last_views']
 
     def get_likes(self, obj):

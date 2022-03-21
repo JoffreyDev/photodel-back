@@ -6,6 +6,11 @@ from gallery.models import Image
 from django.utils import timezone
 
 
+def get_photo():
+    image = Image.objects.filter(profile__user__username='admin').first()
+    return image
+
+
 class CategoryFilmPlaces(models.Model):
     name_category = models.CharField(max_length=40)
 
@@ -18,11 +23,13 @@ class FilmPlaces(models.Model):
     place_image = models.ManyToManyField(Image)
     description = models.TextField(blank=True)
     photo_camera = models.CharField(max_length=40)
-    cost = models.FloatField(validators=[MinValueValidator(0.0)])
+    cost = models.CharField(max_length=10)
     payment = models.CharField(max_length=40)
     place_location = gis_models.PointField(srid=4326)
     string_place_location = models.CharField(max_length=40, null=True, blank=True)
     views = models.IntegerField(default=0, validators=[MinValueValidator(0.0)])
+    main_photo = models.ForeignKey(Image, on_delete=models.SET(get_photo), blank=True, null=True,
+                                   related_name='film_places_main_photo')
     last_views = models.IntegerField(default=0, validators=[MinValueValidator(0)])
     last_ip_user = models.CharField(max_length=18, null=True, blank=True)
     is_hidden = models.BooleanField(default=False)

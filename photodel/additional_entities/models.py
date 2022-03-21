@@ -23,3 +23,7 @@ class Advertisement(models.Model):
     ad_title = models.CharField(max_length=255)
     ad_link = models.CharField(max_length=255)
     ad_count_click = models.IntegerField(default=0)
+
+
+class BanWord(models.Model):
+    word = models.CharField(max_length=45)

@@ -295,6 +295,7 @@ class ProfileCommentCreateSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def validate(self, data):
+        # if data.get('content')
         comment = data.get('answer_id_comment')
         if not comment:
             return data
