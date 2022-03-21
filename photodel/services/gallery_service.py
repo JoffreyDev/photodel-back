@@ -133,3 +133,18 @@ def diff_between_two_points(user_coordinates, field_with_location):
     return f'{math.ceil(diff)}км'
 
 
+def filter_queryset_by_param(queryset, sort_type, filter_field):
+    try:
+        if not filter_field:
+            return queryset
+        if filter_field == 'date':
+            return queryset.order_by(f'{sort_type}id')
+        if filter_field == 'views':
+            if check_exist_field(queryset.first(), 'last_views'):
+                return queryset.order_by(f'{sort_type}last_views')
+            return queryset.order_by(f'{sort_type}views')
+        return queryset
+    except Exception:
+        return queryset
+
+

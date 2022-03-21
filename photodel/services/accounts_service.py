@@ -9,6 +9,7 @@ from django.contrib.gis.geos import Point
 from accounts.models import VerificationCode, Profile
 from gallery.models import GalleryLike, GalleryFavorite, PhotoSessionLike, PhotoSessionFavorite
 from film_places.models import FilmPlacesLike, FilmPlacesFavorite
+from additional_entities.models import BanWord
 from smtplib import SMTPException
 from django.utils import timezone
 import random
@@ -184,3 +185,12 @@ def collect_like(user):
     galleries_count = GalleryLike.objects.filter(gallery__profile__user=user).count()
     photo_session_count = PhotoSessionLike.objects.filter(photo_session__profile__user=user).count()
     return places_count + galleries_count + photo_session_count
+
+
+def check_obscene_word_in_content(content):
+    ban_words = BanWord.objects.values('word')
+    for word in ban_words:
+        if word.get('word') in content:
+            return True
+    return False
+

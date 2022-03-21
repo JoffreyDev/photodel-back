@@ -4,6 +4,7 @@ from film_places.models import CategoryFilmPlaces, FilmPlaces, FilmPlacesFavorit
 from accounts.api.serializers import ProfileForGallerySerializer
 from gallery.api.serializers import ImageSerializer
 from services.gallery_service import diff_between_two_points
+from services.accounts_service import check_obscene_word_in_content
 
 
 class CategoryFilmPlacesListSerializer(serializers.ModelSerializer):
@@ -144,6 +145,9 @@ class FilmPlacesCommentCreateSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def validate(self, data):
+        content = data.get('content', '').split()
+        if check_obscene_word_in_content(content):
+            raise serializers.ValidationError({'error': 'Ваш комментарий содержит недопустимые слова'})
         comment = data.get('answer_id_comment')
         if not comment:
             return data

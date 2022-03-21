@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import EmailFragment, CustomSettings, Country, Language, Advertisement
+from .models import EmailFragment, CustomSettings, Country, Language, Advertisement, BanWord
 
 
 admin.site.register(EmailFragment)
@@ -19,5 +19,10 @@ class LanguageAdmin(admin.ModelAdmin):
 @admin.register(Advertisement)
 class AdvertisementAdmin(admin.ModelAdmin):
     list_display = ['ad_title', 'ad_link', ]
+
+
+@admin.register(BanWord)
+class BanWordAdmin(admin.ModelAdmin):
+    list_display = ['word', ]
 
 

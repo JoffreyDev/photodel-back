@@ -6,6 +6,7 @@ from gallery.models import Album, Gallery, Image, GalleryComment, GalleryLike, G
 from accounts.api.serializers import ProfilePublicSerializer, SpecializationListSerializer, \
     ProfileForGallerySerializer
 from services.gallery_service import diff_between_two_points, Base64ImageField
+from services.accounts_service import check_obscene_word_in_content
 
 
 # сериализаторы фото
@@ -259,6 +260,9 @@ class GalleryCommentCreateSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def validate(self, data):
+        content = data.get('content', '').split()
+        if check_obscene_word_in_content(content):
+            raise serializers.ValidationError({'error': 'Ваш комментарий содержит недопустимые слова'})
         comment = data.get('answer_id_comment')
         if not comment:
             return data
@@ -396,6 +400,9 @@ class PhotoSessionCommentCreateSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def validate(self, data):
+        content = data.get('content', '').split()
+        if check_obscene_word_in_content(content):
+            raise serializers.ValidationError({'error': 'Ваш комментарий содержит недопустимые слова'})
         comment = data.get('answer_id_comment')
         if not comment:
             return data

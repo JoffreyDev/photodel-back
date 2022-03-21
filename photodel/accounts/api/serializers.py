@@ -1,4 +1,3 @@
-from django.db.models import Count
 from rest_framework_simplejwt.serializers import TokenObtainSerializer
 from django.contrib.auth.models import User, AnonymousUser
 from rest_framework import serializers
@@ -9,7 +8,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import password_validation
 from django.contrib.auth.models import update_last_login
 from additional_entities.api.serializers import CountryListSerializer, LanguageListSerializer
-from services.accounts_service import check_profile_location, collect_favorite, collect_like
+from services.accounts_service import check_profile_location, collect_favorite, \
+    collect_like, check_obscene_word_in_content
 import json
 
 
@@ -150,6 +150,9 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
         """
         Проверка пользователя на тип профиля и специализацию.
         """
+        content = data.get('about', '').split()
+        if check_obscene_word_in_content(content):
+            raise serializers.ValidationError({'error': 'В вашей информации содержиатся недопустимые слова'})
         type_pro = data.get('type_pro')
         spec = data.get('spec_model_or_photographer')
         if not type_pro and not spec:
@@ -295,7 +298,9 @@ class ProfileCommentCreateSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def validate(self, data):
-        # if data.get('content')
+        content = data.get('content', '').split()
+        if check_obscene_word_in_content(content):
+            raise serializers.ValidationError({'error': 'Ваш комментарий содержит недопустимые слова'})
         comment = data.get('answer_id_comment')
         if not comment:
             return data
