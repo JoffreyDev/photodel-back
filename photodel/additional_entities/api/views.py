@@ -1,5 +1,7 @@
 from rest_framework import viewsets, status
 from additional_entities.models import Country, Language, Advertisement
+from film_places.models import FilmPlacesComment
+from gallery.models import GalleryComment, PhotoSessionComment
 from .serializers import CountryListSerializer, LanguageListSerializer, AdvertisementListSerializer
 from rest_framework.response import Response
 
@@ -29,5 +31,15 @@ class AdvertisementViewSet(viewsets.ViewSet):
         queryset = Advertisement.objects.get(id=pk)
         queryset.ad_count_click += 1
         queryset.save()
+        return Response(status=status.HTTP_200_OK)
+
+
+class CommonViewSet(viewsets.ViewSet):
+
+    def list_last_comments(self, request):
+        photo_comment = GalleryComment.objects.last().value('content', 'timestamp', 'sender_comment__name')
+        photo_session_comment = PhotoSessionComment.objects.last()
+        place_comment = FilmPlacesComment.objects.last()
+        print(photo_comment)
         return Response(status=status.HTTP_200_OK)
 

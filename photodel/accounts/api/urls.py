@@ -34,8 +34,6 @@ urlpatterns = [
          name='update_password_after_reset'),
     path('reset-password-email/', ChangePasswordView.as_view({"post": 'generate_token_for_reset_password'}),
          name='generate_token_for_reset_password'),
-    path('profiles/search/', ProfileViewSet.as_view({'get': "search_profiles"}),
-         name='search_profiles'),
     path('profile/like/create/', ProfileLikeViewSet.as_view({'post': "create_like"}),
          name='profile_create_like'),
     path('profile/like/delete/<int:pk>/', ProfileLikeViewSet.as_view({'delete': "delete_like"}),

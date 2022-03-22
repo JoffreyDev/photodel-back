@@ -1,32 +1,8 @@
-from accounts.models import Profile
 from django.db.models import Q
 from django.contrib.gis.measure import D
 from services.accounts_service import convert_string_coordinates_to_point_obj
 from django.utils import timezone
-
 from itertools import chain
-
-
-def check_in_request_param(dict_request_param):
-    """
-    Функция принимает параметры из get запроса, создает словарь
-    И если ключ из словаря есть в параметрах запроса, то словарь
-    забирает значение этого поля, иначе остается дефолтное значение
-    """
-    params = {
-        "name_spec": 0,
-        "name_category": 0,
-        "search_words": '',
-        "distance": 0,
-        "coordinates": '',
-        "status": "",
-    }
-    if not dict_request_param:
-        return None
-    for key in params:
-        if key in dict_request_param:
-            params[key] = dict_request_param[key]
-    return params
 
 
 def filter_by_category_and_spec(filter_queryset, name_spec, name_category):
@@ -34,9 +10,9 @@ def filter_by_category_and_spec(filter_queryset, name_spec, name_category):
     Фильтрация категории и специализации профиля, если паратры были переданы
     """
     if name_category:
-        filter_queryset = filter_queryset.filter(type_pro=name_category)
+        filter_queryset = filter_queryset.filter(type_pro__name_category=name_category)
     if name_spec:
-        filter_queryset = filter_queryset.filter(type_pro__spec_model_or_photographer__in=[name_spec, ])
+        filter_queryset = filter_queryset.filter(spec_model_or_photographer__name_spec=name_spec)
     return filter_queryset
 
 
@@ -76,15 +52,16 @@ def filter_by_distance(profiles, user_coordinates, distance):
     return profiles
 
 
-def filter_by_all_parameters(request_data):
+def filter_by_all_parameters(profiles, request_data):
     """
     Филтррация по всем переданным параметрам из переменной request_data
     """
-    profiles = Profile.objects.filter(is_hide=False)
-    if not request_data:
-        return profiles
-    params = check_in_request_param(request_data)
-    by_categories = filter_by_category_and_spec(profiles, params['name_spec'], params['name_category'])
-    by_distance = filter_by_distance(by_categories, params['coordinates'], params['distance'])
-    by_initials = filter_by_initials(by_distance, params['search_words'])
+    by_categories = filter_by_category_and_spec(profiles,
+                                                request_data.get('name_spec', ''),
+                                                request_data.get('name_category', ''))
+    by_distance = filter_by_distance(by_categories,
+                                     request_data.get('coordinates', ''),
+                                     request_data.get('distance', ''))
+    by_initials = filter_by_initials(by_distance,
+                                     request_data.get('search_words', ''))
     return by_initials

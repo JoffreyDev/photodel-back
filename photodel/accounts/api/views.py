@@ -168,7 +168,7 @@ class CategoriesProfileViewSet(viewsets.ViewSet):
         Список категория профи
         """
         ip = get_ip(request)
-        instance = Specialization.objects.all()
+        instance = Specialization.objects.order_by('name_spec')
         logger.info(f'Для пользователя {ip} был получен список профи категорий')
         serializer = SpecializationListSerializer(instance, many=True)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
@@ -178,7 +178,7 @@ class CategoriesProfileViewSet(viewsets.ViewSet):
         Список специализаий фотографов и моделей
         """
         ip = get_ip(request)
-        instance = ProCategory.objects.all()
+        instance = ProCategory.objects.order_by('name_category')
         logger.info(f'Для пользователя {ip} был получен список специализаий')
         serializer = ProCategoryListSerializer(instance, many=True)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
@@ -230,9 +230,7 @@ class ProfileViewSet(viewsets.ViewSet):
         """
         try:
             profiles = Profile.objects.filter(is_hide=False)
-            queryset = filter_queryset_by_param(profiles,
-                                               request.GET.get('sort_type', ''),
-                                               request.GET.get('filter_field', ''))\
+            queryset = filter_by_all_parameters(profiles, request.GET)\
                 .select_related('user',  'type_pro')\
                 .prefetch_related('spec_model_or_photographer')
             serializer = ProfilListSerializer(queryset, many=True,
@@ -253,21 +251,6 @@ class ProfileViewSet(viewsets.ViewSet):
             else:
                 profiles = Profile.objects.filter(is_hide=False)[:10]
             serializer = ProfilePublicSerializer(profiles, many=True)
-            return Response(status=status.HTTP_200_OK, data=serializer.data)
-        except KeyError:
-            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Не был передан email. '
-                                                                                 'Пожалуйства обратитесь в поддержку'})
-
-    def search_profiles(self, request):
-        """
-        Частитичное или полное обновление полей в таблицу Profile
-        """
-        try:
-            ip = get_ip(request)
-            filter_queryset = filter_by_all_parameters(request.GET)
-            paginates_queryset = custom_paginator(filter_queryset, request)
-            logger.info(f'Пользователь {ip} хочет найти профили')
-            serializer = ProfileUpdateSerializer(paginates_queryset, many=True)
             return Response(status=status.HTTP_200_OK, data=serializer.data)
         except KeyError:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Не был передан email. '

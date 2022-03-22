@@ -23,7 +23,7 @@ class CategoryFilmPlacesViewSet(viewsets.ViewSet):
     Класс для представления работы с моделью CategoryFilmPlaces
     """
     def list_category(self, request):
-        queryset = CategoryFilmPlaces.objects.all()
+        queryset = CategoryFilmPlaces.objects.order_by('name_category')
         serializer = CategoryFilmPlacesListSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 

@@ -15,6 +15,8 @@ def filter_gallery_by_distance(queryset, user_coordinates, distance):
 
 
 def filter_gallery_by_category(queryset, category):
+    if not category:
+        return queryset
     return queryset.filter(category__name_spec=category).select_related('gallery_image', 'profile')
 
 

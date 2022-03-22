@@ -15,6 +15,8 @@ def filter_film_places_by_distance(queryset, user_coordinates, distance):
 
 
 def filter_film_places_by_category(queryset, category):
+    if not category:
+        return queryset
     return queryset.filter(category__name_category=category).select_related('profile').prefetch_related('place_image')
 
 
