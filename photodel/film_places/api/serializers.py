@@ -40,7 +40,8 @@ class FilmPlacesForCardSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FilmPlaces
-        fields = ['id', 'views', 'likes', 'comments', 'favorites', ]
+        fields = ['id', 'name_place', 'place_image', 'string_place_location', 'main_photo',
+                  'place_location', 'profile', 'likes', 'comments', 'favorites', 'last_views', ]
 
     def get_likes(self, obj):
         return FilmPlacesLike.objects.filter(place=obj.id).count()
@@ -87,7 +88,7 @@ class FilmPlacesAllListSerializer(serializers.ModelSerializer):
     class Meta:
         model = FilmPlaces
         fields = ['id', 'name_place', 'place_image', 'string_place_location', 'main_photo',
-                  'place_location', 'profile', 'likes', 'comments', 'favorites', 'diff_distance', 'last_views']
+                  'place_location', 'profile', 'likes', 'comments', 'favorites', 'diff_distance', 'last_views', ]
 
     def get_likes(self, obj):
         return FilmPlacesLike.objects.filter(place=obj.id).count()

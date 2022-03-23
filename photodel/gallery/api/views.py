@@ -456,10 +456,7 @@ class PhotoSessionViewSet(viewsets.ViewSet):
 
     def list_photo_sessions(self, request, pk):
         photo_sessions = PhotoSession.objects.filter(profile=pk)
-        queryset = filter_queryset_by_param(photo_sessions,
-                                            request.GET.get('sort_type', ''),
-                                            request.GET.get('filter_field', ''))
-        serializer = PhotoSessionForCardListSerializer(queryset, many=True)
+        serializer = PhotoSessionForCardListSerializer(photo_sessions, many=True)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
     def delete_photo_session(self, request):

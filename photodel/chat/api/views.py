@@ -22,7 +22,7 @@ class ChatViewSet(viewsets.ViewSet):
         Создание нового чата
         """
         try:
-            chat_id = is_chat_unique(request.data['sender_id'], request.data['receiver_id'])
+            chat_id = is_chat_unique(request.data.get('sender_id', ''), request.data.get('receiver_id', ''))
             if not chat_id:
                 serializer = ChatCreateSerializer(data=request.data)
                 if serializer.is_valid(raise_exception=True):

@@ -37,9 +37,21 @@ class AdvertisementViewSet(viewsets.ViewSet):
 class CommonViewSet(viewsets.ViewSet):
 
     def list_last_comments(self, request):
-        photo_comment = GalleryComment.objects.last().value('content', 'timestamp', 'sender_comment__name')
-        photo_session_comment = PhotoSessionComment.objects.last()
-        place_comment = FilmPlacesComment.objects.last()
-        print(photo_comment)
-        return Response(status=status.HTTP_200_OK)
+        photo_comment = {'photo_comment':
+                         GalleryComment.objects.values('content', 'timestamp', 'sender_comment__name',
+                                                       'sender_comment__surname', 'sender_comment__status',
+                                                       'gallery__name_image').last()
+                         }
+
+        photo_comment.update({'photo_session_comment':
+                              PhotoSessionComment.objects.values('content', 'timestamp', 'sender_comment__name',
+                                                                 'sender_comment__surname', 'sender_comment__status',
+                                                                 'photo_session__session_name').last()
+                              })
+        photo_comment.update({'place_comment':
+                              FilmPlacesComment.objects.values('content', 'timestamp', 'sender_comment__name',
+                                                               'sender_comment__surname', 'sender_comment__status',
+                                                               'place__name_place').last()
+                              })
+        return Response(status=status.HTTP_200_OK, data=photo_comment)
 
