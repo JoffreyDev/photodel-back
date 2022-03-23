@@ -149,12 +149,14 @@ class FilmPlacesFavoriteViewSet(viewsets.ViewSet):
         return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Добавление избранного не было выполнено. '
                                                                              'Пожалуйства обратитесь в поддержку'})
 
-    def delete_favorite(self, request, pk):
+    def delete_favorite(self, request):
         try:
             logger.info(f'Пользователь {request.user} хочет удалить место съемки из избранного')
+            place_favorites = request.data.get('place_favorites')
             profile = Profile.objects.get(user=request.user)
-            instance = FilmPlacesFavorite.objects.get(profile=profile.id, place=pk)
-            instance.delete()
+            for place in place_favorites:
+                instance = FilmPlacesFavorite.objects.get(profile=profile, place=place)
+                instance.delete()
             logger.info(f'Пользователь {request.user} успешно удалил место съемки из избранного')
             return Response(status=status.HTTP_200_OK)
         except FilmPlacesFavorite.DoesNotExist:

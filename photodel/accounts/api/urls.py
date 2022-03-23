@@ -42,7 +42,7 @@ urlpatterns = [
          name='profile_list_favorite'),
     path('profile/favorite/create/', ProfileFavoriteViewSet.as_view({'post': "create_favorite"}),
          name='profile_create_favorite'),
-    path('profile/favorite/delete/<int:pk>/', ProfileFavoriteViewSet.as_view({'delete': "delete_favorite"}),
+    path('profile/favorite/delete/', ProfileFavoriteViewSet.as_view({'post': "delete_favorite"}),
          name='profile_delete_favorite'),
     path('profile/comment/list/<int:pk>/', ProfileCommentViewSet.as_view({'get': "list_comments"}),
          name='profile_list_comments'),

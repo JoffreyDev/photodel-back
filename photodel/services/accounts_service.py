@@ -193,4 +193,3 @@ def check_obscene_word_in_content(content):
         if word.get('word') in content:
             return True
     return False
-

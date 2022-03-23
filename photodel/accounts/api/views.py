@@ -15,7 +15,7 @@ from .serializers import ProfileUpdateSerializer, ChangePasswordSerializer, \
     ProCategoryListSerializer, SpecializationListSerializer, \
     ProfilePrivateSerializer, ProfilePublicSerializer, ProfileFavoriteCreateSerializer, \
     ProfileFavoriteListSerializer, ProfileLikeCreateSerializer, ProfileCommentCreateSerializer, \
-    ProfileCommentListSerializer, ProfilListSerializer
+    ProfileCommentListSerializer, ProfilListSerializer, ProfileForPublicSerializer
 
 from .serializers import UserRegisterSerializer, UserSerializer, CustomJWTSerializer
 import logging
@@ -198,7 +198,7 @@ class ProfileViewSet(viewsets.ViewSet):
     def public_profile(self, request, pk):
         try:
             instance = Profile.objects.get(id=pk)
-            serializer = ProfilePublicSerializer(instance)
+            serializer = ProfileForPublicSerializer(instance)
             return Response(status=status.HTTP_200_OK, data=serializer.data)
         except Profile.DoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Профиль не был найден.'})
@@ -297,12 +297,14 @@ class ProfileFavoriteViewSet(viewsets.ViewSet):
         return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Добавление избранного не было выполнено. '
                                                                              'Пожалуйства обратитесь в поддержку'})
 
-    def delete_favorite(self, request, pk):
+    def delete_favorite(self, request):
         try:
             logger.info(f'Пользователь {request.user} хочет удалить профиль из избранного')
+            profile_favorites = request.data.get('profile_favorites')
             profile = Profile.objects.get(user=request.user)
-            instance = ProfileFavorite.objects.get(sender_favorite=profile.id, receiver_favorite=pk)
-            instance.delete()
+            for profile_favorite in profile_favorites:
+                instance = ProfileFavorite.objects.get(sender_favorite=profile, receiver_favorite=profile_favorite)
+                instance.delete()
             logger.info(f'Пользователь {request.user} успешно удалил профиль из избранного')
             return Response(status=status.HTTP_200_OK)
         except ProfileFavorite.DoesNotExist:

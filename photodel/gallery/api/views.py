@@ -314,12 +314,14 @@ class GalleryFavoriteViewSet(viewsets.ViewSet):
         return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Добавление избранного не было выполнено. '
                                                                              'Пожалуйства обратитесь в поддержку'})
 
-    def delete_favorite(self, request, pk):
+    def delete_favorite(self, request):
         try:
             logger.info(f'Пользователь {request.user} хочет удалить фото из избранного')
+            gallery_favorites = request.data.get('gallery_favorites')
             profile = Profile.objects.get(user=request.user)
-            instance = GalleryFavorite.objects.get(profile=profile.id, gallery=pk)
-            instance.delete()
+            for gallery in gallery_favorites:
+                instance = GalleryFavorite.objects.get(profile=profile, gallery=gallery)
+                instance.delete()
             logger.info(f'Пользователь {request.user} успешно удалил фото из избранного')
             return Response(status=status.HTTP_200_OK)
         except GalleryFavorite.DoesNotExist:
@@ -506,12 +508,14 @@ class PhotoSessionFavoriteViewSet(viewsets.ViewSet):
         return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Добавление избранного не было выполнено. '
                                                                              'Пожалуйства обратитесь в поддержку'})
 
-    def delete_favorite(self, request, pk):
+    def delete_favorite(self, request):
         try:
             logger.info(f'Пользователь {request.user} хочет удалить фотосессию из избранного')
+            photo_session_favorites = request.data.get('photo_session_favorites')
             profile = Profile.objects.get(user=request.user)
-            instance = PhotoSessionFavorite.objects.get(profile=profile.id, photo_session=pk)
-            instance.delete()
+            for photo_session in photo_session_favorites:
+                instance = PhotoSessionFavorite.objects.get(profile=profile, photo_session=photo_session)
+                instance.delete()
             logger.info(f'Пользователь {request.user} успешно удалил фотосессию из избранного')
             return Response(status=status.HTTP_200_OK)
         except PhotoSessionFavorite.DoesNotExist:

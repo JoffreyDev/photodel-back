@@ -34,7 +34,7 @@ urlpatterns = [
          name='place_list_favorite'),
     path('favorite/create/', FilmPlacesFavoriteViewSet.as_view({'post': "create_favorite"}),
          name='place_create_favorite'),
-    path('favorite/delete/<int:pk>/', FilmPlacesFavoriteViewSet.as_view({'delete': "delete_favorite"}),
+    path('favorite/delete/', FilmPlacesFavoriteViewSet.as_view({'post': "delete_favorite"}),
          name='place_delete_favorite'),
     path('comment/list/<int:pk>/', FilmPlacesCommentViewSet.as_view({'get': "list_comments"}),
          name='place_list_comments'),

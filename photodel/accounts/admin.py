@@ -5,7 +5,7 @@ from .models import Profile, VerificationCode, ProCategory, Specialization, \
 
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
-    list_display = ['name', 'surname', 'email', 'phone', 'status', 'last_ip', ]
+    list_display = ['name', 'surname', 'email', 'phone', 'status', 'last_ip', 'id', ]
 
 
 @admin.register(VerificationCode)

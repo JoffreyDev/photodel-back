@@ -10,6 +10,7 @@ from django.contrib.auth.models import update_last_login
 from additional_entities.api.serializers import CountryListSerializer, LanguageListSerializer
 from services.accounts_service import check_profile_location, collect_favorite, \
     collect_like, check_obscene_word_in_content
+from services.statistics_profile_service import collect_profile_statistics
 import json
 
 
@@ -166,6 +167,25 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
         return data
 
 
+class ProfileForPublicSerializer(serializers.ModelSerializer):
+    avatar = ImageBase64Field()
+    filming_geo = CountryListSerializer(read_only=True, many=True)
+    languages = LanguageListSerializer(read_only=True, many=True)
+    spec_model_or_photographer = SpecializationListSerializer(read_only=True, many=True)
+    statistics = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Profile
+        fields = ['name', 'surname', 'filming_geo', 'work_condition', 'cost_services', 'string_location_now',
+                  'photo_technics', 'languages', 'about', 'status', 'type_pro', 'string_location',
+                  'location', 'phone', 'site', 'email', 'instagram', 'facebook', 'vk', 'avatar',
+                  'location_now', 'date_stay_start', 'date_stay_end', 'message', 'is_adult',
+                  'spec_model_or_photographer', 'ready_status', 'statistics', ]
+
+    def get_statistics(self, obj):
+        return collect_profile_statistics(obj)
+
+
 class ProfilePublicSerializer(serializers.ModelSerializer):
     avatar = ImageBase64Field()
     filming_geo = CountryListSerializer(read_only=True, many=True)
@@ -194,6 +214,7 @@ class ProfilePrivateSerializer(serializers.ModelSerializer):
     languages = serializers.SerializerMethodField()
     spec_model_or_photographer = serializers.SerializerMethodField()
     type_pro = serializers.SerializerMethodField()
+    statistics = serializers.SerializerMethodField()
     avatar = ImageBase64Field()
 
     class Meta:
@@ -202,7 +223,7 @@ class ProfilePrivateSerializer(serializers.ModelSerializer):
                   'photo_technics', 'languages', 'about', 'status', 'type_pro', 'string_location',
                   'location', 'phone', 'site', 'email', 'instagram', 'facebook', 'vk', 'avatar',
                   'location_now', 'date_stay_start', 'date_stay_end', 'message', 'is_show_nu_photo', 'is_adult',
-                  'spec_model_or_photographer', 'ready_status', 'id', ]
+                  'spec_model_or_photographer', 'ready_status', 'id', 'statistics', ]
 
     def get_spec_model_or_photographer(self, obj):
         return json.dumps([{i.id: i.name_spec} for i in obj.spec_model_or_photographer.all()])
@@ -217,6 +238,9 @@ class ProfilePrivateSerializer(serializers.ModelSerializer):
         if not obj.type_pro:
             return []
         return json.dumps([{obj.type_pro.id: obj.type_pro.name_category}])
+
+    def get_statistics(self, obj):
+        return collect_profile_statistics(obj)
 
 
 class ProfilListSerializer(serializers.ModelSerializer):
