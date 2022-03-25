@@ -75,6 +75,7 @@ class FilmRequest(models.Model):
         ('NEW', 'Новый'),
         ('ACCEPTED', 'Принят'),
         ('COMPLETED', 'Завершен'),
+        ('UNCOMPLETED', 'Не завершен'),
         ('REJECTED', 'Отклонен'),
     ]
 
@@ -82,7 +83,7 @@ class FilmRequest(models.Model):
     hours_duration = models.IntegerField()
     string_filming_location = models.CharField(max_length=40, blank=True)
     filming_type = models.CharField(max_length=40)
-    filming_status = models.CharField(max_length=10, choices=FILMING_STATUS_CHOICES, default='NEW')
+    filming_status = models.CharField(max_length=12, choices=FILMING_STATUS_CHOICES, default='NEW')
     count_person = models.IntegerField()
     filming_budget = models.FloatField()
     need_makeup_artist = models.BooleanField(default=False)

@@ -50,7 +50,6 @@ def filter_film_places_queryset(queryset, get_parameters):
                                           get_parameters.get('user_coordinates'),
                                           get_parameters.get('distance'))
     filter_queryset = filter_film_places_by_words(queryset, get_parameters.get('search_words', ''))
-    print(filter_queryset)
     return filter_queryset_by_param(filter_queryset,
                                     get_parameters.get('sort_type', ''),
                                     get_parameters.get('filter_field', ''))

@@ -8,8 +8,7 @@ from services.accounts_service import check_email_verification_code, update_or_c
     create_random_code, check_is_unique_email, return_user_use_reset_token, custom_paginator
 from services.ip_service import get_ip
 from services.search_profile_service import filter_by_all_parameters
-from services.gallery_service import is_unique_favorite, is_unique_like
-from services.gallery_service import filter_queryset_by_param
+from services.gallery_service import is_unique_favorite, is_unique_like, filter_queryset_by_param
 from tasks.accounts_task import task_send_email_to_user, task_send_reset_password_to_email
 from .serializers import ProfileUpdateSerializer, ChangePasswordSerializer, \
     ProCategoryListSerializer, SpecializationListSerializer, \
@@ -272,11 +271,15 @@ class ProfileFavoriteViewSet(viewsets.ViewSet):
 
     def list_favorite(self, request):
         logger.info(f'Пользователь {request.user} хочет получить список избранных профилей')
-        queryset = ProfileFavorite.objects.filter(sender_favorite__user=request.user)\
+        favorites = ProfileFavorite.objects.filter(sender_favorite__user=request.user)
+        queryset = filter_queryset_by_param(favorites,
+                                            request.GET.get('sort_type', ''),
+                                            request.GET.get('filter_field', ''))\
             .select_related('sender_favorite__user',  'sender_favorite__type_pro',
                             'receiver_favorite__user', 'receiver_favorite__type_pro')\
             .prefetch_related('sender_favorite__spec_model_or_photographer',
                               'receiver_favorite__spec_model_or_photographer')
+
         serializer = ProfileFavoriteListSerializer(queryset, many=True,
                                                    context={'user_coords': request.GET.get('user_coords')})
         logger.info(f'Пользователь {request.user} успешно получил список профилей')

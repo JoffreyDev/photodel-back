@@ -7,7 +7,7 @@ from .serializers import FilmPlacesCreateSerializer, CategoryFilmPlacesListSeria
     FilmPlacesCommentCreateSerializer, FilmPlacesCommentListSerializer, FilmPlacesForCardSerializer, \
     FilmPlacesListSerializer, FilmRequestCreateSerializer, FilmPlacesAllListSerializer
 from services.gallery_service import is_unique_favorite, is_unique_like, \
-    protection_cheating_views, add_view
+    protection_cheating_views, add_view, filter_queryset_by_param
 from services.film_places_search_service import filter_film_places_queryset
 from services.request_chat_service import create_request_chat_and_message
 from services.film_places_service import get_popular_places
@@ -86,7 +86,10 @@ class FilmPlacesViewSet(viewsets.ViewSet):
 
     def list_place(self, request, pk):
         places = FilmPlaces.objects.filter(profile=pk)
-        serializer = FilmPlacesForCardSerializer(places, many=True)
+        queryset = filter_queryset_by_param(places,
+                                            request.GET.get('sort_type', ''),
+                                            request.GET.get('filter_field', ''))
+        serializer = FilmPlacesForCardSerializer(queryset, many=True)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
     def the_best_places(self, request):
@@ -128,7 +131,11 @@ class FilmPlacesFavoriteViewSet(viewsets.ViewSet):
 
     def list_favorite(self, request):
         logger.info(f'Пользователь {request.user} хочет получить список избранных мест съемки')
-        queryset = FilmPlacesFavorite.objects.filter(profile__user=request.user).select_related()
+        favorites = FilmPlacesFavorite.objects.filter(profile__user=request.user)
+        queryset = filter_queryset_by_param(favorites,
+                                            request.GET.get('sort_type', ''),
+                                            request.GET.get('filter_field', '')) \
+            .select_related('profile', 'place')
         serializer = FilmPlacesFavoriteListSerializer(queryset, many=True,
                                                       context={'user_coords': request.GET.get('user_coords')})
         logger.info(f'Пользователь {request.user} успешно получил список мест съемок')

@@ -6,7 +6,7 @@ from accounts.models import Profile
 from services.gallery_service import is_unique_favorite, is_unique_like, \
     protection_cheating_views, add_view
 from services.gallery_search_service import filter_gallery_queryset
-
+from services.gallery_service import filter_queryset_by_param
 from services.ip_service import get_ip
 from .serializers import AlbumListSerializer, AlbumCreateSerializer, GalleryRetrieveSerializer, \
     GalleryForCardListSerializer, GalleryCreateSerializer, GalleryFavoriteCreateSerializer, \
@@ -256,8 +256,12 @@ class GalleryViewSet(viewsets.ViewSet):
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
     def list_photos(self, request, pk):
-        photos = Gallery.objects.filter(profile=pk).select_related('gallery_image')
-        serializer = GalleryForCardListSerializer(photos, many=True)
+        photos = Gallery.objects.filter(profile=pk)
+        queryset = filter_queryset_by_param(photos,
+                                            request.GET.get('sort_type', ''),
+                                            request.GET.get('filter_field', ''))\
+            .select_related('gallery_image')
+        serializer = GalleryForCardListSerializer(queryset, many=True)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
     def list_all_photos(self, request):
@@ -295,7 +299,11 @@ class GalleryFavoriteViewSet(viewsets.ViewSet):
 
     def list_favorite(self, request):
         logger.info(f'Пользователь {request.user} хочет получить список избранных фото')
-        queryset = GalleryFavorite.objects.filter(profile__user=request.user).select_related('profile', 'gallery')
+        favorites = GalleryFavorite.objects.filter(profile__user=request.user)
+        queryset = filter_queryset_by_param(favorites,
+                                            request.GET.get('sort_type', ''),
+                                            request.GET.get('filter_field', '')) \
+            .select_related('profile', 'gallery')
         serializer = GalleryFavoriteListSerializer(queryset, many=True)
         logger.info(f'Пользователь {request.user} успешно получил список избранных фото')
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -458,7 +466,10 @@ class PhotoSessionViewSet(viewsets.ViewSet):
 
     def list_photo_sessions(self, request, pk):
         photo_sessions = PhotoSession.objects.filter(profile=pk)
-        serializer = PhotoSessionForCardListSerializer(photo_sessions, many=True)
+        queryset = filter_queryset_by_param(photo_sessions,
+                                            request.GET.get('sort_type', ''),
+                                            request.GET.get('filter_field', ''))
+        serializer = PhotoSessionForCardListSerializer(queryset, many=True)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
     def delete_photo_session(self, request):
@@ -487,7 +498,10 @@ class PhotoSessionFavoriteViewSet(viewsets.ViewSet):
 
     def list_favorite(self, request):
         logger.info(f'Пользователь {request.user} хочет получить список избранных фотосессий')
-        queryset = PhotoSessionFavorite.objects.filter(profile__user=request.user)\
+        favorites = PhotoSessionFavorite.objects.filter(profile__user=request.user)
+        queryset = filter_queryset_by_param(favorites,
+                                            request.GET.get('sort_type', ''),
+                                            request.GET.get('filter_field', ''))\
             .select_related('photo_session__session_category', 'profile')
         serializer = PhotoSessionFavoriteListSerializer(queryset, many=True,
                                                         context={'user_coords': request.GET.get('user_coords')})
