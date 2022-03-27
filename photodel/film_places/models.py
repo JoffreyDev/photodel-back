@@ -33,6 +33,7 @@ class FilmPlaces(models.Model):
     last_views = models.IntegerField(default=0, validators=[MinValueValidator(0)])
     last_ip_user = models.CharField(max_length=18, null=True, blank=True)
     is_hidden = models.BooleanField(default=False)
+    was_added = models.DateTimeField(default=timezone.localtime)
     category = models.ManyToManyField(CategoryFilmPlaces)
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
 

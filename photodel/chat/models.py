@@ -37,3 +37,36 @@ class RequestMessage(models.Model):
     request = models.ForeignKey(FilmRequest, on_delete=models.CASCADE, blank=True,
                                 related_name='request_author_message', null=True)
 
+
+class Notification(models.Model):
+
+    TYPE_NOTE_CHOICE = [
+        ('MESSAGE', 'новое сообшение'),
+        ('REQUEST', 'Новое запрос'),
+        ('REQUEST_MESSAGE', 'Новое сообщение в запросе'),
+        ('UPDATE_REQUEST', 'Обновление статуса запроса'),
+        ('LIKE_PROFILE', 'Лайк профиля'),
+        ('LIKE_PHOTO', 'Лайк фото'),
+        ('LIKE_PHOTO_SESSION', 'Лайк фотосессии'),
+        ('LIKE_PLACE', 'Лайк места'),
+        ('FAVORITE_PROFILE', 'Избранное профиля'),
+        ('FAVORITE_PHOTO', 'Избранное фото'),
+        ('FAVORITE_PHOTO_SESSION', 'Избранное фотосессии'),
+        ('FAVORITE_PLACE', 'Избранное места'),
+        ('COMMENT_PROFILE', 'Коммент профиля'),
+        ('COMMENT_PHOTO', 'Коммент фото'),
+        ('COMMENT_PHOTO_SESSION', 'Коммент фотосессии'),
+        ('COMMENT_PLACE', 'Коммент места'),
+    ]
+
+    type_note = models.CharField(max_length=25, choices=TYPE_NOTE_CHOICE, null=True)
+    text_note = models.TextField(null=True)
+    is_read = models.BooleanField(default=False, null=True)
+    timestamp = models.DateTimeField(default=timezone.localtime)
+    model_id = models.IntegerField()
+
+    sender = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True, blank=True,
+                               related_name='notification_sender')
+    receiver = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True, blank=True,
+                                 related_name='notification_receiver')
+

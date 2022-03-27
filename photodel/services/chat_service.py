@@ -1,11 +1,13 @@
 from channels.db import database_sync_to_async
-from chat.models import Chat, Message
+from chat.models import Chat, Message, Notification
 from accounts.models import Profile
 from django.db.models import Q, When, Case
 from asgiref.sync import sync_to_async
 
 from datetime import timedelta
 import json
+import channels.layers
+import asyncio
 
 
 def is_chat_unique(sender_id, receiver_id):
@@ -33,6 +35,19 @@ def get_interviewer_data(user, chat_id):
         return chat.sender_id.name, chat.sender_id.user_channel_name
     except Chat.DoesNotExist:
         return None, None
+
+
+def create_send_notification(receiver, type_note, text_note, model_id, sender_id):
+    """
+    Отправка уведолмения получателю если он онлайн
+    """
+    Notification.objects.create(type_note=type_note, text_note=text_note, model_id=model_id,
+                                receiver=receiver, sender_id=sender_id)
+    data = {}
+    channel_name = None if not receiver else receiver.user_channel_name
+    if channel_name:
+        layer = channels.layers.get_channel_layer()
+        asyncio.run(layer.send(channel_name, data))
 
 
 @database_sync_to_async
