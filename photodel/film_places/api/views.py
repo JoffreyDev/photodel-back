@@ -5,7 +5,7 @@ from accounts.models import Profile
 from .serializers import FilmPlacesCreateSerializer, CategoryFilmPlacesListSerializer, \
     FilmPlacesFavoriteCreateSerializer, FilmPlacesFavoriteListSerializer, FilmPlacesLikeCreateSerializer, \
     FilmPlacesCommentCreateSerializer, FilmPlacesCommentListSerializer, FilmPlacesForCardSerializer, \
-    FilmPlacesListSerializer, FilmRequestCreateSerializer, FilmPlacesAllListSerializer
+    FilmPlacesListSerializer, FilmRequestCreateSerializer, FilmPlacesAllListSerializer, FilmPlacesRetrieveSerializer
 from services.gallery_service import is_unique_favorite, is_unique_like, \
     protection_cheating_views, add_view, filter_queryset_by_param
 from services.film_places_search_service import filter_film_places_queryset
@@ -79,7 +79,7 @@ class FilmPlacesViewSet(viewsets.ViewSet):
             instance = FilmPlaces.objects.get(id=pk)
             if protection_cheating_views(instance, user_ip):
                 add_view(instance)
-            serializer = FilmPlacesListSerializer(instance)
+            serializer = FilmPlacesRetrieveSerializer(instance, context={'user': request.user})
             return Response(status=status.HTTP_200_OK, data=serializer.data)
         except FilmPlaces.DoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Место съемки не было найдено'})

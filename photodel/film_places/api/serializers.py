@@ -5,6 +5,7 @@ from accounts.api.serializers import ProfileForGallerySerializer
 from gallery.api.serializers import ImageSerializer
 from services.gallery_service import diff_between_two_points
 from services.accounts_service import check_obscene_word_in_content
+from django.contrib.auth.models import AnonymousUser
 
 
 class CategoryFilmPlacesListSerializer(serializers.ModelSerializer):
@@ -66,7 +67,8 @@ class FilmPlacesListSerializer(serializers.ModelSerializer):
         model = FilmPlaces
         fields = ['id', 'name_place', 'description', 'photo_camera', 'place_image',
                   'views', 'string_place_location', 'cost', 'payment', 'place_location',
-                  'category', 'profile', 'is_hidden', 'likes', 'comments', 'favorites', 'was_added', ]
+                  'category', 'profile', 'is_hidden', 'likes', 'comments', 'favorites',
+                  'was_added', ]
 
     def get_likes(self, obj):
         return FilmPlacesLike.objects.filter(place=obj.id).count()
@@ -76,6 +78,43 @@ class FilmPlacesListSerializer(serializers.ModelSerializer):
 
     def get_favorites(self, obj):
         return FilmPlacesFavorite.objects.filter(place=obj.id).count()
+
+
+class FilmPlacesRetrieveSerializer(serializers.ModelSerializer):
+    place_image = ImageSerializer(read_only=True, many=True)
+    category = CategoryFilmPlacesListSerializer(read_only=True, many=True)
+    profile = ProfileForGallerySerializer()
+    likes = serializers.SerializerMethodField()
+    comments = serializers.SerializerMethodField()
+    favorites = serializers.SerializerMethodField()
+    is_liked = serializers.SerializerMethodField()
+    in_favorite = serializers.SerializerMethodField()
+
+    class Meta:
+        model = FilmPlaces
+        fields = ['id', 'name_place', 'description', 'photo_camera', 'place_image',
+                  'views', 'string_place_location', 'cost', 'payment', 'place_location',
+                  'category', 'profile', 'is_hidden', 'likes', 'comments', 'favorites',
+                  'was_added', 'is_liked', 'in_favorite', ]
+
+    def get_likes(self, obj):
+        return FilmPlacesLike.objects.filter(place=obj.id).count()
+
+    def get_comments(self, obj):
+        return FilmPlacesComment.objects.filter(place=obj.id).count()
+
+    def get_favorites(self, obj):
+        return FilmPlacesFavorite.objects.filter(place=obj.id).count()
+
+    def get_is_liked(self, obj):
+        if isinstance(self.context.get('user', ''), AnonymousUser):
+            return ''
+        return bool(FilmPlacesLike.objects.filter(place=obj.id, profile__user=self.context['user']))
+
+    def get_in_favorite(self, obj):
+        if isinstance(self.context.get('user', ''), AnonymousUser):
+            return ''
+        return bool(FilmPlacesFavorite.objects.filter(place=obj.id, profile__user=self.context['user']))
 
 
 class FilmPlacesAllListSerializer(serializers.ModelSerializer):
