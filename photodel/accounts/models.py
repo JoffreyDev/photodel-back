@@ -39,6 +39,7 @@ class Profile(models.Model):
     spec_model_or_photographer = models.ManyToManyField(Specialization, blank=True)
     type_pro_account = models.IntegerField(default=1, null=True)  # 1 - Бесплатный 2 - Стандарт 3 - Максимум
     expired_pro_subscription = models.DateTimeField(blank=True, null=True)
+    rating = models.IntegerField(default=0, validators=[MinValueValidator(0)])
 
     # contacts
     location = gis_models.PointField(srid=4326, blank=True, null=True)

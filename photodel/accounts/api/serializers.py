@@ -172,6 +172,7 @@ class ProfileForPublicSerializer(serializers.ModelSerializer):
     filming_geo = CountryListSerializer(read_only=True, many=True)
     languages = LanguageListSerializer(read_only=True, many=True)
     spec_model_or_photographer = SpecializationListSerializer(read_only=True, many=True)
+    type_pro = ProCategoryListSerializer()
     statistics = serializers.SerializerMethodField()
 
     class Meta:
@@ -180,7 +181,8 @@ class ProfileForPublicSerializer(serializers.ModelSerializer):
                   'photo_technics', 'languages', 'about', 'status', 'type_pro', 'string_location',
                   'location', 'phone', 'site', 'email', 'instagram', 'facebook', 'vk', 'avatar',
                   'location_now', 'date_stay_start', 'date_stay_end', 'message', 'is_adult',
-                  'spec_model_or_photographer', 'ready_status', 'statistics', ]
+                  'spec_model_or_photographer', 'ready_status', 'statistics', 'user_channel_name',
+                  'rating', 'date_register', ]
 
     def get_statistics(self, obj):
         return collect_profile_statistics(obj)
@@ -223,7 +225,7 @@ class ProfilePrivateSerializer(serializers.ModelSerializer):
                   'photo_technics', 'languages', 'about', 'status', 'type_pro', 'string_location',
                   'location', 'phone', 'site', 'email', 'instagram', 'facebook', 'vk', 'avatar',
                   'location_now', 'date_stay_start', 'date_stay_end', 'message', 'is_show_nu_photo', 'is_adult',
-                  'spec_model_or_photographer', 'ready_status', 'id', 'statistics', ]
+                  'spec_model_or_photographer', 'ready_status', 'id', 'statistics', 'date_register', 'rating', ]
 
     def get_spec_model_or_photographer(self, obj):
         return json.dumps([{i.id: i.name_spec} for i in obj.spec_model_or_photographer.all()])
@@ -250,7 +252,6 @@ class ProfilListSerializer(serializers.ModelSerializer):
     diff_distance = serializers.SerializerMethodField()
     count_favorites = serializers.SerializerMethodField()
     count_likes = serializers.SerializerMethodField()
-    rating = serializers.SerializerMethodField()
 
     class Meta:
         model = Profile
@@ -269,14 +270,10 @@ class ProfilListSerializer(serializers.ModelSerializer):
     def get_count_likes(self, obj):
         return collect_like(obj.user)
 
-    def get_rating(self, obj):
-        return ''
-
 
 class ProfileForFavoriteSerializer(serializers.ModelSerializer):
     spec_model_or_photographer = SpecializationListSerializer(read_only=True, many=True)
     type_pro = ProCategoryListSerializer()
-    rating = serializers.SerializerMethodField()
     diff_distance = serializers.SerializerMethodField()
     likes = serializers.SerializerMethodField()
 
@@ -287,9 +284,6 @@ class ProfileForFavoriteSerializer(serializers.ModelSerializer):
 
     def get_likes(self, obj):
         return len(ProfileLike.objects.filter(receiver_like=obj.id).select_related('sender_like', 'receiver_like'))
-
-    def get_rating(self, obj):
-        return ''
 
     def get_diff_distance(self, obj):
         location = check_profile_location(obj)
