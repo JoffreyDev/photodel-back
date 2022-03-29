@@ -145,11 +145,12 @@ class GalleryForCardListSerializer(serializers.ModelSerializer):
     likes = serializers.SerializerMethodField()
     comments = serializers.SerializerMethodField()
     favorites = serializers.SerializerMethodField()
+    profile = ProfileForGallerySerializer()
 
     class Meta:
         model = Gallery
         fields = ['gallery_image', 'id', 'views', 'likes', 'comments',
-                  'favorites', 'name_image', 'string_place_location', ]
+                  'favorites', 'name_image', 'string_place_location', 'profile', ]
 
     def get_likes(self, obj):
         return GalleryLike.objects.filter(gallery=obj.id).count()
@@ -301,11 +302,12 @@ class PhotoSessionForCardListSerializer(serializers.ModelSerializer):
     likes = serializers.SerializerMethodField()
     comments = serializers.SerializerMethodField()
     favorites = serializers.SerializerMethodField()
+    profile = ProfileForGallerySerializer()
 
     class Meta:
         model = PhotoSession
         fields = ['id', 'views', 'likes', 'comments', 'favorites',
-                  'main_photo', 'session_name', 'string_session_location', ]
+                  'main_photo', 'session_name', 'string_session_location', 'profile', ]
 
     def get_likes(self, obj):
         return PhotoSessionLike.objects.filter(photo_session=obj.id).count()

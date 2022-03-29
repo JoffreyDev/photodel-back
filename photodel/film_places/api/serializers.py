@@ -39,11 +39,12 @@ class FilmPlacesForCardSerializer(serializers.ModelSerializer):
     comments = serializers.SerializerMethodField()
     favorites = serializers.SerializerMethodField()
     main_photo = ImageSerializer()
+    profile = ProfileForGallerySerializer()
 
     class Meta:
         model = FilmPlaces
         fields = ['id', 'name_place', 'place_image', 'string_place_location', 'main_photo',
-                  'place_location', 'profile', 'likes', 'comments', 'favorites', 'last_views', ]
+                  'place_location', 'profile', 'likes', 'comments', 'favorites', 'last_views', 'profile', ]
 
     def get_likes(self, obj):
         return FilmPlacesLike.objects.filter(place=obj.id).count()

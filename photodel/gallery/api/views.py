@@ -297,9 +297,9 @@ class GalleryFavoriteViewSet(viewsets.ViewSet):
         'delete_favorite': [permissions.IsAuthenticated, ],
     }
 
-    def list_favorite(self, request):
+    def list_favorite(self, request, pk):
         logger.info(f'Пользователь {request.user} хочет получить список избранных фото')
-        favorites = GalleryFavorite.objects.filter(profile__user=request.user)
+        favorites = GalleryFavorite.objects.filter(profile_id=pk)
         queryset = filter_queryset_by_param(favorites,
                                             request.GET.get('sort_type', ''),
                                             request.GET.get('filter_field', '')) \
@@ -496,9 +496,9 @@ class PhotoSessionFavoriteViewSet(viewsets.ViewSet):
         'delete_favorite': [permissions.IsAuthenticated, ],
     }
 
-    def list_favorite(self, request):
+    def list_favorite(self, request, pk):
         logger.info(f'Пользователь {request.user} хочет получить список избранных фотосессий')
-        favorites = PhotoSessionFavorite.objects.filter(profile__user=request.user)
+        favorites = PhotoSessionFavorite.objects.filter(profile_id=pk)
         queryset = filter_queryset_by_param(favorites,
                                             request.GET.get('sort_type', ''),
                                             request.GET.get('filter_field', ''))\

@@ -208,7 +208,7 @@ class ProfileForGallerySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ['id', 'name', 'surname', 'avatar', 'user_channel_name', ]
+        fields = ['id', 'name', 'surname', 'avatar', 'user_channel_name', 'rating', ]
 
 
 class ProfilePrivateSerializer(serializers.ModelSerializer):

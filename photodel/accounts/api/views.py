@@ -264,14 +264,13 @@ class ProfileViewSet(viewsets.ViewSet):
 
 class ProfileFavoriteViewSet(viewsets.ViewSet):
     permission_classes_by_action = {
-        'list': [permissions.IsAuthenticated, ],
         'create_favorite': [permissions.IsAuthenticated, ],
         'delete_favorite': [permissions.IsAuthenticated, ],
     }
 
-    def list_favorite(self, request):
+    def list_favorite(self, request, pk):
         logger.info(f'Пользователь {request.user} хочет получить список избранных профилей')
-        favorites = ProfileFavorite.objects.filter(sender_favorite__user=request.user)
+        favorites = ProfileFavorite.objects.filter(sender_favorite_id=pk)
         queryset = filter_queryset_by_param(favorites,
                                             request.GET.get('sort_type', ''),
                                             request.GET.get('filter_field', ''))\

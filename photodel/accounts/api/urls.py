@@ -38,7 +38,7 @@ urlpatterns = [
          name='profile_create_like'),
     path('profile/like/delete/<int:pk>/', ProfileLikeViewSet.as_view({'delete': "delete_like"}),
          name='profile_delete_like'),
-    path('profile/favorite/list/', ProfileFavoriteViewSet.as_view({'get': "list_favorite"}),
+    path('profile/favorite/list/<int:pk>/', ProfileFavoriteViewSet.as_view({'get': "list_favorite"}),
          name='profile_list_favorite'),
     path('profile/favorite/create/', ProfileFavoriteViewSet.as_view({'post': "create_favorite"}),
          name='profile_create_favorite'),
