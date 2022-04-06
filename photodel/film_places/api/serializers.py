@@ -124,6 +124,7 @@ class FilmPlacesAllListSerializer(serializers.ModelSerializer):
     likes = serializers.SerializerMethodField()
     comments = serializers.SerializerMethodField()
     favorites = serializers.SerializerMethodField()
+    main_photo = ImageSerializer()
     diff_distance = serializers.SerializerMethodField()
 
     class Meta:

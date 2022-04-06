@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import EmailFragment, CustomSettings, Country, Language, Advertisement, BanWord
+from .models import EmailFragment, CustomSettings, Country, Language, Advertisement, BanWord, City
 
 
 admin.site.register(EmailFragment)
@@ -24,5 +24,10 @@ class AdvertisementAdmin(admin.ModelAdmin):
 @admin.register(BanWord)
 class BanWordAdmin(admin.ModelAdmin):
     list_display = ['word', ]
+
+
+@admin.register(City)
+class CityAdmin(admin.ModelAdmin):
+    list_display = ['city_name', 'coordinates', 'country', ]
 
 

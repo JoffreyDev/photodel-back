@@ -13,6 +13,9 @@ class CustomSettings(models.Model):
 class Country(models.Model):
     name_country = models.CharField(max_length=45)
 
+    def __str__(self):
+        return self.name_country
+
 
 class Language(models.Model):
     name_language = models.CharField(max_length=15)
@@ -27,3 +30,12 @@ class Advertisement(models.Model):
 
 class BanWord(models.Model):
     word = models.CharField(max_length=45)
+
+
+class City(models.Model):
+    city_name = models.CharField(max_length=50)
+    coordinates = models.CharField(max_length=50)
+    country = models.ForeignKey(Country, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.city_name

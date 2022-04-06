@@ -1,8 +1,9 @@
 from rest_framework import viewsets, status
-from additional_entities.models import Country, Language, Advertisement
+from additional_entities.models import Country, Language, Advertisement, City
 from film_places.models import FilmPlacesComment
 from gallery.models import GalleryComment, PhotoSessionComment
-from .serializers import CountryListSerializer, LanguageListSerializer, AdvertisementListSerializer
+from .serializers import CountryListSerializer, LanguageListSerializer, \
+    AdvertisementListSerializer, CityListSerializer
 from rest_framework.response import Response
 
 
@@ -32,6 +33,13 @@ class AdvertisementViewSet(viewsets.ViewSet):
         queryset.ad_count_click += 1
         queryset.save()
         return Response(status=status.HTTP_200_OK)
+
+
+class CityViewSet(viewsets.ViewSet):
+    def list_city(self, request):
+        queryset = City.objects.all()
+        serializer = CityListSerializer(queryset, many=True)
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
 
 
 class CommonViewSet(viewsets.ViewSet):

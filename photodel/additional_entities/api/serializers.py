@@ -1,4 +1,4 @@
-from additional_entities.models import Country, Language, Advertisement
+from additional_entities.models import Country, Language, Advertisement, City
 from rest_framework import serializers
 
 
@@ -21,4 +21,12 @@ class AdvertisementListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Advertisement
         fields = ['id', 'ad_image', 'ad_title', 'ad_link', 'ad_count_click', ]
+
+
+class CityListSerializer(serializers.ModelSerializer):
+    country = CountryListSerializer()
+
+    class Meta:
+        model = City
+        fields = ['city_name', 'coordinates', 'country', ]
 
