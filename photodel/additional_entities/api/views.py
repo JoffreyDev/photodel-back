@@ -5,6 +5,7 @@ from gallery.models import GalleryComment, PhotoSessionComment
 from .serializers import CountryListSerializer, LanguageListSerializer, \
     AdvertisementListSerializer, CityListSerializer
 from rest_framework.response import Response
+from services.additional_service import check_town_use_coords
 
 
 class CountryViewSet(viewsets.ViewSet):
@@ -39,6 +40,12 @@ class CityViewSet(viewsets.ViewSet):
     def list_city(self, request):
         queryset = City.objects.all()
         serializer = CityListSerializer(queryset, many=True)
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
+
+    def check_coordinates(self, request):
+        queryset = City.objects.all()
+        nearest_city = check_town_use_coords(queryset, request.GET.get('user_coordinates', ''))
+        serializer = CityListSerializer(nearest_city)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
 

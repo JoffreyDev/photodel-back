@@ -15,6 +15,8 @@ urlpatterns = [
          name='add_click_to_advertisement'),
     path('list_city/', CityViewSet.as_view({'get': "list_city"}),
          name='list_city'),
+    path('check_city/', CityViewSet.as_view({'get': "check_coordinates"}),
+         name='check_coordinates'),
     path('last_comments/', CommonViewSet.as_view({'get': "list_last_comments"}),
          name='list_last_comments'),
 ]

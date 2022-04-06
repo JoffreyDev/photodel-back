@@ -61,6 +61,9 @@ def send_email_to_users(title, to_email, html_content, from_email=settings.EMAIL
         return False
     except SMTPException:
         return False
+    except Exception as e:
+        return False
+
 
 
 def check_email_verification_code(verification_code):
@@ -152,7 +155,8 @@ def convert_string_coordinates_to_point_obj(coordinates):
             first, second = split_coord[0], split_coord[1]
         pnt = Point(float(first), float(second))
         return pnt
-    except Exception:
+    except Exception as e:
+        print(e)
         return Point(55.753220, 37.622513)
 
 
