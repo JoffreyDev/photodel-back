@@ -26,8 +26,10 @@ def get_interviewer_data(user, chat_id):
     try:
         chat = RequestChat.objects.get(id=chat_id)
         if chat.request_sender.user == user:
-            return chat.request_receiver.name, chat.request_receiver.user_channel_name, chat.request_receiver.avatar.url
-        return chat.request_sender.name, chat.request_sender.user_channel_name, chat.request_sender.avatar.url
+            return chat.request_receiver.name, chat.request_receiver.surname, \
+                   chat.request_receiver.user_channel_name, chat.request_receiver.avatar.url
+        return chat.request_sender.name, chat.request_receiver.surname, \
+               chat.request_sender.user_channel_name, chat.request_sender.avatar.url
     except RequestChat.DoesNotExist:
         return None, None, None
 
@@ -136,7 +138,7 @@ def request_messages_to_json(messages, user, chat_id):
     result = []
     for message in messages:
         current_time = message.timestamp + timedelta(hours=3)
-        name, online, avatar = get_interviewer_data(user, chat_id)
+        name, surname, online, avatar = get_interviewer_data(user, chat_id)
         if message.request:
             request = message.request
             result.append(
@@ -145,6 +147,7 @@ def request_messages_to_json(messages, user, chat_id):
                     'content': message.content,
                     'timestamp': str(current_time),
                     'name': str(name),
+                    'surname': str(surname),
                     'avatar': str(avatar),
                     'online': str(online),
                     'filming_timestamp': str(request.filming_timestamp),
@@ -182,7 +185,7 @@ def request_chats_to_json(chats, user):
     profile = Profile.objects.filter(user=user).first()
     for chat in chats:
         chat_link_obj = chat.requestmessage_set.all()
-        name_interviewer, online, avatar = get_interviewer_data(user, chat.id)
+        name_interviewer, surname, online, avatar = get_interviewer_data(user, chat.id)
         result.append(
             {
                 'id': chat.id,
@@ -196,6 +199,7 @@ def request_chats_to_json(chats, user):
                 'date_last_message': chat_link_obj.last().timestamp + timedelta(hours=3)
                 if chat_link_obj.all() else None,
                 'name_interviewer': name_interviewer,
+                'surname_interviewer': surname,
                 'online': online,
                 'request_status': chat_link_obj.first().request.filming_status
                 if chat_link_obj.first() and chat_link_obj.first().request else None,

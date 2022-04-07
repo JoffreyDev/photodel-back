@@ -276,22 +276,24 @@ class ProfilListSerializer(serializers.ModelSerializer):
 
 
 class ProfileForFavoriteSerializer(serializers.ModelSerializer):
+    avatar = ImageBase64Field()
     spec_model_or_photographer = SpecializationListSerializer(read_only=True, many=True)
     type_pro = ProCategoryListSerializer()
-    diff_distance = serializers.SerializerMethodField()
-    likes = serializers.SerializerMethodField()
+    count_favorites = serializers.SerializerMethodField()
+    count_likes = serializers.SerializerMethodField()
 
     class Meta:
         model = Profile
         fields = ['id', 'name', 'surname', 'user_channel_name', 'type_pro',
-                  'spec_model_or_photographer', 'likes', 'diff_distance', 'rating', ]
+                  'spec_model_or_photographer', 'rating', 'avatar',
+                  'location', 'string_location', 'location_now', 'string_location_now',
+                  'count_favorites', 'count_likes', ]
 
-    def get_likes(self, obj):
-        return len(ProfileLike.objects.filter(receiver_like=obj.id).select_related('sender_like', 'receiver_like'))
+    def get_count_favorites(self, obj):
+        return collect_favorite(obj.user)
 
-    def get_diff_distance(self, obj):
-        location = check_profile_location(obj)
-        return diff_between_two_points(self.context.get('user_coords'), location)
+    def get_count_likes(self, obj):
+        return collect_like(obj.user)
 
 
 class ProfileFavoriteCreateSerializer(serializers.ModelSerializer):
@@ -302,10 +304,15 @@ class ProfileFavoriteCreateSerializer(serializers.ModelSerializer):
 
 class ProfileFavoriteListSerializer(serializers.ModelSerializer):
     receiver_favorite = ProfileForFavoriteSerializer()
+    diff_distance = serializers.SerializerMethodField()
 
     class Meta:
         model = ProfileFavorite
-        fields = ['sender_favorite', 'receiver_favorite', ]
+        fields = ['sender_favorite', 'receiver_favorite', 'diff_distance', ]
+
+    def get_diff_distance(self, obj):
+        location = check_profile_location(obj.receiver_favorite)
+        return diff_between_two_points(self.context.get('user_coords'), location)
 
 
 class ProfileLikeCreateSerializer(serializers.ModelSerializer):
