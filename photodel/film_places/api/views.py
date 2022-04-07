@@ -257,7 +257,8 @@ class FilmRequestViewSet(viewsets.ViewSet):
         serializer = FilmRequestCreateSerializer(data=request.data | {"profile": profile})
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-            create_request_chat_and_message(serializer.data.get('profile'), serializer.data.get('place'),
+            create_request_chat_and_message(serializer.data.get('profile'),
+                                            serializer.data.get('place'),
                                             serializer.data.get('id'))
             logger.info(f'Пользователь {request.user} успешно создал запрос')
             return Response(serializer.data, status=status.HTTP_200_OK)

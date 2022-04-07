@@ -80,19 +80,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'message': message
             }
         )
-        # channel_name = await self.get_user_channel_name(message['message']['receiver_id'])
-        # if channel_name:
-        #     channel_layer = channels.layers.get_channel_layer()
-        #     await channel_layer.send(channel_name, {
-        #         "type": "send_message",
-        #         "notification_message": {
-        #             "type_note": 'MESSAGE',
-        #             "name_receiver": message['message']['author_name'],
-        #             "name_item": message['message']['item_name'],
-        #             "chat_id": message['message']['chat_id'],
-        #             "text_message": message['message']['content'],
-        #         },
-        #     })
 
     async def connect(self):
         self.room_name = self.scope['url_route']['kwargs']['room_name']

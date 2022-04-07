@@ -62,6 +62,7 @@ class Profile(models.Model):
     is_adult = models.BooleanField(default=False)
     is_show_nu_photo = models.BooleanField(default=False)
     is_hide = models.BooleanField(default=False)
+    is_change = models.BooleanField(default=False)
     views = models.IntegerField(default=0, validators=[MinValueValidator(0)])
     last_views = models.IntegerField(default=0, validators=[MinValueValidator(0)])
     user_channel_name = models.CharField(max_length=255, null=True, blank=True)

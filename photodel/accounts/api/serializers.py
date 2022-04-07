@@ -47,6 +47,9 @@ class CustomJWTSerializer(TokenObtainSerializer):
 
     def validate(self, validate_data):
         data = super().validate(validate_data)
+        profile = Profile.objects.get(user=self.user)
+        if not profile.email_verify:
+            raise serializers.ValidationError("Вы не можете войти, Ваша почта не пожтверждена")
         refresh = RefreshToken.for_user(self.user)
         data['refresh'] = str(refresh)
         data['access'] = str(refresh.access_token)
@@ -145,7 +148,7 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
                   'photo_technics', 'languages', 'about', 'status', 'type_pro', 'string_location',
                   'location', 'phone', 'site', 'email', 'instagram', 'facebook', 'vk',
                   'location_now', 'date_stay_start', 'date_stay_end', 'message', 'is_show_nu_photo',
-                  'is_adult', 'avatar', 'spec_model_or_photographer', 'ready_status', ]
+                  'is_adult', 'avatar', 'spec_model_or_photographer', 'ready_status', 'is_change', ]
 
     def validate(self, data):
         """
@@ -225,7 +228,8 @@ class ProfilePrivateSerializer(serializers.ModelSerializer):
                   'photo_technics', 'languages', 'about', 'status', 'type_pro', 'string_location',
                   'location', 'phone', 'site', 'email', 'instagram', 'facebook', 'vk', 'avatar',
                   'location_now', 'date_stay_start', 'date_stay_end', 'message', 'is_show_nu_photo', 'is_adult',
-                  'spec_model_or_photographer', 'ready_status', 'id', 'statistics', 'date_register', 'rating', ]
+                  'spec_model_or_photographer', 'ready_status', 'id', 'statistics', 'date_register',
+                  'rating', 'is_change', ]
 
     def get_spec_model_or_photographer(self, obj):
         return json.dumps([{i.id: i.name_spec} for i in obj.spec_model_or_photographer.all()])
