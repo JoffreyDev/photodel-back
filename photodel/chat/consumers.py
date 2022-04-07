@@ -4,11 +4,11 @@ from django.contrib.auth.models import AnonymousUser
 from services.chat_service import get_chat_messages, messages_to_json, \
     create_new_messages, is_user_in_chat, update_profile_channel_name, \
     delete_profile_channel_name, filter_chat, chats_to_json, deleting_chat, \
-    update_messages_status
+    update_messages_status, get_receiver_profile
 
 from services.request_chat_service import filter_request_chat, request_chats_to_json, \
     create_new_request_message, update_request_messages_status, get_request_chat_messages, \
-    request_messages_to_json, is_user_in_request_chat, change_request_status
+    request_messages_to_json, is_user_in_request_chat, change_request_status, get_request_receiver_profile
 
 import json
 
@@ -21,8 +21,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
         Передается chat_id
         """
         messages = await get_chat_messages(self.room_name)
+        receiver_profile = await get_receiver_profile(self.scope['user'], self.room_name)
         content = {
             "messages": await messages_to_json(messages, self.scope['user'], self.room_name),
+            "name": receiver_profile.name,
+            "surname": receiver_profile.surname,
+            "avatar": receiver_profile.avatar.url,
+            "receiver_id": receiver_profile.id,
         }
         await self.send_message(content)
 
@@ -183,8 +188,13 @@ class RequestChatConsumer(AsyncWebsocketConsumer):
         Передается chat_id
         """
         messages = await get_request_chat_messages(self.room_name)
+        receiver_profile = await get_request_receiver_profile(self.scope['user'], self.room_name)
         content = {
             "messages": await request_messages_to_json(messages, self.scope['user'], self.room_name),
+            "name": receiver_profile.name,
+            "surname": receiver_profile.surname,
+            "avatar": receiver_profile.avatar.url,
+            "receiver_id": receiver_profile.id,
         }
         await self.send_message(content)
 

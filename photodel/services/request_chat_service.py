@@ -35,6 +35,17 @@ def get_interviewer_data(user, chat_id):
 
 
 @database_sync_to_async
+def get_request_receiver_profile(user, chat_id):
+    try:
+        chat = RequestChat.objects.get(id=chat_id)
+        if chat.request_sender.user == user:
+            return chat.request_receiver
+        return chat.request_sender
+    except RequestChat.DoesNotExist:
+        return None
+
+
+@database_sync_to_async
 def is_user_in_request_chat(user, room_name):
     """
     Проверка на нахождения пользователя в чате
