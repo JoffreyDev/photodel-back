@@ -9,7 +9,7 @@ from django.contrib.auth import password_validation
 from django.contrib.auth.models import update_last_login
 from additional_entities.api.serializers import CountryListSerializer, LanguageListSerializer
 from services.accounts_service import check_profile_location, collect_favorite, \
-    collect_like, check_obscene_word_in_content
+    collect_like, check_obscene_word_in_content, collect_comment
 from services.statistics_profile_service import collect_profile_statistics
 import json
 
@@ -214,6 +214,29 @@ class ProfileForGallerySerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'surname', 'avatar', 'user_channel_name', 'rating', ]
 
 
+class ProfileWithAdditionalInfoSerializer(serializers.ModelSerializer):
+    avatar = ImageBase64Field()
+    count_favorites = serializers.SerializerMethodField()
+    count_likes = serializers.SerializerMethodField()
+    count_comments = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Profile
+        fields = ['id', 'name', 'surname', 'user_channel_name', 'type_pro',
+                  'spec_model_or_photographer', 'rating', 'avatar',
+                  'location', 'string_location', 'location_now', 'string_location_now',
+                  'count_favorites', 'count_likes', 'count_comments', ]
+
+    def get_count_favorites(self, obj):
+        return collect_favorite(obj.user)
+
+    def get_count_likes(self, obj):
+        return collect_like(obj.user)
+
+    def get_count_comments(self, obj):
+        return collect_comment(obj.user)
+
+
 class ProfilePrivateSerializer(serializers.ModelSerializer):
     filming_geo = serializers.SerializerMethodField()
     languages = serializers.SerializerMethodField()
@@ -281,19 +304,23 @@ class ProfileForFavoriteSerializer(serializers.ModelSerializer):
     type_pro = ProCategoryListSerializer()
     count_favorites = serializers.SerializerMethodField()
     count_likes = serializers.SerializerMethodField()
+    count_comments = serializers.SerializerMethodField()
 
     class Meta:
         model = Profile
         fields = ['id', 'name', 'surname', 'user_channel_name', 'type_pro',
                   'spec_model_or_photographer', 'rating', 'avatar',
                   'location', 'string_location', 'location_now', 'string_location_now',
-                  'count_favorites', 'count_likes', ]
+                  'count_favorites', 'count_likes', 'count_comments', ]
 
     def get_count_favorites(self, obj):
         return collect_favorite(obj.user)
 
     def get_count_likes(self, obj):
         return collect_like(obj.user)
+
+    def get_count_comments(self, obj):
+        return collect_comment(obj.user)
 
 
 class ProfileFavoriteCreateSerializer(serializers.ModelSerializer):

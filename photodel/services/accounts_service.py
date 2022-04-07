@@ -7,8 +7,9 @@ from django.conf import settings
 from rest_framework import serializers
 from django.contrib.gis.geos import Point
 from accounts.models import VerificationCode, Profile
-from gallery.models import GalleryLike, GalleryFavorite, PhotoSessionLike, PhotoSessionFavorite
-from film_places.models import FilmPlacesLike, FilmPlacesFavorite
+from gallery.models import GalleryLike, GalleryFavorite, PhotoSessionLike, \
+    PhotoSessionFavorite, PhotoSessionComment, GalleryComment
+from film_places.models import FilmPlacesLike, FilmPlacesFavorite, FilmPlacesComment
 from additional_entities.models import BanWord
 from smtplib import SMTPException
 from django.utils import timezone
@@ -188,6 +189,16 @@ def collect_like(user):
     places_count = FilmPlacesLike.objects.filter(place__profile__user=user).count()
     galleries_count = GalleryLike.objects.filter(gallery__profile__user=user).count()
     photo_session_count = PhotoSessionLike.objects.filter(photo_session__profile__user=user).count()
+    return places_count + galleries_count + photo_session_count
+
+
+def collect_comment(user):
+    """
+    Фотки, места фотосессии пользователя, на которые поставили лайки другие пользователи
+    """
+    places_count = FilmPlacesComment.objects.filter(place__profile__user=user).count()
+    galleries_count = GalleryComment.objects.filter(gallery__profile__user=user).count()
+    photo_session_count = PhotoSessionComment.objects.filter(photo_session__profile__user=user).count()
     return places_count + galleries_count + photo_session_count
 
 

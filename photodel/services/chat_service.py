@@ -31,8 +31,8 @@ def get_interviewer_data(user, chat_id):
     try:
         chat = Chat.objects.get(id=chat_id)
         if chat.sender_id.user == user:
-            return  chat.receiver_id.name, chat.receiver_id.user_channel_name
-        return chat.sender_id.name, chat.sender_id.user_channel_name
+            return chat.receiver_id.name, chat.receiver_id.surname, chat.receiver_id.user_channel_name
+        return chat.sender_id.name, chat.receiver_id.surname, chat.sender_id.user_channel_name
     except Chat.DoesNotExist:
         return None, None
 
@@ -96,13 +96,14 @@ def messages_to_json(messages, user, chat_id):
     result = []
     for message in messages:
         current_time = message.timestamp + timedelta(hours=3)
-        name, online = get_interviewer_data(user, chat_id)
+        name, surname, online = get_interviewer_data(user, chat_id)
         result.append(
             {
                 'id': message.id,
                 'content': message.content,
                 'timestamp': str(current_time),
                 'name': str(name),
+                'surname': str(surname),
                 'online': str(online),
             }
         )
@@ -214,7 +215,7 @@ def chats_to_json(chats, user):
     profile = Profile.objects.filter(user=user).first()
     for chat in chats:
         chat_link_obj = chat.message_set.all()
-        name_interviewer, online = get_interviewer_data(user, chat.id)
+        name, surname, online = get_interviewer_data(user, chat.id)
         result.append(
             {
                 'id': chat.id,
@@ -226,7 +227,8 @@ def chats_to_json(chats, user):
                 if chat_link_obj.all() and chat_link_obj.last().author_id == profile.id else None,
                 'date_last_message': chat_link_obj.last().timestamp + timedelta(hours=3)
                 if chat_link_obj.all() else None,
-                'name_interviewer': name_interviewer,
+                'name_interviewer': name,
+                'surname_interviewer': surname,
                 'online': online,
                 'not_read_messages': chat_link_obj.filter(status_read=False).exclude(author_id=profile.id).count()
                 if chat_link_obj.all() else None,

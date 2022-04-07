@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from film_places.models import CategoryFilmPlaces, FilmPlaces, FilmPlacesFavorite, \
     FilmPlacesComment, FilmPlacesLike, FilmRequest
-from accounts.api.serializers import ProfileForGallerySerializer
+from accounts.api.serializers import ProfileForGallerySerializer, ProfileWithAdditionalInfoSerializer
 from gallery.api.serializers import ImageSerializer
 from services.gallery_service import diff_between_two_points
 from services.accounts_service import check_obscene_word_in_content
@@ -152,25 +152,13 @@ class FilmPlacesFavoriteCreateSerializer(serializers.ModelSerializer):
 
 
 class FilmPlacesFavoriteListSerializer(serializers.ModelSerializer):
-    profile = ProfileForGallerySerializer()
+    profile = ProfileWithAdditionalInfoSerializer()
     place = FilmPlacesListSerializer()
-    likes = serializers.SerializerMethodField()
-    comments = serializers.SerializerMethodField()
-    favorites = serializers.SerializerMethodField()
     diff_distance = serializers.SerializerMethodField()
 
     class Meta:
         model = FilmPlacesFavorite
-        fields = ['profile', 'place', 'likes', 'comments', 'favorites', 'id', 'diff_distance', ]
-
-    def get_likes(self, obj):
-        return FilmPlacesLike.objects.filter(place=obj.place.id).count()
-
-    def get_comments(self, obj):
-        return FilmPlacesComment.objects.filter(place=obj.place.id).count()
-
-    def get_favorites(self, obj):
-        return FilmPlacesFavorite.objects.filter(place=obj.place.id).count()
+        fields = ['profile', 'place', 'id', 'diff_distance', ]
 
     def get_diff_distance(self, data):
         return diff_between_two_points(self.context.get('user_coords'), data.place.place_location)

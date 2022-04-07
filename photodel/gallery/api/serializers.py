@@ -4,7 +4,7 @@ from gallery.models import Album, Gallery, Image, GalleryComment, GalleryLike, G
     PhotoSessionComment, PhotoSessionLike, \
     PhotoSessionFavorite, PhotoSession
 from accounts.api.serializers import ProfilePublicSerializer, SpecializationListSerializer, \
-    ProfileForGallerySerializer
+    ProfileForGallerySerializer, ProfileWithAdditionalInfoSerializer
 from services.gallery_service import diff_between_two_points, Base64ImageField
 from services.accounts_service import check_obscene_word_in_content
 
@@ -230,23 +230,13 @@ class GalleryFavoriteCreateSerializer(serializers.ModelSerializer):
 
 class GalleryFavoriteListSerializer(serializers.ModelSerializer):
     gallery = GalleryForCardListSerializer()
-    likes = serializers.SerializerMethodField()
-    comments = serializers.SerializerMethodField()
-    favorites = serializers.SerializerMethodField()
-    profile = ProfileForGallerySerializer()
+    profile = ProfileWithAdditionalInfoSerializer()
+
 
     class Meta:
         model = GalleryFavorite
-        fields = ['profile', 'gallery', 'id', 'likes', 'favorites', 'comments', ]
+        fields = ['profile', 'gallery', 'id', ]
 
-    def get_likes(self, obj):
-        return GalleryLike.objects.filter(gallery=obj.id).count()
-
-    def get_comments(self, obj):
-        return GalleryComment.objects.filter(gallery=obj.id).count()
-
-    def get_favorites(self, obj):
-        return GalleryFavorite.objects.filter(gallery=obj.id).count()
 
 
 class GalleryLikeCreateSerializer(serializers.ModelSerializer):
@@ -349,14 +339,14 @@ class PhotoSessionListSerializer(serializers.ModelSerializer):
         return PhotoSessionFavorite.objects.filter(photo_session=obj.id).count()
 
     def get_is_liked(self, obj):
-        if isinstance(self.context['user'], AnonymousUser):
+        if isinstance(self.context.get('user', ''), AnonymousUser):
             return ''
-        return bool(PhotoSessionLike.objects.filter(photo_session=obj.id, profile__user=self.context['user']))
+        return bool(PhotoSessionLike.objects.filter(photo_session=obj.id, profile__user=self.context.get('user', 0)))
 
     def get_in_favorite(self, obj):
-        if isinstance(self.context['user'], AnonymousUser):
+        if isinstance(self.context.get('user', ''), AnonymousUser):
             return ''
-        return bool(PhotoSessionFavorite.objects.filter(photo_session=obj.id, profile__user=self.context['user']))
+        return bool(PhotoSessionFavorite.objects.filter(photo_session=obj.id, profile__user=self.context.get('user', 0)))
 
 
 class PhotoSessionFavoriteCreateSerializer(serializers.ModelSerializer):
@@ -366,25 +356,13 @@ class PhotoSessionFavoriteCreateSerializer(serializers.ModelSerializer):
 
 
 class PhotoSessionFavoriteListSerializer(serializers.ModelSerializer):
-    profile = ProfileForGallerySerializer()
+    profile = ProfileWithAdditionalInfoSerializer()
     photo_session = PhotoSessionListSerializer()
-    likes = serializers.SerializerMethodField()
-    comments = serializers.SerializerMethodField()
-    favorites = serializers.SerializerMethodField()
     diff_distance = serializers.SerializerMethodField()
 
     class Meta:
         model = PhotoSessionFavorite
-        fields = ['id', 'profile', 'photo_session', 'likes', 'comments', 'favorites', 'diff_distance', ]
-
-    def get_likes(self, obj):
-        return PhotoSessionLike.objects.filter(photo_session=obj.photo_session.id).count()
-
-    def get_comments(self, obj):
-        return PhotoSessionComment.objects.filter(photo_session=obj.photo_session.id).count()
-
-    def get_favorites(self, obj):
-        return PhotoSessionFavorite.objects.filter(photo_session=obj.photo_session.id).count()
+        fields = ['id', 'profile', 'photo_session', 'diff_distance', ]
 
     def get_diff_distance(self, data):
         return diff_between_two_points(self.context.get('user_coords'), data.photo_session.session_location)
