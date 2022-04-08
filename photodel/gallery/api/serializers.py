@@ -232,11 +232,9 @@ class GalleryFavoriteListSerializer(serializers.ModelSerializer):
     gallery = GalleryForCardListSerializer()
     profile = ProfileWithAdditionalInfoSerializer()
 
-
     class Meta:
         model = GalleryFavorite
         fields = ['profile', 'gallery', 'id', ]
-
 
 
 class GalleryLikeCreateSerializer(serializers.ModelSerializer):
@@ -321,6 +319,7 @@ class PhotoSessionListSerializer(serializers.ModelSerializer):
     likes = serializers.SerializerMethodField()
     comments = serializers.SerializerMethodField()
     favorites = serializers.SerializerMethodField()
+    main_photo = ImageSerializer()
 
     class Meta:
         model = PhotoSession

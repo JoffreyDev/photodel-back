@@ -282,7 +282,7 @@ class ProfilListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ['name', 'surname', 'string_location_now', 'location_now', 'avatar',
+        fields = ['id', 'name', 'surname', 'string_location_now', 'location_now', 'avatar',
                   'type_pro', 'string_location', 'location', 'diff_distance',
                   'spec_model_or_photographer', 'user_channel_name', 'count_favorites',
                   'count_likes', 'rating', ]

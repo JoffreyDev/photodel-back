@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 
 class EmailFragment(models.Model):
@@ -39,3 +40,27 @@ class City(models.Model):
 
     def __str__(self):
         return self.city_name
+
+
+class Question(models.Model):
+    title = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.title
+
+
+class Choice(models.Model):
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    title = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.title
+
+
+class Answer(models.Model):
+    choice = models.ForeignKey(Choice, on_delete=models.DO_NOTHING)
+    profile = models.ForeignKey('accounts.Profile', on_delete=models.CASCADE)
+    created = models.DateTimeField(default=timezone.localtime)
+
+    def __str__(self):
+        return self.choice.title

@@ -176,9 +176,10 @@ def request_messages_to_json(messages, user, chat_id):
                     'id': message.id,
                     'content': message.content,
                     'timestamp': str(current_time),
-                    'name': str(name),
-                    'avatar': str(avatar),
-                    'online': str(online),
+                    'name': str(message.author.name),
+                    'surname': str(message.author.surname),
+                    'online': str(message.author.user_channel_name),
+                    'avatar': str(message.author.avatar.url),
                 }
             )
     return result

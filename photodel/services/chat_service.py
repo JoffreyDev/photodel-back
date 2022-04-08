@@ -111,16 +111,15 @@ def messages_to_json(messages, user, chat_id):
     result = []
     for message in messages:
         current_time = message.timestamp + timedelta(hours=3)
-        name, surname, online, avatar = get_interviewer_data(user, chat_id)
         result.append(
             {
                 'id': message.id,
                 'content': message.content,
                 'timestamp': str(current_time),
-                'name': str(name),
-                'surname': str(surname),
-                'online': str(online),
-                'avatar': str(avatar),
+                'name': str(message.author.name),
+                'surname': str(message.author.surname),
+                'online': str(message.author.user_channel_name),
+                'avatar': str(message.author.avatar.url),
             }
         )
     return result
