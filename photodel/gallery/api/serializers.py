@@ -286,7 +286,7 @@ class PhotoSessionCreateSerializer(serializers.ModelSerializer):
 
 
 class PhotoSessionForCardListSerializer(serializers.ModelSerializer):
-    main_photo = serializers.SerializerMethodField()
+    main_photo = ImageSerializer()
     likes = serializers.SerializerMethodField()
     comments = serializers.SerializerMethodField()
     favorites = serializers.SerializerMethodField()
@@ -305,9 +305,6 @@ class PhotoSessionForCardListSerializer(serializers.ModelSerializer):
 
     def get_favorites(self, obj):
         return PhotoSessionFavorite.objects.filter(photo_session=obj.id).count()
-
-    def get_main_photo(self, data):
-        return '' if not data.photos.all() else data.photos.first().photo.url
 
 
 class PhotoSessionListSerializer(serializers.ModelSerializer):

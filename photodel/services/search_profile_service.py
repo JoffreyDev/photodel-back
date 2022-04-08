@@ -41,13 +41,12 @@ def filter_by_distance(profiles, user_coordinates, distance):
     """
     Филтррация по радиусу
     """
-    if not (user_coordinates or distance):
+    if not (user_coordinates and distance):
         return profiles
     user_coordinates = convert_string_coordinates_to_point_obj(user_coordinates)
     profiles = profiles.filter(Q(date_stay_end__gte=timezone.localtime()) &
                                Q(location_now__distance_lte=(user_coordinates, D(m=distance))) |
-                               (Q(date_stay_end__lte=timezone.localtime()) | Q(date_stay_end=''))
-                               & Q(location__distance_lte=(user_coordinates, D(m=distance)))
+                               Q(location__distance_lte=(user_coordinates, D(m=distance)))
                                )
     return profiles
 
