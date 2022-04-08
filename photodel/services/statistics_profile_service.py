@@ -69,7 +69,7 @@ def get_count_profile_views(profile):
 
 
 def get_count_profile_request(profile):
-    me_request = FilmRequest.objects.filter(place__profile=profile).count()
+    me_request = FilmRequest.objects.filter(receiver_profile=profile).count()
     my_request = FilmRequest.objects.filter(profile=profile).count()
 
     return {

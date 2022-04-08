@@ -292,7 +292,6 @@ class GalleryViewSet(viewsets.ViewSet):
 
 class GalleryFavoriteViewSet(viewsets.ViewSet):
     permission_classes_by_action = {
-        'list_favorite': [permissions.IsAuthenticated, ],
         'create_favorite': [permissions.IsAuthenticated, ],
         'delete_favorite': [permissions.IsAuthenticated, ],
     }
@@ -491,7 +490,6 @@ class PhotoSessionViewSet(viewsets.ViewSet):
 
 class PhotoSessionFavoriteViewSet(viewsets.ViewSet):
     permission_classes_by_action = {
-        'list_favorite': [permissions.IsAuthenticated, ],
         'create_favorite': [permissions.IsAuthenticated, ],
         'delete_favorite': [permissions.IsAuthenticated, ],
     }

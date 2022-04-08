@@ -124,7 +124,6 @@ class FilmPlacesViewSet(viewsets.ViewSet):
 
 class FilmPlacesFavoriteViewSet(viewsets.ViewSet):
     permission_classes_by_action = {
-        'list_favorite': [permissions.IsAuthenticated, ],
         'create_favorite': [permissions.IsAuthenticated, ],
         'delete_favorite': [permissions.IsAuthenticated, ],
     }
@@ -258,7 +257,7 @@ class FilmRequestViewSet(viewsets.ViewSet):
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             create_request_chat_and_message(serializer.data.get('profile'),
-                                            serializer.data.get('place'),
+                                            serializer.data.get('receiver_profile'),
                                             serializer.data.get('id'))
             logger.info(f'Пользователь {request.user} успешно создал запрос')
             return Response(serializer.data, status=status.HTTP_200_OK)

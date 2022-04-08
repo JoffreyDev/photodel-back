@@ -15,6 +15,8 @@ def is_chat_unique(sender_id, receiver_id):
     Проверка чата, при создании, на уникальность
     Проверка отправителя получателя и вещи
     """
+    if sender_id == receiver_id:
+        return False
     chat1 = Chat.objects.filter(Q(sender_id=sender_id) & Q(receiver_id=receiver_id)).first()
     chat2 = Chat.objects.filter(Q(sender_id=receiver_id) & Q(receiver_id=sender_id)).first()
     if chat1:

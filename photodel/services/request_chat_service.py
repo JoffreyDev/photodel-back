@@ -8,13 +8,11 @@ from datetime import timedelta
 import json
 
 
-def create_request_chat_and_message(sender_request, place_id, request_id):
+def create_request_chat_and_message(sender_request, receiver_profile, request_id):
     """
     Создание чата и сооющения при создание запроса на съемку
     """
-
-    place = FilmPlaces.objects.get(id=place_id)
-    chat = RequestChat.objects.create(request_sender_id=sender_request, request_receiver_id=place.profile.id)
+    chat = RequestChat.objects.create(request_sender_id=sender_request, request_receiver=receiver_profile)
     RequestMessage.objects.create(request_id=request_id, chat_id=chat.id, author_id=sender_request)
     return True
 

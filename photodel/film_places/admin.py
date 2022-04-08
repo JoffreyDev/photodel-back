@@ -30,4 +30,4 @@ class FilmPlacesFavoriteAdmin(admin.ModelAdmin):
 
 @admin.register(FilmRequest)
 class FilmRequestAdmin(admin.ModelAdmin):
-    list_display = ['filming_type', 'filming_status', 'id', 'place', ]
+    list_display = ['filming_type', 'filming_status', 'id', 'receiver_profile', ]

@@ -90,5 +90,7 @@ class FilmRequest(models.Model):
     need_makeup_artist = models.BooleanField(default=False)
     description = models.TextField(blank=True)
     was_added = models.DateTimeField(default=timezone.localtime)
-    place = models.ForeignKey(FilmPlaces, on_delete=models.CASCADE)
-    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    place_filming = models.CharField(max_length=40, null=True)
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='request_sender_profile')
+    receiver_profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='request_receiver_profile',
+                                         null=True)
