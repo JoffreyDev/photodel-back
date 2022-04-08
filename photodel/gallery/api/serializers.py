@@ -327,7 +327,7 @@ class PhotoSessionListSerializer(serializers.ModelSerializer):
         fields = ['id', 'session_name', 'session_description', 'session_location',
                   'string_session_location', 'session_date', 'session_category',
                   'photos', 'views', 'is_hidden', 'profile', 'is_liked', 'in_favorite',
-                  'likes', 'comments', 'favorites', ]
+                  'likes', 'comments', 'favorites', 'main_photo', ]
 
     def get_likes(self, obj):
         return PhotoSessionLike.objects.filter(photo_session=obj.id).count()

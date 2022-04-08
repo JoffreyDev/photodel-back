@@ -190,6 +190,9 @@ class AlbumViewSet(viewsets.ViewSet):
             albums_id = request.data.get('albums_id')
             for album_id in albums_id:
                 instance = Album.objects.get(id=album_id, profile__user=request.user)
+                if instance.name_album == 'Разное':
+                    return Response(status=status.HTTP_400_BAD_REQUEST,
+                                    data={"message": 'Вы не можете удалить главный альбом'})
                 instance.delete()
             return Response(status=status.HTTP_200_OK)
         except Album.DoesNotExist:
