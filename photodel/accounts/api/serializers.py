@@ -180,7 +180,7 @@ class ProfileForPublicSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ['name', 'surname', 'filming_geo', 'work_condition', 'cost_services', 'string_location_now',
+        fields = ['id', 'name', 'surname', 'filming_geo', 'work_condition', 'cost_services', 'string_location_now',
                   'photo_technics', 'languages', 'about', 'status', 'type_pro', 'string_location',
                   'location', 'phone', 'site', 'email', 'instagram', 'facebook', 'vk', 'avatar',
                   'location_now', 'date_stay_start', 'date_stay_end', 'message', 'is_adult',
@@ -196,14 +196,15 @@ class ProfilePublicSerializer(serializers.ModelSerializer):
     filming_geo = CountryListSerializer(read_only=True, many=True)
     languages = LanguageListSerializer(read_only=True, many=True)
     spec_model_or_photographer = SpecializationListSerializer(read_only=True, many=True)
+    type_pro = ProCategoryListSerializer()
 
     class Meta:
         model = Profile
-        fields = ['name', 'surname', 'filming_geo', 'work_condition', 'cost_services', 'string_location_now',
+        fields = ['id', 'name', 'surname', 'filming_geo', 'work_condition', 'cost_services', 'string_location_now',
                   'photo_technics', 'languages', 'about', 'status', 'type_pro', 'string_location',
                   'location', 'phone', 'site', 'email', 'instagram', 'facebook', 'vk', 'avatar',
                   'location_now', 'date_stay_start', 'date_stay_end', 'message', 'is_adult',
-                  'spec_model_or_photographer', 'ready_status', ]
+                  'spec_model_or_photographer', 'ready_status', 'rating', 'user_channel_name', ]
 
 
 class ProfileForGallerySerializer(serializers.ModelSerializer):

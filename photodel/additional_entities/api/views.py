@@ -1,11 +1,13 @@
-from rest_framework import viewsets, status
-from additional_entities.models import Country, Language, Advertisement, City
+from rest_framework import viewsets, status, permissions
+from additional_entities.models import Country, Language, Advertisement, City, Question
 from film_places.models import FilmPlacesComment
 from gallery.models import GalleryComment, PhotoSessionComment
+from accounts.models import Profile
 from .serializers import CountryListSerializer, LanguageListSerializer, \
-    AdvertisementListSerializer, CityListSerializer
+    AdvertisementListSerializer, CityListSerializer, AnswerCreateSerializer, \
+    QuestionListSerializer
 from rest_framework.response import Response
-from services.additional_service import check_town_use_coords
+from services.additional_service import check_town_use_coords, check_exitst_answer
 
 
 class CountryViewSet(viewsets.ViewSet):
@@ -47,6 +49,34 @@ class CityViewSet(viewsets.ViewSet):
         nearest_city = check_town_use_coords(queryset, request.GET.get('user_coordinates', ''))
         serializer = CityListSerializer(nearest_city)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
+
+
+class PollViewSet(viewsets.ViewSet):
+    permission_classes_by_action = {
+        'add_answer': [permissions.IsAuthenticated, ],
+    }
+
+    def list_poll(self, request):
+        queryset = Question.objects.all()
+        serializer = QuestionListSerializer(queryset, many=True, context={'user': request.user})
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
+
+    def add_answer(self, request):
+        profile = Profile.objects.get(user=request.user).id
+        if check_exitst_answer(request.user, request.data.get('choice')):
+            return Response(status=status.HTTP_400_BAD_REQUEST,
+                            data={"message": "Вы уже оставляли ответ в этом опросе"})
+        serializer = AnswerCreateSerializer(data=request.data | {"profile": profile})
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    def get_permissions(self):
+        try:
+            return [permission() for permission in self.permission_classes_by_action[self.action]]
+        except KeyError:
+            return [permission() for permission in self.permission_classes]
 
 
 class CommonViewSet(viewsets.ViewSet):

@@ -44,6 +44,7 @@ class City(models.Model):
 
 class Question(models.Model):
     title = models.CharField(max_length=255)
+    is_hide = models.BooleanField(default=True)
 
     def __str__(self):
         return self.title
@@ -58,7 +59,7 @@ class Choice(models.Model):
 
 
 class Answer(models.Model):
-    choice = models.ForeignKey(Choice, on_delete=models.DO_NOTHING)
+    choice = models.ForeignKey(Choice, on_delete=models.CASCADE)
     profile = models.ForeignKey('accounts.Profile', on_delete=models.CASCADE)
     created = models.DateTimeField(default=timezone.localtime)
 

@@ -1,4 +1,5 @@
 from geopy.distance import geodesic
+from additional_entities.models import Answer
 
 
 def check_town_use_coords(cities, user_coordinates):
@@ -12,3 +13,12 @@ def check_town_use_coords(cities, user_coordinates):
             less_distance = distance_diff
             nearest_city = city
     return nearest_city
+
+
+def check_exitst_answer(user, choice):
+    user_choice = Answer.objects.filter(profile__user=user, choice=choice)
+    if user_choice:
+        return True
+    return False
+
+

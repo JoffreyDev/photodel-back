@@ -54,7 +54,7 @@ class Profile(models.Model):
 
     # temporary geolocation
     location_now = gis_models.PointField(srid=4326, blank=True, null=True)
-    string_location_now = models.CharField(max_length=50, null=True)
+    string_location_now = models.CharField(max_length=50, null=True, blank=True)
     date_stay_start = models.DateTimeField(blank=True, null=True)
     date_stay_end = models.DateTimeField(blank=True, null=True)
     message = models.TextField(blank=True)

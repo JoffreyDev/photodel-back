@@ -1,6 +1,7 @@
 from django.urls import path
 
-from .views import CountryViewSet, LanguageViewSet, AdvertisementViewSet, CommonViewSet, CityViewSet
+from .views import CountryViewSet, LanguageViewSet, AdvertisementViewSet, \
+    CommonViewSet, CityViewSet, PollViewSet
 
 app_name = 'additional_entities'
 
@@ -17,6 +18,10 @@ urlpatterns = [
          name='list_city'),
     path('check_city/', CityViewSet.as_view({'get': "check_coordinates"}),
          name='check_coordinates'),
+    path('list_polls/', PollViewSet.as_view({'get': "list_poll"}),
+         name='list_poll'),
+    path('add_answer/', PollViewSet.as_view({'post': "add_answer"}),
+         name='add_answer'),
     path('last_comments/', CommonViewSet.as_view({'get': "list_last_comments"}),
          name='list_last_comments'),
 ]
