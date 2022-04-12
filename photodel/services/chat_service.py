@@ -35,8 +35,8 @@ def get_interviewer_data(user, chat_id):
         if chat.sender_id.user == user:
             return chat.receiver_id.name, chat.receiver_id.surname, chat.receiver_id.user_channel_name, \
                    chat.receiver_id.avatar.url
-        return chat.sender_id.name, chat.receiver_id.surname, chat.sender_id.user_channel_name, \
-               chat.receiver_id.avatar.url
+        return chat.sender_id.name, chat.sender_id.surname, chat.sender_id.user_channel_name, \
+               chat.sender_id.avatar.url
     except Chat.DoesNotExist:
         return None, None
 
@@ -159,9 +159,6 @@ def update_messages_status(data, chat_id):
         Message.objects.bulk_update(messages, ['status_read'])
         return json.dumps({'success': 'updated'})
     return json.dumps({'error': 'not given parameters'})
-
-
-# SiteConsumer
 
 
 @database_sync_to_async

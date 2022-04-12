@@ -32,10 +32,13 @@ class AdvertisementViewSet(viewsets.ViewSet):
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
     def add_click_to_advertisement(self, request, pk):
-        queryset = Advertisement.objects.get(id=pk)
-        queryset.ad_count_click += 1
-        queryset.save()
-        return Response(status=status.HTTP_200_OK)
+        try:
+            queryset = Advertisement.objects.get(id=pk)
+            queryset.ad_count_click += 1
+            queryset.save()
+            return Response(status=status.HTTP_200_OK)
+        except Advertisement.DoesNotExist:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 class CityViewSet(viewsets.ViewSet):
@@ -57,7 +60,7 @@ class PollViewSet(viewsets.ViewSet):
     }
 
     def list_poll(self, request):
-        queryset = Question.objects.all()
+        queryset = Question.objects.filter(is_hide=False)
         serializer = QuestionListSerializer(queryset, many=True, context={'user': request.user})
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 

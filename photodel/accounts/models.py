@@ -35,7 +35,7 @@ class Profile(models.Model):
     about = models.TextField(null=True, blank=True)
     status = models.IntegerField(default=1)  # 1 - Клиент 2 - Профи
     ready_status = models.CharField(max_length=50, blank=True)
-    type_pro = models.ForeignKey(ProCategory, on_delete=models.CASCADE, null=True, blank=True)
+    type_pro = models.ForeignKey(ProCategory, on_delete=models.CASCADE, null=True)
     spec_model_or_photographer = models.ManyToManyField(Specialization, blank=True)
     type_pro_account = models.IntegerField(default=1, null=True)  # 1 - Бесплатный 2 - Стандарт 3 - Максимум
     expired_pro_subscription = models.DateTimeField(blank=True, null=True)
