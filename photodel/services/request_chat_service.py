@@ -26,7 +26,7 @@ def get_interviewer_data(user, chat_id):
         if chat.request_sender.user == user:
             return chat.request_receiver.name, chat.request_receiver.surname, \
                    chat.request_receiver.user_channel_name, chat.request_receiver.avatar.url
-        return chat.request_sender.name, chat.request_receiver.surname, \
+        return chat.request_sender.name, chat.request_sender.surname, \
                chat.request_sender.user_channel_name, chat.request_sender.avatar.url
     except RequestChat.DoesNotExist:
         return None, None, None

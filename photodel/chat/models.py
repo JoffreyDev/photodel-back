@@ -7,6 +7,8 @@ from django.utils import timezone
 class Chat(models.Model):
     sender_id = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='sender')
     receiver_id = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='receiver')
+    is_sender_hide_chat = models.BooleanField(default=False)
+    is_receiver_hide_chat = models.BooleanField(default=False)
 
     def __str__(self):
         return f'{self.pk}'

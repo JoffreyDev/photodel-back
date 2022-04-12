@@ -64,11 +64,12 @@ class AlbumGalleryRetrieveSerializer(serializers.ModelSerializer):
     comments = serializers.SerializerMethodField()
     favorites = serializers.SerializerMethodField()
     custom_album = serializers.SerializerMethodField()
+    profile = ProfileForGallerySerializer()
 
     class Meta:
         model = Gallery
         fields = ['gallery_image', 'id', 'likes', 'comments', 'favorites',
-                  'custom_album', 'string_place_location', 'name_image', ]
+                  'custom_album', 'string_place_location', 'name_image', 'profile', ]
 
     def get_custom_album(self, obj):
         album = AlbumRetrieveSerializer()
