@@ -167,6 +167,7 @@ def request_messages_to_json(messages, user, chat_id):
                     'string_filming_location': str(request.string_filming_location),
                     'filming_type': str(request.filming_type),
                     'filming_status': str(request.filming_status),
+                    'place_filming': str(request.place_filming),
                     'count_person': str(request.count_person),
                     'filming_budget': str(request.filming_budget),
                     'need_makeup_artist': str(request.need_makeup_artist),

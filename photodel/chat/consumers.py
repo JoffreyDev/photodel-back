@@ -56,7 +56,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         "name": message.author.name,
                         "surname": message.author.surname,
                         "avatar": message.author.avatar.url,
-                        "online": message.author.avatar.user_channel_name,
+                        "online": message.author.user_channel_name,
                     }
             }
             return await self.send_chat_message(content)
@@ -199,6 +199,7 @@ class RequestChatConsumer(AsyncWebsocketConsumer):
             "surname": receiver_profile.surname,
             "avatar": receiver_profile.avatar.url,
             "receiver_id": receiver_profile.id,
+            "online": receiver_profile.user_channel_name,
         }
         await self.send_message(content)
 
