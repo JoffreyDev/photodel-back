@@ -1,6 +1,7 @@
 from rest_framework import permissions, status, viewsets
 from rest_framework.response import Response
-from film_places.models import CategoryFilmPlaces, FilmPlaces, FilmPlacesFavorite, FilmPlacesComment, FilmPlacesLike
+from film_places.models import CategoryFilmPlaces, FilmPlaces, FilmPlacesFavorite, \
+    FilmPlacesComment, FilmPlacesLike, FilmRequest
 from accounts.models import Profile
 from .serializers import FilmPlacesCreateSerializer, CategoryFilmPlacesListSerializer, \
     FilmPlacesFavoriteCreateSerializer, FilmPlacesFavoriteListSerializer, FilmPlacesLikeCreateSerializer, \
@@ -248,6 +249,7 @@ class FilmPlacesCommentViewSet(viewsets.ViewSet):
 class FilmRequestViewSet(viewsets.ViewSet):
     permission_classes_by_action = {
         'create_film_request': [permissions.IsAuthenticated, ],
+        'add_reason_failure': [permissions.IsAuthenticated, ],
     }
 
     def create_film_request(self, request):
@@ -264,6 +266,19 @@ class FilmRequestViewSet(viewsets.ViewSet):
         logger.error(f'Пользователь {request.user} не создал запрос')
         return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'создание запроса не было выполнено.'
                                                                              ' Пожалуйства обратитесь в поддержку'})
+
+    def add_reason_failure(self, request, pk):
+        try:
+            instance = FilmRequest.objects.get(id=pk)
+            if request.user != instance.profile.user or instance.filming_status != 'UNCOMPLETED':
+                return Response(status=status.HTTP_400_BAD_REQUEST,
+                                data={"message": 'Только заказчик может добавить причину не завершенного запроса'})
+            instance.reason_failure = request.data.get('reason_failure', '')
+            instance.save()
+            return Response(status=status.HTTP_200_OK, data={"message": 'Причина не заверщенного заказа '
+                                                                        'была успещно добавлена'})
+        except FilmRequest.DoesNotExist:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Запрос не был найден.'})
 
     def get_permissions(self):
         try:

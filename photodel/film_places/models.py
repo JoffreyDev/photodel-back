@@ -81,16 +81,16 @@ class FilmRequest(models.Model):
     ]
 
     filming_timestamp = models.DateTimeField()
-    hours_duration = models.IntegerField()
+    hours_duration = models.CharField(max_length=40)
     string_filming_location = models.CharField(max_length=40, blank=True)
     filming_type = models.CharField(max_length=40)
     filming_status = models.CharField(max_length=12, choices=FILMING_STATUS_CHOICES, default='NEW')
-    count_person = models.IntegerField()
-    filming_budget = models.FloatField()
+    count_person = models.CharField(max_length=40)
+    filming_budget = models.CharField(max_length=40)
     need_makeup_artist = models.BooleanField(default=False)
     description = models.TextField(blank=True)
     was_added = models.DateTimeField(default=timezone.localtime)
     place_filming = models.CharField(max_length=40, null=True)
+    reason_failure = models.TextField(blank=True, null=True)
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='request_sender_profile')
-    receiver_profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='request_receiver_profile',
-                                         null=True)
+    receiver_profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='request_receiver_profile')

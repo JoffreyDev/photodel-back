@@ -12,7 +12,6 @@ urlpatterns = [
 
     path('create/', FilmPlacesViewSet.as_view({'post': "create_place"}),
          name='create_place'),
-
     path('update/<int:pk>/', FilmPlacesViewSet.as_view({'post': "partial_update_place"}),
          name='partial_update_place'),
     path('<int:pk>/', FilmPlacesViewSet.as_view({'get': "retrieve_place"}),
@@ -43,5 +42,7 @@ urlpatterns = [
 
     path('film_request/create/', FilmRequestViewSet.as_view({'post': "create_film_request"}),
          name='create_film_request'),
+    path('add_reason_failure/<int:pk>/', FilmRequestViewSet.as_view({'post': "add_reason_failure"}),
+         name='add_reason_failure'),
 ]
 

@@ -12,7 +12,7 @@ def create_request_chat_and_message(sender_request, receiver_profile, request_id
     """
     Создание чата и сооющения при создание запроса на съемку
     """
-    chat = RequestChat.objects.create(request_sender_id=sender_request, request_receiver=receiver_profile)
+    chat = RequestChat.objects.create(request_sender_id=sender_request, request_receiver_id=receiver_profile)
     RequestMessage.objects.create(request_id=request_id, chat_id=chat.id, author_id=sender_request)
     return True
 
@@ -114,7 +114,7 @@ def filter_request_chat(user):
         order_list = RequestChat.objects.filter(Q(request_sender__user=user) | Q(request_receiver__user=user)) \
             .select_related('request_sender', 'request_receiver')
     else:
-        chat = RequestChat.objects.filter(Q(sender_id__user=user) | Q(receiver_id__user=user))
+        chat = RequestChat.objects.filter(Q(request_sender__user=user) | Q(request_receiver__user=user))
         order_list = chat.filter(Q(id__in=list_chat_id))\
                                  .order_by(Case(*[When(id=n, then=i) for i, n in enumerate(list_chat_id)]))\
                                  .select_related('request_sender', 'request_receiver')
@@ -127,13 +127,16 @@ def change_request_status(user, data):
         return json.dumps({'error': 'not given parameters'})
     try:
         request = FilmRequest.objects.get(id=data.get('request_id'))
-        if request.filming_status == 'NEW' and request.place.profile.user != user:
-            return json.dumps({'error': 'Only owner film_places can accept or reject request'})
-        if request.filming_status == 'ACCEPTED' and request.profile.user != user:
-            return json.dumps({'error': 'Only owner request can completed request'})
-        request.filming_status = data.get('filming_status')
-        request.save()
-        return json.dumps({'message': 'ok'})
+        status = data.get('filming_status')
+        if request.filming_status == 'NEW' and request.receiver_profile.user == user \
+                and (status == 'ACCEPTED' or status == 'REJECTED'):
+            request.filming_status = status
+            request.save()
+        if request.filming_status == 'ACCEPTED' and request.profile.user == user \
+                and (status == 'COMPLETED' or status == 'UNCOMPLETED'):
+            request.filming_status = status
+            request.save()
+        return json.dumps({'error': 'You not permissions to change status'})
     except FilmRequest.DoesNotExist:
         return json.dumps({'error': 'not found request'})
 
@@ -202,19 +205,26 @@ def request_chats_to_json(chats, user):
                 'sender_id': chat.request_sender.id,
                 'receiver_id': chat.request_receiver.id,
                 'avatar': avatar,
-                'last_message': chat_link_obj.last().content
-                if chat_link_obj.all() else None,
+                'avatar_last_message': chat_link_obj.last().author.avatar.url
+                if chat_link_obj else None,
                 'is_last_message': chat_link_obj.last().status_read
-                if chat_link_obj.all() and chat_link_obj.last().author_id == profile.id else None,
+                if chat_link_obj and chat_link_obj.last().author_id == profile.id else None,
                 'date_last_message': chat_link_obj.last().timestamp + timedelta(hours=3)
-                if chat_link_obj.all() else None,
+                if chat_link_obj else None,
                 'name_interviewer': name_interviewer,
                 'surname_interviewer': surname,
                 'online': online,
+                'not_read_messages': chat_link_obj.filter(status_read=False).exclude(author_id=profile.id).count()
+                if chat_link_obj else None,
+
                 'request_status': chat_link_obj.first().request.filming_status
                 if chat_link_obj.first() and chat_link_obj.first().request else None,
-                'not_read_messages': chat_link_obj.filter(status_read=False).exclude(author_id=profile.id).count()
-                if chat_link_obj.all() else None,
+                'filming_timestamp': chat_link_obj.first().request.filming_timestamp
+                if chat_link_obj.first() and chat_link_obj.first().request else None,
+                'place_filming': chat_link_obj.first().request.place_filming
+                if chat_link_obj.first() and chat_link_obj.first().request else None,
+                'hours_duration': chat_link_obj.first().request.hours_duration
+                if chat_link_obj.first() and chat_link_obj.first().request else None,
             }
         )
     return result

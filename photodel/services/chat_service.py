@@ -234,17 +234,19 @@ def chats_to_json(chats, user):
                 'sender_id': chat.sender_id.id,
                 'receiver_id': chat.receiver_id.id,
                 'last_message': chat_link_obj.last().content
-                if chat_link_obj.all() else None,
+                if chat_link_obj else None,
                 'is_last_message': chat_link_obj.last().status_read
-                if chat_link_obj.all() and chat_link_obj.last().author_id == profile.id else None,
+                if chat_link_obj and chat_link_obj.last().author == profile else None,
                 'date_last_message': chat_link_obj.last().timestamp + timedelta(hours=3)
-                if chat_link_obj.all() else None,
+                if chat_link_obj else None,
                 'name_interviewer': name,
                 'surname_interviewer': surname,
-                'avatar': avatar,
+                'avatar_last_message': chat_link_obj.last().author.avatar.url
+                if chat_link_obj else None,
+                'avatar_interviewer': avatar,
                 'online': online,
-                'not_read_messages': chat_link_obj.filter(status_read=False).exclude(author_id=profile.id).count()
-                if chat_link_obj.all() else None,
+                'not_read_messages': chat_link_obj.filter(status_read=False).exclude(author=profile).count()
+                if chat_link_obj else None,
             }
         )
     return result
