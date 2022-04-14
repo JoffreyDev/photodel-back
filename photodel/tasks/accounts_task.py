@@ -27,3 +27,14 @@ def task_send_reset_password_to_email(email, code):
                                                                  "placement_piece": placement_piece,
                                                                  "fragment": url})
     return send_email_to_users(title, [email], html_content)
+
+
+@app.task
+def task_send_email_to_verify_not_auth_request(email, code):
+    title = f'Платформа photodel приветствует вас'
+    login_or_name, profile = get_name_user(email)
+    placement_piece = EmailFragment.objects.all().first().verify_email_for_not_auth_request
+    html_content = render_to_string('mail_templates/mail.html', {"login": login_or_name,
+                                                                 "placement_piece": placement_piece,
+                                                                 "fragment": code})
+    return send_email_to_users(title, [email], html_content)

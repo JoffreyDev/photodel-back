@@ -5,6 +5,7 @@ from django.utils import timezone
 class EmailFragment(models.Model):
     verify_email = models.TextField(null=True)
     reset_password = models.TextField(null=True)
+    verify_email_for_not_auth_request = models.TextField(null=True)
 
 
 class CustomSettings(models.Model):

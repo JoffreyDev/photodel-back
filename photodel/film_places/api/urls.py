@@ -2,7 +2,7 @@ from django.urls import path
 
 from .views import FilmPlacesViewSet, CategoryFilmPlacesViewSet, \
     FilmPlacesFavoriteViewSet, FilmPlacesLikeViewSet, FilmPlacesCommentViewSet, \
-    FilmRequestViewSet
+    FilmRequestViewSet, NotAuthFilmRequestViewSet
 
 app_name = 'film_places'
 
@@ -44,5 +44,14 @@ urlpatterns = [
          name='create_film_request'),
     path('add_reason_failure/<int:pk>/', FilmRequestViewSet.as_view({'post': "add_reason_failure"}),
          name='add_reason_failure'),
+    path('create_not_auth_film_request/', NotAuthFilmRequestViewSet.as_view({'post': "create_not_auth_film_request"}),
+         name='create_not_auth_film_request'),
+    path('confirm_email/', NotAuthFilmRequestViewSet.as_view({'post': "confirm_email"}),
+         name='confirm_email'),
+    path('list_not_auth_requests/', NotAuthFilmRequestViewSet.as_view({'get': "list_not_auth_requests"}),
+         name='list_not_auth_requests'),
+    path('retrieve_not_auth_requests/<int:pk>/', NotAuthFilmRequestViewSet.as_view({'get': "retrieve_not_auth_requests"}),
+         name='retrieve_not_auth_requests'),
+
 ]
 

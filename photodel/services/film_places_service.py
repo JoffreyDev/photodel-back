@@ -1,5 +1,5 @@
 from django.db.models import Count, Case, When
-from film_places.models import FilmPlaces, FilmPlacesLike
+from film_places.models import FilmPlaces, FilmPlacesLike, NotAuthFilmRequest
 
 
 def get_popular_places(category):
@@ -15,3 +15,31 @@ def get_popular_places(category):
     if len(places) < 10:
         places += list(FilmPlaces.objects.exclude(id__in=list_best_places))
     return places
+
+
+def update_not_auth_code(request_id, code):
+    try:
+        request = NotAuthFilmRequest.objects.get(id=request_id)
+        request.email_code = code
+        request.save()
+    except NotAuthFilmRequest.DoesNotExist:
+        return False
+    except ValueError:
+        return False
+
+
+def validate_confirmation_code(email, code):
+    """
+    Проверка кода на корректость путем фильтрации таблицы по емейлу
+    """
+    if not email or not code:
+        return False
+    request = NotAuthFilmRequest.objects.filter(email=email).last()
+    if not request:
+        return False
+    if request.email_code == code:
+        request.email_verify = True
+        request.save()
+        return True
+    return False
+

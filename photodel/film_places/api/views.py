@@ -1,17 +1,20 @@
 from rest_framework import permissions, status, viewsets
 from rest_framework.response import Response
 from film_places.models import CategoryFilmPlaces, FilmPlaces, FilmPlacesFavorite, \
-    FilmPlacesComment, FilmPlacesLike, FilmRequest
+    FilmPlacesComment, FilmPlacesLike, FilmRequest, NotAuthFilmRequest
 from accounts.models import Profile
 from .serializers import FilmPlacesCreateSerializer, CategoryFilmPlacesListSerializer, \
     FilmPlacesFavoriteCreateSerializer, FilmPlacesFavoriteListSerializer, FilmPlacesLikeCreateSerializer, \
     FilmPlacesCommentCreateSerializer, FilmPlacesCommentListSerializer, FilmPlacesForCardSerializer, \
-    FilmPlacesListSerializer, FilmRequestCreateSerializer, FilmPlacesAllListSerializer, FilmPlacesRetrieveSerializer
+    FilmPlacesListSerializer, FilmRequestCreateSerializer, FilmPlacesAllListSerializer, \
+    FilmPlacesRetrieveSerializer, NotAuthFilmRequestCreateSerializer, NotAuthFilmRequestListSerializer
 from services.gallery_service import is_unique_favorite, is_unique_like, \
     protection_cheating_views, add_view, filter_queryset_by_param
 from services.film_places_search_service import filter_film_places_queryset
+from tasks.accounts_task import task_send_email_to_verify_not_auth_request
+from services.accounts_service import create_random_code
 from services.request_chat_service import create_request_chat_and_message
-from services.film_places_service import get_popular_places
+from services.film_places_service import get_popular_places, update_not_auth_code, validate_confirmation_code
 from services.ip_service import get_ip
 
 import logging
@@ -279,6 +282,50 @@ class FilmRequestViewSet(viewsets.ViewSet):
                                                                         'была успещно добавлена'})
         except FilmRequest.DoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Запрос не был найден.'})
+
+    def get_permissions(self):
+        try:
+            return [permission() for permission in self.permission_classes_by_action[self.action]]
+        except KeyError:
+            return [permission() for permission in self.permission_classes]
+
+
+class NotAuthFilmRequestViewSet(viewsets.ViewSet):
+    permission_classes_by_action = {
+        'list_not_auth_requests': [permissions.IsAuthenticated, ],
+        'retrieve_not_auth_requests': [permissions.IsAuthenticated, ],
+    }
+
+    def create_not_auth_film_request(self, request):
+        serializer = NotAuthFilmRequestCreateSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            code = create_random_code(6)
+            update_not_auth_code(serializer.data.get('id', ''), code)
+            task_send_email_to_verify_not_auth_request.delay(serializer.data.get('email', ''), code)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'создание запроса не было выполнено.'
+                                                                             ' Пожалуйства обратитесь в поддержку'})
+
+    def confirm_email(self, request):
+        if not validate_confirmation_code(request.data.get('email', ''), request.data.get('code', '')):
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Проверка не была выполнена. '
+                                                                                 'Запрос не был отправлен исполнителю'})
+        return Response(status=status.HTTP_200_OK, data={"message": 'создание запроса было выполнено'})
+
+    def list_not_auth_requests(self, request):
+        queryset = NotAuthFilmRequest.objects.filter(receiver_profile__user=request.user, email_verify=True)\
+            .select_related('receiver_profile')
+        serializer = NotAuthFilmRequestListSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def retrieve_not_auth_requests(self, request, pk):
+        try:
+            queryset = NotAuthFilmRequest.objects.get(id=pk, receiver_profile__user=request.user, email_verify=True)
+            serializer = NotAuthFilmRequestListSerializer(queryset)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except NotAuthFilmRequest.DoesNotExist:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"error": "Запрос не был найден"})
 
     def get_permissions(self):
         try:

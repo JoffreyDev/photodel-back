@@ -82,7 +82,6 @@ class FilmRequest(models.Model):
 
     filming_timestamp = models.DateTimeField()
     hours_duration = models.CharField(max_length=40)
-    string_filming_location = models.CharField(max_length=40, blank=True)
     filming_type = models.CharField(max_length=40)
     filming_status = models.CharField(max_length=12, choices=FILMING_STATUS_CHOICES, default='NEW')
     count_person = models.CharField(max_length=40)
@@ -94,3 +93,20 @@ class FilmRequest(models.Model):
     reason_failure = models.TextField(blank=True, null=True)
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='request_sender_profile')
     receiver_profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='request_receiver_profile')
+
+
+class NotAuthFilmRequest(models.Model):
+    filming_timestamp = models.DateTimeField()
+    hours_duration = models.CharField(max_length=40)
+    filming_type = models.CharField(max_length=40)
+    count_person = models.CharField(max_length=40)
+    filming_budget = models.CharField(max_length=40)
+    need_makeup_artist = models.BooleanField(default=False)
+    description = models.TextField(blank=True)
+    was_added = models.DateTimeField(default=timezone.localtime)
+    place_filming = models.CharField(max_length=40)
+    email = models.CharField(max_length=40)
+    email_verify = models.BooleanField(default=False)
+    email_code = models.CharField(max_length=40)
+    receiver_profile = models.ForeignKey(Profile, on_delete=models.CASCADE,
+                                         related_name='not_auth_request_receiver_profile')

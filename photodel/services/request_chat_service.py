@@ -166,7 +166,6 @@ def request_messages_to_json(messages, user, chat_id):
                     'online': str(online),
                     'filming_timestamp': str(request.filming_timestamp),
                     'hours_duration': str(request.hours_duration),
-                    'string_filming_location': str(request.string_filming_location),
                     'filming_type': str(request.filming_type),
                     'filming_status': str(request.filming_status),
                     'place_filming': str(request.place_filming),

@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import FilmPlaces, CategoryFilmPlaces, FilmPlacesComment, FilmPlacesLike, \
-    FilmPlacesFavorite, FilmRequest
+    FilmPlacesFavorite, FilmRequest, NotAuthFilmRequest
 
 
 @admin.register(FilmPlaces)
@@ -31,3 +31,8 @@ class FilmPlacesFavoriteAdmin(admin.ModelAdmin):
 @admin.register(FilmRequest)
 class FilmRequestAdmin(admin.ModelAdmin):
     list_display = ['filming_type', 'filming_status', 'id', 'receiver_profile', ]
+
+
+@admin.register(NotAuthFilmRequest)
+class NotAuthFilmRequestAdmin(admin.ModelAdmin):
+    list_display = ['id', 'filming_type', 'receiver_profile', ]

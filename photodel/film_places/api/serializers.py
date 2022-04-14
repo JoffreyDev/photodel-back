@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from film_places.models import CategoryFilmPlaces, FilmPlaces, FilmPlacesFavorite, \
-    FilmPlacesComment, FilmPlacesLike, FilmRequest
+    FilmPlacesComment, FilmPlacesLike, FilmRequest, NotAuthFilmRequest
 from accounts.api.serializers import ProfileForGallerySerializer, ProfileWithAdditionalInfoSerializer
 from gallery.api.serializers import ImageSerializer
 from services.gallery_service import diff_between_two_points
@@ -203,3 +203,19 @@ class FilmRequestCreateSerializer(serializers.ModelSerializer):
         model = FilmRequest
         fields = '__all__'
 
+
+class NotAuthFilmRequestCreateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = NotAuthFilmRequest
+        fields = ['id', 'filming_timestamp', 'hours_duration', 'filming_type', 'count_person', 'filming_budget',
+                  'need_makeup_artist', 'description', 'place_filming', 'email', 'receiver_profile', ]
+
+
+class NotAuthFilmRequestListSerializer(serializers.ModelSerializer):
+    receiver_profile = ProfileForGallerySerializer()
+
+    class Meta:
+        model = NotAuthFilmRequest
+        fields = ['id', 'filming_timestamp', 'hours_duration', 'filming_type', 'count_person', 'filming_budget',
+                  'need_makeup_artist', 'description', 'place_filming', 'email', 'receiver_profile', ]
