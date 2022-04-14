@@ -128,14 +128,18 @@ def change_request_status(user, data):
     try:
         request = FilmRequest.objects.get(id=data.get('request_id'))
         status = data.get('filming_status')
+        print(request.filming_status == 'NEW')
+        print(request.filming_status)
         if request.filming_status == 'NEW' and request.receiver_profile.user == user \
                 and (status == 'ACCEPTED' or status == 'REJECTED'):
             request.filming_status = status
             request.save()
+            return json.dumps({'message': 'You successful update filming status'})
         if request.filming_status == 'ACCEPTED' and request.profile.user == user \
                 and (status == 'COMPLETED' or status == 'UNCOMPLETED'):
             request.filming_status = status
             request.save()
+            return json.dumps({'message': 'You successful update filming status'})
         return json.dumps({'error': 'You not permissions to change status'})
     except FilmRequest.DoesNotExist:
         return json.dumps({'error': 'not found request'})
@@ -218,6 +222,8 @@ def request_chats_to_json(chats, user):
                 'not_read_messages': chat_link_obj.filter(status_read=False).exclude(author_id=profile.id).count()
                 if chat_link_obj else None,
 
+                'request_executor_id': chat_link_obj.first().request.receiver_profile.id
+                if chat_link_obj.first() and chat_link_obj.first().request else None,
                 'request_status': chat_link_obj.first().request.filming_status
                 if chat_link_obj.first() and chat_link_obj.first().request else None,
                 'filming_timestamp': chat_link_obj.first().request.filming_timestamp
