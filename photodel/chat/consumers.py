@@ -242,8 +242,10 @@ class RequestChatConsumer(AsyncWebsocketConsumer):
         """
         Обновление статуса запроса
         """
-        message = await change_request_status(self.scope['user'], data)
-        return await self.send_message(message)
+        response = await change_request_status(self.scope['user'], data)
+        if response.get('message', ''):
+            return await self.fetch_messages(response)
+        return await self.send_message(json.dumps(response))
 
     commands = {
         'fetch_messages': fetch_messages,

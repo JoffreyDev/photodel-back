@@ -124,25 +124,23 @@ def filter_request_chat(user):
 @database_sync_to_async
 def change_request_status(user, data):
     if not data.get('filming_status') or not data.get('request_id'):
-        return json.dumps({'error': 'not given parameters'})
+        return {'error': 'not given parameters'}
     try:
         request = FilmRequest.objects.get(id=data.get('request_id'))
         status = data.get('filming_status')
-        print(request.filming_status == 'NEW')
-        print(request.filming_status)
         if request.filming_status == 'NEW' and request.receiver_profile.user == user \
                 and (status == 'ACCEPTED' or status == 'REJECTED'):
             request.filming_status = status
             request.save()
-            return json.dumps({'message': 'You successful update filming status'})
+            return {'message': 'You successful update filming status'}
         if request.filming_status == 'ACCEPTED' and request.profile.user == user \
                 and (status == 'COMPLETED' or status == 'UNCOMPLETED'):
             request.filming_status = status
             request.save()
-            return json.dumps({'message': 'You successful update filming status'})
-        return json.dumps({'error': 'You not permissions to change status'})
+            return {'message': 'You successful update filming status'}
+        return {'error': 'You not permissions to change status'}
     except FilmRequest.DoesNotExist:
-        return json.dumps({'error': 'not found request'})
+        return {'error': 'not found request'}
 
 
 @sync_to_async
