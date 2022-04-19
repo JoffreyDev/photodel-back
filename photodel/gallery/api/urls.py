@@ -41,6 +41,8 @@ urlpatterns = [
           name='list_photos'),
      path('photo/list/', GalleryViewSet.as_view({'get': "list_all_photos"}),
           name='list_all_photos'),
+     path('photo/list_map/', GalleryViewSet.as_view({'get': "list_all_photos_for_map"}),
+          name='list_all_photos_for_map'),
      path('photo/popular/', GalleryViewSet.as_view({'get': "popular_photos"}),
           name='popular_photos'),
      path('photo/delete/', GalleryViewSet.as_view({'post': "delete_photo"}),

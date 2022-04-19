@@ -28,6 +28,8 @@ urlpatterns = [
          name='profile_update'),
     path('profile/list/', ProfileViewSet.as_view({'get': "list_profiles"}),
          name='list_profiles'),
+    path('profile/list_map/', ProfileViewSet.as_view({'get': "list_profiles_for_map"}),
+         name='list_profiles_for_map'),
     path('profile/popular/', ProfileViewSet.as_view({'get': "popular_profiles"}),
          name='popular_profiles'),
     path('user/update-password/', ChangePasswordView.as_view({"post": 'update_password_after_reset'}),

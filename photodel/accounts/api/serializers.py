@@ -310,6 +310,13 @@ class ProfilListSerializer(serializers.ModelSerializer):
         return collect_like(obj.user)
 
 
+class ProfilListForMapSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Profile
+        fields = ['id', 'location', ]
+
+
 class ProfileForFavoriteSerializer(serializers.ModelSerializer):
     avatar = ImageBase64Field()
     spec_model_or_photographer = SpecializationListSerializer(read_only=True, many=True)

@@ -7,12 +7,13 @@ from .serializers import FilmPlacesCreateSerializer, CategoryFilmPlacesListSeria
     FilmPlacesFavoriteCreateSerializer, FilmPlacesFavoriteListSerializer, FilmPlacesLikeCreateSerializer, \
     FilmPlacesCommentCreateSerializer, FilmPlacesCommentListSerializer, FilmPlacesForCardSerializer, \
     FilmPlacesListSerializer, FilmRequestCreateSerializer, FilmPlacesAllListSerializer, \
-    FilmPlacesRetrieveSerializer, NotAuthFilmRequestCreateSerializer, NotAuthFilmRequestListSerializer
+    FilmPlacesRetrieveSerializer, NotAuthFilmRequestCreateSerializer, NotAuthFilmRequestListSerializer, \
+    FilmPlacesAllLisForMaptSerializer
 from services.gallery_service import is_unique_favorite, is_unique_like, \
     protection_cheating_views, add_view, filter_queryset_by_param
 from services.film_places_search_service import filter_film_places_queryset
 from tasks.accounts_task import task_send_email_to_verify_not_auth_request
-from services.accounts_service import create_random_code
+from services.accounts_service import create_random_code, custom_paginator
 from services.request_chat_service import create_request_chat_and_message
 from services.film_places_service import get_popular_places, update_not_auth_code, \
     validate_confirmation_code, check_user_allow_give_request
@@ -105,8 +106,17 @@ class FilmPlacesViewSet(viewsets.ViewSet):
 
     def list_all_place(self, request):
         places = FilmPlaces.objects.filter(is_hidden=False)
-        queryset = filter_film_places_queryset(places, request.GET)
+        queryset_filter = filter_film_places_queryset(places, request.GET)
+        queryset = custom_paginator(queryset_filter, request)
         serializer = FilmPlacesAllListSerializer(queryset, many=True,
+                                                 context={'user_coords': request.GET.get('user_coords')})
+        return Response(status=status.HTTP_200_OK, data=serializer.data,
+                        headers={'Count-Filter-Items': len(queryset_filter)})
+
+    def list_all_place_for_map(self, request):
+        places = FilmPlaces.objects.filter(is_hidden=False)
+        queryset = filter_film_places_queryset(places, request.GET)
+        serializer = FilmPlacesAllLisForMaptSerializer(queryset, many=True,
                                                  context={'user_coords': request.GET.get('user_coords')})
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 

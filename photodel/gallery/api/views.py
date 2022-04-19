@@ -3,10 +3,10 @@ from rest_framework.response import Response
 from gallery.models import Album, Gallery, Image, GalleryComment, GalleryLike, GalleryFavorite, \
     PhotoSessionComment, PhotoSessionLike, PhotoSessionFavorite, PhotoSession
 from accounts.models import Profile
+from services.accounts_service import custom_paginator
 from services.gallery_service import is_unique_favorite, is_unique_like, \
-    protection_cheating_views, add_view
+    protection_cheating_views, add_view, filter_queryset_by_param
 from services.gallery_search_service import filter_gallery_queryset
-from services.gallery_service import filter_queryset_by_param
 from services.ip_service import get_ip
 from .serializers import AlbumListSerializer, AlbumCreateSerializer, GalleryRetrieveSerializer, \
     GalleryForCardListSerializer, GalleryCreateSerializer, GalleryFavoriteCreateSerializer, \
@@ -15,7 +15,8 @@ from .serializers import AlbumListSerializer, AlbumCreateSerializer, GalleryRetr
     AlbumUpdateSerializer, PhotoSessionFavoriteCreateSerializer, PhotoSessionFavoriteListSerializer, \
     PhotoSessionLikeCreateSerializer, PhotoSessionCommentListSerializer, \
     PhotoSessionCommentCreateSerializer, PhotoSessionForCardListSerializer, PhotoSessionListSerializer, \
-    AlbumGalleryRetrieveSerializer, ImageCreateSerializer, GalleryAllListSerializer
+    AlbumGalleryRetrieveSerializer, ImageCreateSerializer, GalleryAllListSerializer,\
+    GalleryAllListForMapSerializer
 from .permissions import IsOwnerImage, IsAddOrDeletePhotoFromAlbum, IsCreatePhoto
 
 import logging
@@ -270,8 +271,16 @@ class GalleryViewSet(viewsets.ViewSet):
 
     def list_all_photos(self, request):
         photos = Gallery.objects.filter(is_hidden=False)
-        queryset = filter_gallery_queryset(photos, request.GET)
+        queryset_filter = filter_gallery_queryset(photos, request.GET)
+        queryset = custom_paginator(queryset_filter, request)
         serializer = GalleryAllListSerializer(queryset, many=True)
+        return Response(status=status.HTTP_200_OK, data=serializer.data,
+                        headers={'Count-Filter-Items': len(queryset_filter)})
+
+    def list_all_photos_for_map(self, request):
+        photos = Gallery.objects.filter(is_hidden=False)
+        queryset = filter_gallery_queryset(photos, request.GET)
+        serializer = GalleryAllListForMapSerializer(queryset, many=True)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
     def delete_photo(self, request):

@@ -234,6 +234,13 @@ class GalleryAllListSerializer(serializers.ModelSerializer):
         return GalleryFavorite.objects.filter(gallery=obj.id).count()
 
 
+class GalleryAllListForMapSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Gallery
+        fields = ['id', 'place_location', ]
+
+
 class GalleryFavoriteCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = GalleryFavorite

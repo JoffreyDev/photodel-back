@@ -149,6 +149,13 @@ class FilmPlacesAllListSerializer(serializers.ModelSerializer):
         return diff_between_two_points(self.context.get('user_coords'), data.place_location)
 
 
+class FilmPlacesAllLisForMaptSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = FilmPlaces
+        fields = ['id', 'place_location', ]
+
+
 class FilmPlacesFavoriteCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = FilmPlacesFavorite

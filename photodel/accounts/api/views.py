@@ -14,7 +14,7 @@ from .serializers import ProfileUpdateSerializer, ChangePasswordSerializer, \
     ProCategoryListSerializer, SpecializationListSerializer, \
     ProfilePrivateSerializer, ProfilePublicSerializer, ProfileFavoriteCreateSerializer, \
     ProfileFavoriteListSerializer, ProfileLikeCreateSerializer, ProfileCommentCreateSerializer, \
-    ProfileCommentListSerializer, ProfilListSerializer, ProfileForPublicSerializer
+    ProfileCommentListSerializer, ProfilListSerializer, ProfileForPublicSerializer, ProfilListForMapSerializer
 
 from .serializers import UserRegisterSerializer, UserSerializer, CustomJWTSerializer
 import logging
@@ -83,16 +83,13 @@ class VerificationEmailViewSet(viewsets.ViewSet):
         """
         logger.info(f'Пользователь {request.user} вводит код для подтвеждения емейла ')
         try:
-            code = request.data['code']
+            code = request.data.get('code', '')
             if check_email_verification_code(code):
                 logger.info(f'Пользователь {request.user} успешно подтвердил почту ')
                 return Response(status=status.HTTP_200_OK, data={"message": 'Ваш email успешно верефицирован'})
             logger.info(f'Пользователь {request.user} не подтвердил почту ')
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message":
                                                                       'Введенный код неверный. Попробуйте еще раз'})
-        except KeyError:
-            logger.error(f'Код не был передан')
-            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": "email или код не были переданы"})
         except Profile.DoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": "Пользователь не был найден"})
 
@@ -112,21 +109,17 @@ class ChangePasswordView(viewsets.ViewSet):
         """
         Обновление пароля для авторизированного юзера
         """
-        try:
-            ip = get_ip(request)
-            logger.info(f'Обновление пароля для пользователя {ip}')
-            user = return_user_use_reset_token(request.data.get('token'))
-            serializer = ChangePasswordSerializer(data=request.data, context={'user': user})
-            if serializer.is_valid(raise_exception=True):
-                serializer.save()
-                logger.info(f'Пароль для пользователя {ip} был сохранен')
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            logger.error(f'Пароль для пользователя {ip} не был изменен')
-            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Ваш пароль не был изменен. '
-                                                                                 'Пожалуйства обратитесь в поддержку'})
-        except KeyError:
-            logger.error(f'Не были передано нужные параметры')
-            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Токен не был передан'})
+        ip = get_ip(request)
+        logger.info(f'Обновление пароля для пользователя {ip}')
+        user = return_user_use_reset_token(request.data.get('token', ''))
+        serializer = ChangePasswordSerializer(data=request.data, context={'user': user})
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            logger.info(f'Пароль для пользователя {ip} был сохранен')
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        logger.error(f'Пароль для пользователя {ip} не был изменен')
+        return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Ваш пароль не был изменен. '
+                                                                             'Пожалуйства обратитесь в поддержку'})
 
     def generate_token_for_reset_password(self, request):
         """
@@ -135,7 +128,7 @@ class ChangePasswordView(viewsets.ViewSet):
         с указанным логином. Данный код отсылается на указанную почту
         """
         try:
-            username = request.data['username']
+            username = request.data.get('username', '')
             logger.info(f'Отправка токена для восстановление пароля для пользователя {username} по емейл ')
             profile = Profile.objects.get(user__username=username)
             token = create_random_code(30)
@@ -146,9 +139,6 @@ class ChangePasswordView(viewsets.ViewSet):
                                                                                      'успешно отправлена '})
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Токен не был отправлен. '
                                                                                  'Пожалуйства обратитесь в поддержку'})
-        except KeyError:
-            logger.error(f'Не были передано нужные параметры')
-            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Email не был переданы'})
         except Profile.DoesNotExist:
             logger.error(f'Пользователь не был найден')
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Пользовтаель не был найден'})
@@ -206,54 +196,55 @@ class ProfileViewSet(viewsets.ViewSet):
         """
         Частитичное или полное обновление полей в таблицу Profile
         """
-        try:
-            user = request.user
-            check_is_unique_email(request.data.get('email'), user)
-            instance = Profile.objects.get(user=user)
-            logger.info(f'Обновление профиля для пользователя {user} было запрошено')
-            serializer = ProfileUpdateSerializer(instance, data=request.data, partial=True)
-            if serializer.is_valid(raise_exception=True):
-                serializer.save()
-                logger.info(f'Обновление профиля для пользователя {user} был выполнено')
-                return Response(status=status.HTTP_200_OK, data={"message": 'Обнввление профиля прошло успешно'})
-            logger.error(f'Обновление профиля для пользователя {user} не было завершено')
-            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Обновление не было выполнено '
-                                                                                 'Пожалуйства обратитесь в поддержку'})
-        except KeyError:
-            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Не был передан email. '
-                                                                                 'Пожалуйства обратитесь в поддержку'})
+        user = request.user
+        check_is_unique_email(request.data.get('email'), user)
+        instance = Profile.objects.get(user=user)
+        logger.info(f'Обновление профиля для пользователя {user} было запрошено')
+        serializer = ProfileUpdateSerializer(instance, data=request.data, partial=True)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            logger.info(f'Обновление профиля для пользователя {user} был выполнено')
+            return Response(status=status.HTTP_200_OK, data={"message": 'Обнввление профиля прошло успешно'})
+        logger.error(f'Обновление профиля для пользователя {user} не было завершено')
+        return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Обновление не было выполнено '
+                                                                             'Пожалуйства обратитесь в поддержку'})
 
     def list_profiles(self, request):
         """
-        Частитичное или полное обновление полей в таблицу Profile
+        Список профилей для поиска с пагинацией
         """
-        try:
-            profiles = Profile.objects.filter(is_hide=False)
-            queryset = filter_by_all_parameters(profiles, request.GET)\
-                .select_related('user',  'type_pro')\
-                .prefetch_related('spec_model_or_photographer')
-            serializer = ProfilListSerializer(queryset, many=True,
-                                              context={'user_coords': request.GET.get('user_coords')})
-            return Response(status=status.HTTP_200_OK, data=serializer.data)
-        except KeyError:
-            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Не был передан email. '
-                                                                                 'Пожалуйства обратитесь в поддержку'})
+        profiles = Profile.objects.filter(is_hide=False)
+        queryset_filter = filter_by_all_parameters(profiles, request.GET) \
+            .select_related('user', 'type_pro') \
+            .prefetch_related('spec_model_or_photographer')
+        queryset = custom_paginator(queryset_filter, request)
+        serializer = ProfilListSerializer(queryset, many=True,
+                                          context={'user_coords': request.GET.get('user_coords')})
+        return Response(status=status.HTTP_200_OK, data=serializer.data,
+                        headers={'Count-Filter-Items': len(queryset_filter)})
+
+    def list_profiles_for_map(self, request):
+        """
+        Список профилей для карта без пагинации
+        """
+        profiles = Profile.objects.filter(is_hide=False)
+        queryset = filter_by_all_parameters(profiles, request.GET) \
+            .select_related('user', 'type_pro') \
+            .prefetch_related('spec_model_or_photographer')
+        serializer = ProfilListForMapSerializer(queryset, many=True)
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
 
     def popular_profiles(self, request):
         """
         Частитичное или полное обновление полей в таблицу Profile
         """
-        try:
-            category = request.GET.get('category')
-            if category:
-                profiles = Profile.objects.filter(is_hide=False, type_pro__name_category=category)[:10]
-            else:
-                profiles = Profile.objects.filter(is_hide=False)[:10]
-            serializer = ProfilePublicSerializer(profiles, many=True)
-            return Response(status=status.HTTP_200_OK, data=serializer.data)
-        except KeyError:
-            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Не был передан email. '
-                                                                                 'Пожалуйства обратитесь в поддержку'})
+        category = request.GET.get('category')
+        if category:
+            profiles = Profile.objects.filter(is_hide=False, type_pro__name_category=category)[:10]
+        else:
+            profiles = Profile.objects.filter(is_hide=False)[:10]
+        serializer = ProfilePublicSerializer(profiles, many=True)
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
 
     def get_permissions(self):
         try:

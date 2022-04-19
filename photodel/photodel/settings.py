@@ -103,7 +103,6 @@ USE_L10N = True
 
 USE_TZ = True
 
-PAGE_SIZE = 5
 REST_FRAMEWORK = {
     "DEFAULT_PARSER_CLASSED": [
         'rest_framework.parsers.JSONParser',

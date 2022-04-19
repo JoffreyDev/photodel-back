@@ -20,12 +20,15 @@ def custom_paginator(queryset, request):
     """
     Кастомный пагинатор страниц
     """
-    paginator = Paginator(queryset, settings.PAGE_SIZE)
-    page = request.GET.get('page')
     try:
+        page = request.GET.get('page')
+        count_positions = int(request.GET.get('count_positions', 8))
+        paginator = Paginator(queryset, count_positions)
         return paginator.page(page)
     except PageNotAnInteger:
-        return paginator.page(1)
+        return queryset[:10]
+    except ValueError:
+        return []
     except EmptyPage:
         return []
 
