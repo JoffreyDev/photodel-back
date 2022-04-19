@@ -154,9 +154,16 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
         """
         Проверка пользователя на тип профиля и специализацию.
         """
-        content = data.get('about', '').split()
-        if check_obscene_word_in_content(content):
+        # проверка на матные слова в описании профеля
+        if check_obscene_word_in_content(data.get('about', '').split()):
             raise serializers.ValidationError({'error': 'В вашей информации содержиатся недопустимые слова'})
+
+        # проверка прав в зависимости от платежного статуса профиля
+        if self.instance.pay_status == 0 and data.get('filming_geo', ''):
+            raise serializers.ValidationError({'error': 'Чтобы добавить географию съемок, '
+                                                        'пожалуйста, обновите Ваш пакет до стандарт'})
+
+        # проверка может ли профиль добавить специализацию
         type_pro = data.get('type_pro')
         spec = data.get('spec_model_or_photographer')
         if not type_pro and not spec:
@@ -167,6 +174,10 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
         if (type_pro.name_category != 'Модели' and type_pro.name_category != 'Фотографы') and spec:
             raise serializers.ValidationError({"error": "Вы не являетесь моделью или "
                                                         "фотографом для выбора специализации"})
+        if self.instance.pay_status == 0 and len(spec) > 1:
+            raise serializers.ValidationError({'error': 'Чтобы выбрать больше одной, '
+                                                        'пожалуйста, обновите Ваш пакет до стандарт'})
+
         return data
 
 
@@ -185,7 +196,7 @@ class ProfileForPublicSerializer(serializers.ModelSerializer):
                   'location', 'phone', 'site', 'email', 'instagram', 'facebook', 'vk', 'avatar',
                   'location_now', 'date_stay_start', 'date_stay_end', 'message', 'is_adult',
                   'spec_model_or_photographer', 'ready_status', 'statistics', 'user_channel_name',
-                  'rating', 'date_register', ]
+                  'rating', 'date_register', 'is_confirm', ]
 
     def get_statistics(self, obj):
         return collect_profile_statistics(obj)
@@ -204,7 +215,7 @@ class ProfilePublicSerializer(serializers.ModelSerializer):
                   'photo_technics', 'languages', 'about', 'status', 'type_pro', 'string_location',
                   'location', 'phone', 'site', 'email', 'instagram', 'facebook', 'vk', 'avatar',
                   'location_now', 'date_stay_start', 'date_stay_end', 'message', 'is_adult',
-                  'spec_model_or_photographer', 'ready_status', 'rating', 'user_channel_name', ]
+                  'spec_model_or_photographer', 'ready_status', 'rating', 'user_channel_name', 'is_confirm', ]
 
 
 class ProfileForGallerySerializer(serializers.ModelSerializer):
@@ -253,7 +264,7 @@ class ProfilePrivateSerializer(serializers.ModelSerializer):
                   'location', 'phone', 'site', 'email', 'instagram', 'facebook', 'vk', 'avatar',
                   'location_now', 'date_stay_start', 'date_stay_end', 'message', 'is_show_nu_photo', 'is_adult',
                   'spec_model_or_photographer', 'ready_status', 'id', 'statistics', 'date_register',
-                  'rating', 'is_change', ]
+                  'rating', 'is_change', 'is_confirm', ]
 
     def get_spec_model_or_photographer(self, obj):
         return json.dumps([{i.id: i.name_spec} for i in obj.spec_model_or_photographer.all()])

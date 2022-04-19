@@ -6,6 +6,7 @@ from accounts.models import ProfileLike, ProfileFavorite, ProfileComment
 from django.db.models import Sum
 
 
+# сбор статистики для профиля
 def get_count_profile_comments(profile):
     me_profile_comments = ProfileComment.objects.filter(receiver_comment=profile).count()
     me_photo_comments = GalleryComment.objects.filter(gallery__profile=profile).count()
@@ -80,14 +81,17 @@ def get_count_profile_request(profile):
 
 def collect_profile_statistics(profile):
     common = {}
+
     comments = get_count_profile_comments(profile)
     favorites = get_count_profile_favorite(profile)
     likes = get_count_profile_like(profile)
     views = get_count_profile_views(profile)
     requests = get_count_profile_request(profile)
+
     common.update(comments)
     common.update(favorites)
     common.update(likes)
     common.update(views)
     common.update(requests)
+
     return common

@@ -10,6 +10,7 @@ class EmailFragment(models.Model):
 
 class CustomSettings(models.Model):
     distance_for_unique_places = models.IntegerField()
+    days_request_to_not_auth_user = models.IntegerField(default=1)
 
 
 class Country(models.Model):

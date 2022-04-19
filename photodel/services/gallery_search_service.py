@@ -6,6 +6,9 @@ from services.accounts_service import convert_string_coordinates_to_point_obj
 
 
 def filter_gallery_by_distance(queryset, user_coordinates, distance):
+    """
+    Фильтрация фото по расстоянию от пользователя
+    """
     if not (user_coordinates or distance):
         return queryset
     user_coordinates = convert_string_coordinates_to_point_obj(user_coordinates)
@@ -15,12 +18,18 @@ def filter_gallery_by_distance(queryset, user_coordinates, distance):
 
 
 def filter_gallery_by_category(queryset, category):
+    """
+    Фильтрация фото по категории
+    """
     if not category:
         return queryset
     return queryset.filter(category__name_spec=category).select_related('gallery_image', 'profile')
 
 
 def filter_gallery_by_words(queryset, search_words):
+    """
+    Фильтрация фото названию
+    """
     search_words = search_words.split()
     if not search_words:
         return queryset
@@ -44,6 +53,9 @@ def filter_gallery_by_words(queryset, search_words):
 
 
 def filter_gallery_queryset(queryset, get_parameters):
+    """
+    Функцию сбора всех фильтраций в один queryset, а так же сортировка
+    """
     queryset = filter_gallery_by_category(queryset,
                                           get_parameters.get('category', ''))
     queryset = filter_gallery_by_distance(queryset,

@@ -34,6 +34,7 @@ class Profile(models.Model):
     languages = models.ManyToManyField(Language, blank=True)
     about = models.TextField(null=True, blank=True)
     status = models.IntegerField(default=1)  # 1 - Клиент 2 - Профи
+    pay_status = models.IntegerField(default=0)  # 0 - Бесплатный, 1 - Стандарт, 2 - Максимум
     ready_status = models.CharField(max_length=50, blank=True)
     type_pro = models.ForeignKey(ProCategory, on_delete=models.CASCADE, null=True)
     spec_model_or_photographer = models.ManyToManyField(Specialization, blank=True)
@@ -63,6 +64,7 @@ class Profile(models.Model):
     is_show_nu_photo = models.BooleanField(default=False)
     is_hide = models.BooleanField(default=False)
     is_change = models.BooleanField(default=False)
+    is_confirm = models.BooleanField(default=False)
     views = models.IntegerField(default=0, validators=[MinValueValidator(0)])
     last_views = models.IntegerField(default=0, validators=[MinValueValidator(0)])
     user_channel_name = models.CharField(max_length=255, null=True, blank=True)

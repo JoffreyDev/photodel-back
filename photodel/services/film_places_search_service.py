@@ -6,6 +6,9 @@ from services.accounts_service import convert_string_coordinates_to_point_obj
 
 
 def filter_film_places_by_distance(queryset, user_coordinates, distance):
+    """
+    Фильтрация мест сьемок по расстоянию от пользователя
+    """
     if not (user_coordinates or distance):
         return queryset
     user_coordinates = convert_string_coordinates_to_point_obj(user_coordinates)
@@ -15,12 +18,18 @@ def filter_film_places_by_distance(queryset, user_coordinates, distance):
 
 
 def filter_film_places_by_category(queryset, category):
+    """
+    Фильтрация мест сьемо по категории
+    """
     if not category:
         return queryset
     return queryset.filter(category__name_category=category).select_related('profile').prefetch_related('place_image')
 
 
 def filter_film_places_by_words(queryset, search_words):
+    """
+    Фильтрация мест сьемо названию
+    """
     search_words = search_words.split()
     if not search_words:
         return queryset
@@ -44,11 +53,14 @@ def filter_film_places_by_words(queryset, search_words):
 
 
 def filter_film_places_queryset(queryset, get_parameters):
+    """
+    Функцию сбора всех фильтраций в один queryset, а так же сортировка
+    """
     queryset = filter_film_places_by_category(queryset,
-                                          get_parameters.get('category', ''))
+                                              get_parameters.get('category', ''))
     queryset = filter_film_places_by_distance(queryset,
-                                          get_parameters.get('user_coordinates'),
-                                          get_parameters.get('distance'))
+                                              get_parameters.get('user_coordinates'),
+                                              get_parameters.get('distance'))
     filter_queryset = filter_film_places_by_words(queryset, get_parameters.get('search_words', ''))
     return filter_queryset_by_param(filter_queryset,
                                     get_parameters.get('sort_type', ''),

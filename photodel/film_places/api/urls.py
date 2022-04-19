@@ -44,6 +44,7 @@ urlpatterns = [
          name='create_film_request'),
     path('add_reason_failure/<int:pk>/', FilmRequestViewSet.as_view({'post': "add_reason_failure"}),
          name='add_reason_failure'),
+
     path('create_not_auth_film_request/', NotAuthFilmRequestViewSet.as_view({'post': "create_not_auth_film_request"}),
          name='create_not_auth_film_request'),
     path('confirm_email/', NotAuthFilmRequestViewSet.as_view({'post': "confirm_email"}),

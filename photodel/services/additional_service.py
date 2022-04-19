@@ -3,6 +3,9 @@ from additional_entities.models import Answer
 
 
 def check_town_use_coords(cities, user_coordinates):
+    """
+    Функция нахождения самого близкого города к пользователю
+    """
     if not user_coordinates:
         return []
     less_distance = 99999999
@@ -16,6 +19,9 @@ def check_town_use_coords(cities, user_coordinates):
 
 
 def check_exitst_answer(user, choice):
+    """
+    Проверка, отвечал ли, пользователь на опрос
+    """
     user_choice = Answer.objects.filter(profile__user=user, choice=choice)
     if user_choice:
         return True

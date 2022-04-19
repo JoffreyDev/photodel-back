@@ -44,7 +44,6 @@ class Base64ImageField(serializers.ImageField):
                 decoded_file = base64.b64decode(data)
             except TypeError:
                 self.fail('invalid_image')
-
             file_name = str(uuid.uuid4())[:12]
             file_extension = self.get_file_extension(file_name, decoded_file)
             complete_file_name = "%s.%s" % (file_name, file_extension, )
@@ -56,6 +55,8 @@ class Base64ImageField(serializers.ImageField):
         import imghdr
         extension = imghdr.what(file_name, decoded_file)
         extension = "jpg" if extension == "jpeg" else extension
+        if extension is None:
+            extension = "jpg"
         return extension
 
 
@@ -90,6 +91,9 @@ def is_unique_like(obj_id, profile_id, model):
 
 
 def check_exist_field(model, field):
+    """
+    Функиця проверка поля в модели
+    """
     try:
         model._meta.get_field(field)
         return True
@@ -134,6 +138,17 @@ def diff_between_two_points(user_coordinates, field_with_location):
 
 
 def filter_queryset_by_param(queryset, sort_type, filter_field):
+    """
+    Функция сортировки queryset
+    Фильтрация по просмотрам или последним просматрам за неделю,
+    каждую неделю поле last_views сбрасывается до 0
+    Или фильтрация по полю в queryset
+    sort_type = ничего, если по возрастанию
+              = знак -, если по убыванию
+    filter_field = сооотствует полю в модели, которую необходимо отфильтровать
+    Пример: Модель Gallery фильтр по алфавиту, поле название.
+    ?sort_type=&filter_field=name_image
+    """
     try:
         if not filter_field:
             return queryset

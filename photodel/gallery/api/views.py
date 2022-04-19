@@ -31,7 +31,8 @@ class ImageViewSet(viewsets.ViewSet):
 
     def create_image(self, request):
         profile = Profile.objects.get(user=request.user)
-        serializer = ImageCreateSerializer(data=request.data | {"profile": profile.id})
+        serializer = ImageCreateSerializer(data=request.data | {"profile": profile.id},
+                                           context={'profile': profile})
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)

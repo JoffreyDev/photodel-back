@@ -17,6 +17,14 @@ class ImageCreateSerializer(serializers.ModelSerializer):
         model = Image
         fields = ['id', 'photo', 'profile', ]
 
+    def validate(self, data):
+        profile = self.context['profile']
+        user_phys_photos = Image.objects.filter(profile=profile)
+        if profile.pay_status == 0 and user_phys_photos.count() > 30:
+            raise serializers.ValidationError({'error': 'Чтобы добавить больше фото, '
+                                                        'пожалуйста, обновите Ваш пакет до стандарт'})
+        return data
+
 
 class ImageSerializer(serializers.ModelSerializer):
 
@@ -92,9 +100,12 @@ class AlbumCreateSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         profile = self.context['profile']
-        user_albums = Album.objects.filter(profile=profile, name_album=data.get('name_album'))
-        if user_albums:
+        user_albums = Album.objects.filter(profile=profile)
+        if user_albums.filter(name_album=data.get('name_album')):
             raise serializers.ValidationError({'error': 'Альбом с таким названием уже существует'})
+        if profile.pay_status == 0 and user_albums.count() > 2:
+            raise serializers.ValidationError({'error': 'Чтобы добавить больше альбомов, '
+                                                        'пожалуйста, обновите Ваш пакет до стандарт'})
         if not data.get('main_photo_id'):
             data['main_photo_id'] = Image.objects.filter(profile__user__username='admin').first()
         return data
@@ -280,9 +291,12 @@ class PhotoSessionCreateSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         profile = self.context['profile']
-        user_photo_session = PhotoSession.objects.filter(profile=profile, session_name=data.get('session_name'))
-        if user_photo_session:
+        user_photo_session = PhotoSession.objects.filter(profile=profile)
+        if user_photo_session.filter(session_name=data.get('session_name')):
             raise serializers.ValidationError({'error': 'Фотосессия с таким названием уже существует'})
+        if profile.pay_status == 0 and user_photo_session.count() > 0:
+            raise serializers.ValidationError({'error': 'Чтобы добавить больше фотосессий, '
+                                                        'пожалуйста, обновите Ваш пакет до стандарт'})
         return data
 
 

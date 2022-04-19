@@ -123,6 +123,9 @@ def filter_request_chat(user):
 
 @database_sync_to_async
 def change_request_status(user, data):
+    """
+    Изменение статуса запроса
+    """
     if not data.get('filming_status') or not data.get('request_id'):
         return {'error': 'not given parameters'}
     try:

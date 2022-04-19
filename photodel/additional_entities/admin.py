@@ -9,7 +9,7 @@ admin.site.register(CustomSettings)
 
 @admin.register(Country)
 class CountryAdmin(admin.ModelAdmin):
-    list_display = ['name_country', ]
+    list_display = ['name_country', 'id', ]
 
 
 @admin.register(Language)

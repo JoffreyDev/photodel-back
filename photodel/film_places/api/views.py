@@ -14,7 +14,8 @@ from services.film_places_search_service import filter_film_places_queryset
 from tasks.accounts_task import task_send_email_to_verify_not_auth_request
 from services.accounts_service import create_random_code
 from services.request_chat_service import create_request_chat_and_message
-from services.film_places_service import get_popular_places, update_not_auth_code, validate_confirmation_code
+from services.film_places_service import get_popular_places, update_not_auth_code, \
+    validate_confirmation_code, check_user_allow_give_request
 from services.ip_service import get_ip
 
 import logging
@@ -297,12 +298,15 @@ class NotAuthFilmRequestViewSet(viewsets.ViewSet):
     }
 
     def create_not_auth_film_request(self, request):
+        if not check_user_allow_give_request(request.data.get('email', '')):
+            return Response(status=status.HTTP_400_BAD_REQUEST,
+                            data={"message": 'Вы можете отправлять запросы только раз в день'})
         serializer = NotAuthFilmRequestCreateSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             code = create_random_code(6)
             update_not_auth_code(serializer.data.get('id', ''), code)
-            task_send_email_to_verify_not_auth_request.delay(serializer.data.get('email', ''), code)
+            task_send_email_to_verify_not_auth_request(serializer.data.get('email', ''), code)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'создание запроса не было выполнено.'
                                                                              ' Пожалуйства обратитесь в поддержку'})

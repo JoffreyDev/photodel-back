@@ -1,8 +1,16 @@
 from django.db.models import Count, Case, When
 from film_places.models import FilmPlaces, FilmPlacesLike, NotAuthFilmRequest
+from additional_entities.models import CustomSettings
+from datetime import timedelta
+from django.utils import timezone
 
 
 def get_popular_places(category):
+    """
+    Функция сбора популярных мест для съемок на основе лайков,
+    чем больше лайков, тем выше место в слайдере и фильтрации их по названию категории
+    Если мест получается меньще 10, то идет добавление рандомных мест
+    """
     list_best_places = [place_id.get('place') for place_id in FilmPlacesLike.objects.values('place')
         .annotate(dcount=Count('place')).order_by('-dcount').values('place')]
     if category:
@@ -18,6 +26,9 @@ def get_popular_places(category):
 
 
 def update_not_auth_code(request_id, code):
+    """
+    Функция дли сохрание кода подтвреждения при запросе как неавторизованный пользователь
+    """
     try:
         request = NotAuthFilmRequest.objects.get(id=request_id)
         request.email_code = code
@@ -42,4 +53,20 @@ def validate_confirmation_code(email, code):
         request.save()
         return True
     return False
+
+
+def check_user_allow_give_request(email):
+    """
+    Функцмя проверки возможности запроса как неавторизованный пользователь
+    Если от последнего запроса прошло больше дней,
+    чем в настройках, запрос можно сделать
+    """
+    site_settings = CustomSettings.objects.all().first()
+    request = NotAuthFilmRequest.objects.filter(email=email).last()
+    if not request:
+        return False
+    if request.was_added + timedelta(hours=3, days=site_settings.days_request_to_not_auth_user) < timezone.localtime():
+        return True
+    return False
+
 
