@@ -1,8 +1,31 @@
+from django.contrib.postgres.search import SearchVector, SearchQuery
 from django.db.models import Q
-from django.contrib.gis.measure import D
-from services.accounts_service import convert_string_coordinates_to_point_obj
+from geopy.distance import geodesic
 from django.utils import timezone
-from itertools import chain
+
+
+def filter_by_distance(profiles, user_coordinates, distance):
+    """
+    Фильтрация по радиусу
+    Если у пользователя есть крайний срок временной геолакции
+    и он больше текущего времени,
+    то берется временная геолакация, иначе постоянная
+    """
+    if not (user_coordinates or distance):
+        return profiles
+    filter_queryset = []
+    try:
+        for query in profiles:
+            if query.date_stay_end and query.date_stay_end > timezone.localtime():
+                distance_diff = geodesic(query.location_now, user_coordinates).m
+            else:
+                distance_diff = geodesic(query.location, user_coordinates).m
+
+            if float(distance) > float(distance_diff):
+                filter_queryset.append(query.id)
+        return profiles.filter(id__in=filter_queryset)
+    except ValueError:
+        return []
 
 
 def filter_by_category_and_spec(filter_queryset, name_spec, name_category):
@@ -14,6 +37,32 @@ def filter_by_category_and_spec(filter_queryset, name_spec, name_category):
     if name_spec:
         filter_queryset = filter_queryset.filter(spec_model_or_photographer__name_spec=name_spec)
     return filter_queryset
+
+
+def filter_by_ready_status(filter_queryset, ready_status):
+    """
+    Фильтрация по статусу готовности
+    """
+    if ready_status:
+        filter_queryset = filter_queryset.filter(ready_status=ready_status)
+    return filter_queryset
+
+
+def filter_by_address(filter_queryset, address):
+    """
+    Фильтрация по статусу готовности
+    """
+    address = address.split()
+    if not address:
+        return filter_queryset
+    if len(address) == 1:
+        address = address[0]
+        queryset = filter_queryset.filter(Q(string_location__icontains=address))
+        return queryset
+    else:
+        search_vector = SearchVector("string_location")
+        search_query = SearchQuery(" | ".join(address), search_type="raw")
+        return filter_queryset.annotate(search=search_vector).filter(search=search_query)
 
 
 def filter_by_initials(profiles, search_words):
@@ -29,26 +78,9 @@ def filter_by_initials(profiles, search_words):
         queryset = profiles.filter(Q(name__icontains=search_words) | Q(surname__icontains=search_words))
         return queryset
     else:
-        queryset = []
-        for field in search_words:
-            profile = profiles.filter(Q(name__icontains=field) | Q(surname__icontains=field))
-            if profile:
-                queryset += chain(profile)
-        return list(set(queryset))
-
-
-def filter_by_distance(profiles, user_coordinates, distance):
-    """
-    Филтррация по радиусу
-    """
-    if not (user_coordinates and distance):
-        return profiles
-    user_coordinates = convert_string_coordinates_to_point_obj(user_coordinates)
-    profiles = profiles.filter(Q(date_stay_end__gte=timezone.localtime()) &
-                               Q(location_now__distance_lte=(user_coordinates, D(m=distance))) |
-                               Q(location__distance_lte=(user_coordinates, D(m=distance)))
-                               )
-    return profiles
+        search_vector = SearchVector("name", "surname")
+        search_query = SearchQuery(" | ".join(search_words), search_type="raw")
+        return profiles.annotate(search=search_vector).filter(search=search_query)
 
 
 def filter_by_all_parameters(profiles, request_data):
@@ -58,8 +90,12 @@ def filter_by_all_parameters(profiles, request_data):
     by_categories = filter_by_category_and_spec(profiles,
                                                 request_data.get('name_spec', ''),
                                                 request_data.get('name_category', ''))
-    by_distance = filter_by_distance(by_categories,
-                                     request_data.get('coordinates', ''),
+    by_ready_status = filter_by_ready_status(by_categories,
+                                             request_data.get('ready_status', ''))
+    by_address = filter_by_address(by_ready_status,
+                                   request_data.get('address', ''))
+    by_distance = filter_by_distance(by_address,
+                                     request_data.get('user_coords', ''),
                                      request_data.get('distance', ''))
     by_initials = filter_by_initials(by_distance,
                                      request_data.get('search_words', ''))

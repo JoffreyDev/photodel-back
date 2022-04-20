@@ -157,7 +157,8 @@ def filter_queryset_by_param(queryset, sort_type, filter_field):
                 return queryset.order_by(f'{sort_type}last_views')
             return queryset.order_by(f'{sort_type}views')
         return queryset.order_by(f'{sort_type}{filter_field}')
-    except Exception:
+    except Exception as e:
+        print(e)
         return queryset
 
 

@@ -1,8 +1,7 @@
+from django.contrib.postgres.search import SearchVector, SearchQuery
 from django.db.models import Q
-from itertools import chain
-from django.contrib.gis.measure import D
+from geopy.distance import geodesic
 from services.gallery_service import filter_queryset_by_param
-from services.accounts_service import convert_string_coordinates_to_point_obj
 
 
 def filter_gallery_by_distance(queryset, user_coordinates, distance):
@@ -11,10 +10,15 @@ def filter_gallery_by_distance(queryset, user_coordinates, distance):
     """
     if not (user_coordinates or distance):
         return queryset
-    user_coordinates = convert_string_coordinates_to_point_obj(user_coordinates)
-    profiles = queryset.filter(Q(place_location__distance_lte=(user_coordinates, D(m=distance))))\
-        .select_related('gallery_image', 'profile')
-    return profiles
+    filter_queryset = []
+    try:
+        for query in queryset:
+            distance_diff = geodesic(query.place_location, user_coordinates).m
+            if float(distance) > float(distance_diff):
+                filter_queryset.append(query.id)
+        return queryset.filter(id__in=filter_queryset).select_related('gallery_image', 'profile')
+    except ValueError:
+        return []
 
 
 def filter_gallery_by_category(queryset, category):
@@ -37,19 +41,14 @@ def filter_gallery_by_words(queryset, search_words):
         search_words = search_words[0]
         queryset = queryset.filter(
             (Q(name_image__icontains=search_words) |
-             Q(description__icontains=search_words)) &
-            Q(is_hidden=False)).select_related('gallery_image', 'profile')
+             Q(description__icontains=search_words)))\
+            .select_related('gallery_image', 'profile')
         return queryset
     else:
-        result_list = []
-        for field in search_words:
-            gallery = queryset.filter(
-                (Q(name_image__icontains=field) |
-                 Q(description__icontains=field)) &
-                Q(is_hidden=False)).select_related('gallery_image', 'profile')
-            if gallery:
-                result_list += chain(gallery)
-        return list(set(result_list))
+        search_vector = SearchVector("name_image", "description")
+        search_query = SearchQuery(" | ".join(search_words), search_type="raw")
+        return queryset.annotate(search=search_vector).filter(search=search_query)\
+            .select_related('gallery_image', 'profile')
 
 
 def filter_gallery_queryset(queryset, get_parameters):
@@ -59,7 +58,7 @@ def filter_gallery_queryset(queryset, get_parameters):
     queryset = filter_gallery_by_category(queryset,
                                           get_parameters.get('category', ''))
     queryset = filter_gallery_by_distance(queryset,
-                                          get_parameters.get('user_coordinates'),
+                                          get_parameters.get('user_coords'),
                                           get_parameters.get('distance'))
     filter_queryset = filter_gallery_by_words(queryset, get_parameters.get('search_words', ''))
     return filter_queryset_by_param(filter_queryset,

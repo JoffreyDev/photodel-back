@@ -213,7 +213,7 @@ class ProfileViewSet(viewsets.ViewSet):
         """
         Список профилей для поиска с пагинацией
         """
-        profiles = Profile.objects.filter(is_hide=False)
+        profiles = Profile.objects.filter(status=2, is_hide=False)
         queryset_filter = filter_by_all_parameters(profiles, request.GET) \
             .select_related('user', 'type_pro') \
             .prefetch_related('spec_model_or_photographer')
@@ -227,7 +227,7 @@ class ProfileViewSet(viewsets.ViewSet):
         """
         Список профилей для карта без пагинации
         """
-        profiles = Profile.objects.filter(is_hide=False)
+        profiles = Profile.objects.filter(status=2, is_hide=False)
         queryset = filter_by_all_parameters(profiles, request.GET) \
             .select_related('user', 'type_pro') \
             .prefetch_related('spec_model_or_photographer')

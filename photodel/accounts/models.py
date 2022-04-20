@@ -21,6 +21,11 @@ class ProCategory(models.Model):
 
 
 class Profile(models.Model):
+    READY_STATUS_CHOICES = [
+        ('BUSY', 'Занят'),
+        ('FREE', 'Свободен'),
+    ]
+
     name = models.CharField(max_length=50)
     surname = models.CharField(max_length=50)
     avatar = models.ImageField(upload_to='avatars/', default='default_images/anonymous.jpg')
@@ -35,7 +40,7 @@ class Profile(models.Model):
     about = models.TextField(null=True, blank=True)
     status = models.IntegerField(default=1)  # 1 - Клиент 2 - Профи
     pay_status = models.IntegerField(default=0)  # 0 - Бесплатный, 1 - Стандарт, 2 - Максимум
-    ready_status = models.CharField(max_length=50, blank=True)
+    ready_status = models.CharField(max_length=50, blank=True, choices=READY_STATUS_CHOICES)
     type_pro = models.ForeignKey(ProCategory, on_delete=models.CASCADE, null=True)
     spec_model_or_photographer = models.ManyToManyField(Specialization, blank=True)
     type_pro_account = models.IntegerField(default=1, null=True)  # 1 - Бесплатный 2 - Стандарт 3 - Максимум
