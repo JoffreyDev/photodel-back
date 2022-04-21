@@ -8,7 +8,7 @@ from .serializers import FilmPlacesCreateSerializer, CategoryFilmPlacesListSeria
     FilmPlacesCommentCreateSerializer, FilmPlacesCommentListSerializer, FilmPlacesForCardSerializer, \
     FilmPlacesListSerializer, FilmRequestCreateSerializer, FilmPlacesAllListSerializer, \
     FilmPlacesRetrieveSerializer, NotAuthFilmRequestCreateSerializer, NotAuthFilmRequestListSerializer, \
-    FilmPlacesAllLisForMaptSerializer
+    FilmPlacesAllLisForMaptSerializer, FilmRequestListSerializer
 from services.gallery_service import is_unique_favorite, is_unique_like, \
     protection_cheating_views, add_view, filter_queryset_by_param
 from services.film_places_search_service import filter_film_places_queryset
@@ -280,6 +280,18 @@ class FilmRequestViewSet(viewsets.ViewSet):
         logger.error(f'Пользователь {request.user} не создал запрос')
         return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'создание запроса не было выполнено.'
                                                                              ' Пожалуйства обратитесь в поддержку'})
+
+    def list_incoming_request(self, request, pk):
+        queryset = FilmRequest.objects.filter(receiver_profile_id=pk)\
+            .select_related('profile', 'receiver_profile')
+        serializer = FilmRequestListSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def list_outgoing_request(self, request, pk):
+        queryset = FilmRequest.objects.filter(profile_id=pk)\
+            .select_related('profile', 'receiver_profile')
+        serializer = FilmRequestListSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def add_reason_failure(self, request, pk):
         try:

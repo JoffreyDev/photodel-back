@@ -44,6 +44,10 @@ urlpatterns = [
 
     path('film_request/create/', FilmRequestViewSet.as_view({'post': "create_film_request"}),
          name='create_film_request'),
+    path('film_request/list_incoming/<int:pk>/', FilmRequestViewSet.as_view({'get': "list_incoming_request"}),
+         name='list_incoming_request'),
+    path('film_request/list_outgoing/<int:pk>/', FilmRequestViewSet.as_view({'get': "list_outgoing_request"}),
+         name='list_outgoing_request'),
     path('add_reason_failure/<int:pk>/', FilmRequestViewSet.as_view({'post': "add_reason_failure"}),
          name='add_reason_failure'),
 

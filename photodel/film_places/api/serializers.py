@@ -214,6 +214,17 @@ class FilmRequestCreateSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class FilmRequestListSerializer(serializers.ModelSerializer):
+    profile = ProfileWithAdditionalInfoSerializer()
+    receiver_profile = ProfileWithAdditionalInfoSerializer()
+
+    class Meta:
+        model = FilmRequest
+        fields = ['id', 'filming_timestamp', 'hours_duration', 'filming_type', 'count_person',
+                  'filming_budget', 'need_makeup_artist', 'description', 'place_filming',
+                  'filming_status', 'receiver_profile', 'reason_failure', 'profile', ]
+
+
 class NotAuthFilmRequestCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
