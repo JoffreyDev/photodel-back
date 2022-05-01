@@ -64,7 +64,7 @@ def check_user_allow_give_request(email):
     site_settings = CustomSettings.objects.all().first()
     request = NotAuthFilmRequest.objects.filter(email=email).last()
     if not request:
-        return False
+        return True
     if request.was_added + timedelta(hours=3, days=site_settings.days_request_to_not_auth_user) < timezone.localtime():
         return True
     return False
