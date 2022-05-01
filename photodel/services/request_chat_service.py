@@ -126,8 +126,6 @@ def change_request_status(user, data):
     """
     Изменение статуса запроса
     """
-    import logging
-
     if not data.get('filming_status') or not data.get('request_id'):
         return {'error': 'not given parameters'}
     try:
@@ -144,10 +142,6 @@ def change_request_status(user, data):
             request.filming_status = status
             request.save()
             return {'message': 'You successful update filming status'}
-        logging.info(f'coming status: {request.status}')
-        logging.info(f'status: {request.filming_status}')
-        logging.info(f'user: {user.pk}')
-        logging.info(f'request.receiver_profile.user: {request.receiver_profile.user}')
         return {'error': f'You not permissions to change status, logs:\n'
                          f'coming status: {request.status}\n'
                          f'status: {request.filming_status}\n'
