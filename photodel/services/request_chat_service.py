@@ -133,10 +133,6 @@ def change_request_status(user, data):
     try:
         request = FilmRequest.objects.get(id=data.get('request_id'))
         status = data.get('filming_status')
-        logging.info(f'coming status: {request.status}')
-        logging.info(f'status: {request.filming_status}')
-        logging.info(f'user: {user.pk}')
-        logging.info(f'request.receiver_profile.user: {request.receiver_profile.user}')
 
         if request.filming_status == 'NEW' and request.receiver_profile.user == user \
                 and (status == 'ACCEPTED' or status == 'REJECTED'):
@@ -148,7 +144,15 @@ def change_request_status(user, data):
             request.filming_status = status
             request.save()
             return {'message': 'You successful update filming status'}
-        return {'error': 'You not permissions to change status'}
+        logging.info(f'coming status: {request.status}')
+        logging.info(f'status: {request.filming_status}')
+        logging.info(f'user: {user.pk}')
+        logging.info(f'request.receiver_profile.user: {request.receiver_profile.user}')
+        return {'error': f'You not permissions to change status, logs:\n'
+                         f'coming status: {request.status}\n'
+                         f'status: {request.filming_status}\n'
+                         f'user: {user.pk}\n'
+                         f'request.receiver_profile.user: {request.receiver_profile.user}'}
     except FilmRequest.DoesNotExist:
         return {'error': 'not found request'}
 
