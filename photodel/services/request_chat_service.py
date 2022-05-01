@@ -142,11 +142,7 @@ def change_request_status(user, data):
             request.filming_status = status
             request.save()
             return {'message': 'You successful update filming status'}
-        return {'error': f'You not permissions to change status, logs:\n'
-                         f'coming status: {request.status}\n'
-                         f'status: {request.filming_status}\n'
-                         f'user: {user.pk}\n'
-                         f'request.receiver_profile.user: {request.receiver_profile.user}'}
+        return {'error': f'You not permissions to change status, logs: coming status: {request.status} status: {request.filming_status} user: {user.pk} request.receiver_profile.user: {request.receiver_profile.user}'}
     except FilmRequest.DoesNotExist:
         return {'error': 'not found request'}
 
