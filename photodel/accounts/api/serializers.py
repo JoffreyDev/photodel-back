@@ -265,6 +265,12 @@ class ProfilePrivateSerializer(serializers.ModelSerializer):
                   'location_now', 'date_stay_start', 'date_stay_end', 'message', 'is_show_nu_photo', 'is_adult',
                   'spec_model_or_photographer', 'ready_status', 'id', 'statistics', 'date_register',
                   'rating', 'is_change', 'is_confirm', ]
+        extra_kwargs = {
+            'date_stay_end': {'required': False},
+            'date_stay_start': {'required': False},
+            'location_now': {'required': False},
+            'string_location_now': {'required': False},
+        }
 
     def get_spec_model_or_photographer(self, obj):
         return json.dumps([{i.id: i.name_spec} for i in obj.spec_model_or_photographer.all()])
