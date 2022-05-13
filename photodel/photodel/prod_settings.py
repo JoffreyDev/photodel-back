@@ -10,7 +10,7 @@ SECRET_KEY = 'django-insecure-m+%j26du1-)ga03596dfg4534fdsgxlw+aq5#()l+^(ecpdjnh
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '34.116.234.236', 'googletestphotodel.com', 'photodel.ru']
+ALLOWED_HOSTS = ['localhost', '34.116.234.236', 'googletestphotodel.com', 'photodel.ru', ]
 
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
