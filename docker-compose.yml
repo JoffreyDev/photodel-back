@@ -1,0 +1,57 @@
+version: '3.7'
+
+services:
+  web:
+    restart: always
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./photodel/:/app/
+    ports:
+      - 8000:8000
+    depends_on:
+      - db
+
+  celery_worker:
+    build: .
+    command: celery -A photodel worker -l info
+    links:
+      - redis
+    volumes:
+      - ./photodel/:/app/
+    depends_on:
+      - web
+      - db
+      - redis
+
+  db:
+    image: mdillon/postgis
+    container_name: db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=photodel
+
+  channels:
+    build: .
+    restart: always
+    command: daphne -b 0.0.0.0 -p 8001 photodel.asgi:application
+    volumes:
+      - ./photodel:/app
+#    ports:
+#      - "${HOST_PRIVATE_IP}:${CHANNELS_PORT}:8001"
+#      - "${HOST_VPN_IP}:${CHANNELS_PORT}:8001"
+    links:
+      - redis
+    depends_on:
+      - web
+      - db
+      - redis
+
+  redis:
+    image: redis:alpine
+
+volumes:
+  postgres_data:

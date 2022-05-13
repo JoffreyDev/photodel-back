@@ -85,7 +85,8 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = 'photodelru@mail.ru'
 EMAIL_HOST_PASSWORD = 'H0ddpe5dTdq10Fjrmm7K'
 
-REDIS_HOST = '127.0.0.1'
+# REDIS_HOST = '127.0.0.1'
+REDIS_HOST = 'redis'
 REDIS_PORT = '6379'
 CELERY_BROKER_URL = 'redis://' + REDIS_HOST + ':' + REDIS_PORT + '/0'
 CELERY_RESULT_BACKEND = 'redis://' + REDIS_HOST + ':' + REDIS_PORT + '/0'
@@ -139,59 +140,59 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'common': {
-            'format': '{levelname} {asctime} {name} message={message}',
-            'style': '{',
-        },
-    },
-    'handlers': {
-        'accountS_file': {
-            'level': 'INFO',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs', 'accounts_debug.log'),
-            'formatter': 'common',
-            'backupCount': 10,
-            'maxBytes': 104857600,
-        },
-        'film_places_file': {
-            'level': 'INFO',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs', 'film_places_debug.log'),
-            'formatter': 'common',
-            'backupCount': 10,
-            'maxBytes': 104857600,
-        },
-        'gallery_file': {
-            'level': 'INFO',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs', 'gallery_debug.log'),
-            'formatter': 'common',
-            'backupCount': 10,
-            'maxBytes': 104857600,
-        },
-    },
-    'loggers': {
-        'accounts': {
-            'handlers': ['accountS_file'],
-            'level': 'INFO',
-            'propagate': True,
-        },
-        'film_places': {
-            'handlers': ['film_places_file'],
-            'level': 'INFO',
-            'propagate': True,
-        },
-        'gallery': {
-            'handlers': ['gallery_file'],
-            'level': 'INFO',
-            'propagate': True,
-        },
-    },
-}
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'formatters': {
+#         'common': {
+#             'format': '{levelname} {asctime} {name} message={message}',
+#             'style': '{',
+#         },
+#     },
+#     'handlers': {
+#         'accountS_file': {
+#             'level': 'INFO',
+#             'class': 'logging.handlers.RotatingFileHandler',
+#             'filename': os.path.join(BASE_DIR, 'logs', 'accounts_debug.log'),
+#             'formatter': 'common',
+#             'backupCount': 10,
+#             'maxBytes': 104857600,
+#         },
+#         'film_places_file': {
+#             'level': 'INFO',
+#             'class': 'logging.handlers.RotatingFileHandler',
+#             'filename': os.path.join(BASE_DIR, 'logs', 'film_places_debug.log'),
+#             'formatter': 'common',
+#             'backupCount': 10,
+#             'maxBytes': 104857600,
+#         },
+#         'gallery_file': {
+#             'level': 'INFO',
+#             'class': 'logging.handlers.RotatingFileHandler',
+#             'filename': os.path.join(BASE_DIR, 'logs', 'gallery_debug.log'),
+#             'formatter': 'common',
+#             'backupCount': 10,
+#             'maxBytes': 104857600,
+#         },
+#     },
+#     'loggers': {
+#         'accounts': {
+#             'handlers': ['accountS_file'],
+#             'level': 'INFO',
+#             'propagate': True,
+#         },
+#         'film_places': {
+#             'handlers': ['film_places_file'],
+#             'level': 'INFO',
+#             'propagate': True,
+#         },
+#         'gallery': {
+#             'handlers': ['gallery_file'],
+#             'level': 'INFO',
+#             'propagate': True,
+#         },
+#     },
+# }
 
 try:
     from .local_settings import *

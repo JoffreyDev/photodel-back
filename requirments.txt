@@ -15,7 +15,6 @@ geopy==2.2.0
 geos==0.2.3
 gunicorn==20.1.0
 postgis==1.0.4
-psycopg2==2.9.1
 psycopg2-binary==2.9.2
 PyJWT==2.1.0
 redis==3.5.3
