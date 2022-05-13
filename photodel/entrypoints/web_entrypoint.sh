@@ -13,7 +13,6 @@ fi
 
 python manage.py migrate
 python manage.py collectstatic --noinput
-python manage.py create_default_super_user
 python manage.py runserver 0.0.0.0:8000
 
 exec "$@"
