@@ -29,8 +29,8 @@ DATABASES = {
         'NAME': 'photodel',
         'USER': 'postgres',
         'PASSWORD': 'admin',
-        # 'HOST': '',
-        'HOST': 'db',
+        'HOST': '',
+        # 'HOST': 'db',
         'PORT': '5432',
     }
 }
