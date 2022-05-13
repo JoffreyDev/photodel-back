@@ -26,11 +26,12 @@ CORS_ORIGIN_REGEX_WHITELIST = [
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': 'photodeldb',
+        # 'NAME': 'photodeldb',
+        'NAME': 'photodel',
         'USER': 'postgres',
         'PASSWORD': 'admin',
-        'HOST': '',
-        # 'HOST': 'db',
+        # 'HOST': '',
+        'HOST': 'db',
         'PORT': '5432',
     }
 }
