@@ -12,6 +12,7 @@ urlpatterns = [
     path('api/film_places/', include('film_places.api.urls', namespace='film_places')),
     path('api/gallery/', include('gallery.api.urls', namespace='gallery')),
     path('api/chat/', include('chat.api.urls', namespace='chat')),
+    path('api/check/', include('chat.api.urls', namespace='check')),
 ]
 
 if settings.DEBUG:
