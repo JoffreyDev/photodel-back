@@ -32,7 +32,7 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=admin
-      - POSTGRES_DB=photodel
+      - POSTGRES_DB=photodeldb
 
   channels:
     build: .
