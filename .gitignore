@@ -3,9 +3,5 @@ photodel/env
 **/__pycache__
 photodel/photodel/local_settings.py
 photodel/logs/
-photodel/accounts/migrations/
-photodel/additional_entities/migrations/
-photodel/film_places/migrations/
-photodel/gallery/migrations/
 *.DS_Store
 venv/
