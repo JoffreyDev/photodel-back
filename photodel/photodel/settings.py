@@ -90,8 +90,8 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = 'photodelru@mail.ru'
 EMAIL_HOST_PASSWORD = 'H0ddpe5dTdq10Fjrmm7K'
 
-REDIS_HOST = '127.0.0.1'
-# REDIS_HOST = 'redis'
+# REDIS_HOST = '127.0.0.1'
+REDIS_HOST = 'redis'
 REDIS_PORT = '6379'
 CELERY_BROKER_URL = 'redis://' + REDIS_HOST + ':' + REDIS_PORT + '/0'
 CELERY_RESULT_BACKEND = 'redis://' + REDIS_HOST + ':' + REDIS_PORT + '/0'
