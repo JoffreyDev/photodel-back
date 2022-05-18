@@ -141,6 +141,8 @@ GEOIP_PATH = os.path.join(BASE_DIR, 'geoip2')
 
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, "static")
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
