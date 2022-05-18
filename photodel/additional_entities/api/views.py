@@ -50,7 +50,7 @@ class CityViewSet(viewsets.ViewSet):
     def check_coordinates(self, request):
         queryset = City.objects.all()
         nearest_city = check_town_use_coords(queryset, request.GET.get('user_coordinates', ''))
-        serializer = CityListSerializer(nearest_city)
+        serializer = CityListSerializer(nearest_city, many=True)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
 
