@@ -4,5 +4,5 @@ photodel/env
 photodel/photodel/local_settings.py
 photodel/logs/
 *.DS_Store
-./photodel/static
+./photodel/staticfiles
 venv/
