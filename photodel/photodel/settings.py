@@ -2,7 +2,7 @@ from pathlib import Path
 import os
 import datetime
 
-BASE_URL = 'https://googletestphotodel.com/'
+BASE_URL = 'https://photodel.ru/'
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
