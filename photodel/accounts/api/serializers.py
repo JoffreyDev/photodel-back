@@ -159,7 +159,7 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({'error': 'В вашей информации содержиатся недопустимые слова'})
 
         # проверка прав в зависимости от платежного статуса профиля
-        if self.instance.pay_status == 0 and data.get('filming_geo', ''):
+        if self.instance.pay_status == 0 and data.get('filming_geo') and self.instance.filming_geo.all().count() >= 1:
             raise serializers.ValidationError({'error': 'Чтобы добавить географию съемок, '
                                                         'пожалуйста, обновите Ваш пакет до стандарт'})
 

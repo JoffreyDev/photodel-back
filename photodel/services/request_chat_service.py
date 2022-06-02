@@ -223,6 +223,8 @@ def request_chats_to_json(chats, user):
                 'not_read_messages': chat_link_obj.filter(status_read=False).exclude(author_id=profile.id).count()
                 if chat_link_obj else None,
 
+                'request_id': chat_link_obj.first().request.id
+                if chat_link_obj.first() and chat_link_obj.first().request else None,
                 'request_executor_id': chat_link_obj.first().request.receiver_profile.id
                 if chat_link_obj.first() and chat_link_obj.first().request else None,
                 'request_status': chat_link_obj.first().request.filming_status

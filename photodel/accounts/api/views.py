@@ -56,7 +56,7 @@ class VerificationEmailViewSet(viewsets.ViewSet):
     """
     permission_classes_by_action = {
         'send_email': [permissions.IsAuthenticated, ],
-        }
+    }
 
     def send_email(self, request):
         """
@@ -89,7 +89,7 @@ class VerificationEmailViewSet(viewsets.ViewSet):
                 return Response(status=status.HTTP_200_OK, data={"message": 'Ваш email успешно верефицирован'})
             logger.info(f'Пользователь {request.user} не подтвердил почту ')
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message":
-                                                                      'Введенный код неверный. Попробуйте еще раз'})
+                                                                          'Введенный код неверный. Попробуйте еще раз'})
         except Profile.DoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": "Пользователь не был найден"})
 
@@ -103,7 +103,7 @@ class VerificationEmailViewSet(viewsets.ViewSet):
 class ChangePasswordView(viewsets.ViewSet):
     permission_classes_by_action = {
         'update_password': [permissions.IsAuthenticated, ],
-        }
+    }
 
     def update_password_after_reset(self, request):
         """
@@ -135,8 +135,8 @@ class ChangePasswordView(viewsets.ViewSet):
             update_or_create_verification_token(profile, token, type_action='reset')
             if task_send_reset_password_to_email(profile.email, token):
                 logger.info(f'Токен для пользователя {username} был успешно отправлен на емейл')
-                return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Ссылка с восстановлением пароля '
-                                                                                     'успешно отправлена '})
+                return Response(status=status.HTTP_200_OK, data={"message": 'Ссылка с восстановлением пароля '
+                                                                            'успешно отправлена '})
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Токен не был отправлен. '
                                                                                  'Пожалуйства обратитесь в поддержку'})
         except Profile.DoesNotExist:
@@ -177,7 +177,7 @@ class ProfileViewSet(viewsets.ViewSet):
     permission_classes_by_action = {
         'partial_update': [permissions.IsAuthenticated, ],
         'private_profile': [permissions.IsAuthenticated, ],
-        }
+    }
 
     def private_profile(self, request):
         instance = Profile.objects.get(user=request.user)
@@ -264,9 +264,9 @@ class ProfileFavoriteViewSet(viewsets.ViewSet):
         favorites = ProfileFavorite.objects.filter(sender_favorite_id=pk)
         queryset = filter_queryset_by_param(favorites,
                                             request.GET.get('sort_type', ''),
-                                            request.GET.get('filter_field', ''))\
-            .select_related('sender_favorite__user',  'sender_favorite__type_pro',
-                            'receiver_favorite__user', 'receiver_favorite__type_pro')\
+                                            request.GET.get('filter_field', '')) \
+            .select_related('sender_favorite__user', 'sender_favorite__type_pro',
+                            'receiver_favorite__user', 'receiver_favorite__type_pro') \
             .prefetch_related('sender_favorite__spec_model_or_photographer',
                               'receiver_favorite__spec_model_or_photographer')
 
@@ -280,7 +280,7 @@ class ProfileFavoriteViewSet(viewsets.ViewSet):
         profile = Profile.objects.get(user=request.user).id
         if not is_unique_favorite(request.data.get('receiver_favorite'), profile, 'profile'):
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message":
-                                                                      'Такой профиль уже есть в избранном'})
+                                                                          'Такой профиль уже есть в избранном'})
         serializer = ProfileFavoriteCreateSerializer(data=request.data | {"sender_favorite": profile})
         if serializer.is_valid(raise_exception=True):
             serializer.save()
@@ -357,7 +357,7 @@ class ProfileCommentViewSet(viewsets.ViewSet):
 
     def list_comments(self, request, pk):
         logger.info(f'Пользователь {request.user} хочет получить список профилей')
-        queryset = ProfileComment.objects.filter(receiver_comment=pk)\
+        queryset = ProfileComment.objects.filter(receiver_comment=pk) \
             .select_related('sender_comment', 'receiver_comment')
         serializer = ProfileCommentListSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)

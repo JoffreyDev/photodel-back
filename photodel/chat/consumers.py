@@ -116,6 +116,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
 class SiteConsumer(AsyncWebsocketConsumer):
 
+    # TODO update
     async def history_request_chat(self, data):
         """
         Список истории чатов пользоватля
