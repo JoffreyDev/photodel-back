@@ -14,12 +14,12 @@ def update_film_request_status(data, user):
     film_request = FilmRequest.objects.get(id=data['request_id'])
     status = data['filming_status']
     current_status = film_request.filming_status
-    if current_status == 'NEW' and film_request.receiver_profile.user == user and status in ['ACCEPTED', 'REJECTED']:
+    if current_status == 'NEW' and film_request.profile.user == user and status in ['ACCEPTED', 'REJECTED']:
         film_request.filming_status = status
         film_request.save()
-        return {'message': 'You successful update filming status'}, 200
-    if current_status == 'ACCEPTED' and film_request.profile.user == user and status in ['COMPLETED', 'UNCOMPLETED']:
+        return {'message': 'You successfully updated the movie status'}, 200
+    if current_status == 'ACCEPTED' and film_request.receiver_profile.user == user and status in ['COMPLETED', 'UNCOMPLETED']:
         film_request.filming_status = status
         film_request.save()
-        return {'message': 'You successful update filming status'}, 200
-    return {'error': f'You not permissions to change status'}, 403
+        return {'message': 'You successfully updated the movie status'}, 200
+    return {'error': f'You haven`t permissions to change status'}, 403
