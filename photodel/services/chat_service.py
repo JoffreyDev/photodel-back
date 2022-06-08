@@ -73,8 +73,6 @@ def is_user_in_chat(user, room_name):
 def get_receiver_profile(user, chat_id):
     try:
         chat = Chat.objects.get(id=chat_id)
-        if chat.sender_id.user == user:
-            return chat.receiver_id
         return chat.sender_id
     except Chat.DoesNotExist:
         return None
