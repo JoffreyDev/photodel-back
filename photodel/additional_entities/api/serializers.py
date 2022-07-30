@@ -1,5 +1,5 @@
 from django.contrib.auth.models import AnonymousUser
-from django.db.models import Count, F
+from django.db.models import Count, F, Subquery, Func, OuterRef
 
 from rest_framework import serializers
 
@@ -56,10 +56,15 @@ class QuestionListSerializer(serializers.ModelSerializer):
         fields = ['title', 'is_hide', 'choices', 'count_answer', 'is_vote', ]
 
     def get_choices(self, obj):
-        return Answer.objects.filter(choice__question=obj.id)\
-            .values('choice__title', 'choice__id')\
-            .annotate(total=Count('choice__title'))\
-            .order_by('total')
+        answers = Answer.objects.filter(
+            choice=OuterRef("id")
+        ).order_by().annotate(
+            count=Func(F('id'), function='Count')
+        ).values('count')
+        choices = Choice.objects.filter(
+            question__id=obj.id
+        ).values('title', 'id').annotate(total=Subquery(answers))
+        return choices
 
     def get_count_answer(self, obj):
         return Answer.objects.filter(choice__question=obj.id).count()
