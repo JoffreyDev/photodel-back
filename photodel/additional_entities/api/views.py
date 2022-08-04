@@ -66,14 +66,13 @@ class PollViewSet(viewsets.ViewSet):
 
     def add_answer(self, request):
         profile = Profile.objects.get(user=request.user).id
+        serializer = AnswerCreateSerializer(data=request.data | {"profile": profile})
+        serializer.is_valid(raise_exception=True)
         if check_exitst_answer(request.user, request.data.get('choice')):
             return Response(status=status.HTTP_400_BAD_REQUEST,
                             data={"message": "Вы уже оставляли ответ в этом опросе"})
-        serializer = AnswerCreateSerializer(data=request.data | {"profile": profile})
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def get_permissions(self):
         try:

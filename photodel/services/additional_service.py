@@ -1,5 +1,5 @@
 from geopy.distance import geodesic
-from additional_entities.models import Answer
+from additional_entities.models import Answer, Choice
 
 
 def check_town_use_coords(cities, user_coordinates):
@@ -22,7 +22,16 @@ def check_exitst_answer(user, choice):
     """
     Проверка, отвечал ли, пользователь на опрос
     """
-    user_choice = Answer.objects.filter(profile__user=user, choice=choice)
+
+    choice = Choice.objects.get(id=choice)
+    user_choice = Answer.objects.filter(profile__user=user).first()
+    if not user_choice:
+        return False
+    print(user_choice.choice.question.id)
+    print(choice.question.id)
+    if user_choice.choice.question == choice.question:
+        return True
+
     if user_choice:
         return True
     return False
