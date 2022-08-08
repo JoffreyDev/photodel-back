@@ -296,6 +296,13 @@ class PhotoSessionUpdateSerializer(serializers.ModelSerializer):
                   'string_session_location', 'session_date', 'photos', 'is_hidden',
                   'profile', 'session_category', 'main_photo', ]
 
+    def validate(self, data):
+        profile = self.context['profile']
+        user_photo_session = PhotoSession.objects.filter(profile=profile)
+        if user_photo_session.filter(session_name=data.get('session_name')):
+            raise serializers.ValidationError({'error': 'Фотосессия с таким названием уже существует'})
+        return data
+
 
 # сериализаторы фотоессий
 class PhotoSessionCreateSerializer(serializers.ModelSerializer):

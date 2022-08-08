@@ -26,6 +26,13 @@ class FilmPlacesUpdateSerializer(serializers.ModelSerializer):
         fields = ['name_place', 'description', 'photo_camera', 'place_image', 'string_place_location',
                   'cost', 'payment', 'place_location', 'category', 'profile', 'is_hidden', 'main_photo', ]
 
+    def validate(self, data):
+        profile = self.context['profile']
+        user_place = FilmPlaces.objects.filter(profile=profile)
+        if user_place.filter(name_place=data.get('name_place')):
+            raise serializers.ValidationError({'error': 'Место съемки с таким названием уже существует'})
+        return data
+
 
 class FilmPlacesCreateSerializer(serializers.ModelSerializer):
     """
