@@ -289,6 +289,15 @@ class GalleryCommentListSerializer(serializers.ModelSerializer):
 
 
 # сериализаторы фотоессий
+class PhotoSessionUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PhotoSession
+        fields = ['session_name', 'session_description', 'session_location',
+                  'string_session_location', 'session_date', 'photos', 'is_hidden',
+                  'profile', 'session_category', 'main_photo', ]
+
+
+# сериализаторы фотоессий
 class PhotoSessionCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PhotoSession

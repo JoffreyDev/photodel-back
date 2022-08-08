@@ -15,8 +15,8 @@ from .serializers import AlbumListSerializer, AlbumCreateSerializer, GalleryRetr
     AlbumUpdateSerializer, PhotoSessionFavoriteCreateSerializer, PhotoSessionFavoriteListSerializer, \
     PhotoSessionLikeCreateSerializer, PhotoSessionCommentListSerializer, \
     PhotoSessionCommentCreateSerializer, PhotoSessionForCardListSerializer, PhotoSessionListSerializer, \
-    AlbumGalleryRetrieveSerializer, ImageCreateSerializer, GalleryAllListSerializer,\
-    GalleryAllListForMapSerializer
+    AlbumGalleryRetrieveSerializer, ImageCreateSerializer, GalleryAllListSerializer, \
+    GalleryAllListForMapSerializer, PhotoSessionUpdateSerializer
 from .permissions import IsOwnerImage, IsAddOrDeletePhotoFromAlbum, IsCreatePhoto
 
 import logging
@@ -452,7 +452,7 @@ class PhotoSessionViewSet(viewsets.ViewSet):
             logger.info(f'Пользователь {request.user} хочет изменить фотосессию')
             profile = Profile.objects.get(user=request.user)
             instance = PhotoSession.objects.get(pk=pk, profile=profile)
-            serializer = PhotoSessionCreateSerializer(instance, data=request.data, partial=True,
+            serializer = PhotoSessionUpdateSerializer(instance, data=request.data, partial=True,
                                                       context={'profile': profile})
             if serializer.is_valid(raise_exception=True):
                 serializer.save()

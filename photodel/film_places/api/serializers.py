@@ -17,6 +17,16 @@ class CategoryFilmPlacesListSerializer(serializers.ModelSerializer):
         fields = ['name_category', 'id', ]
 
 
+class FilmPlacesUpdateSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для создание записи о месте съемки
+    """
+    class Meta:
+        model = FilmPlaces
+        fields = ['name_place', 'description', 'photo_camera', 'place_image', 'string_place_location',
+                  'cost', 'payment', 'place_location', 'category', 'profile', 'is_hidden', 'main_photo', ]
+
+
 class FilmPlacesCreateSerializer(serializers.ModelSerializer):
     """
     Сериализатор для создание записи о месте съемки

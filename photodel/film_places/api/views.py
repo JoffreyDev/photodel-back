@@ -8,7 +8,7 @@ from .serializers import FilmPlacesCreateSerializer, CategoryFilmPlacesListSeria
     FilmPlacesCommentCreateSerializer, FilmPlacesCommentListSerializer, FilmPlacesForCardSerializer, \
     FilmPlacesListSerializer, FilmRequestCreateSerializer, FilmPlacesAllListSerializer, \
     FilmPlacesRetrieveSerializer, NotAuthFilmRequestCreateSerializer, NotAuthFilmRequestListSerializer, \
-    FilmPlacesAllLisForMaptSerializer, FilmRequestListSerializer
+    FilmPlacesAllLisForMaptSerializer, FilmRequestListSerializer, FilmPlacesUpdateSerializer
 from services.gallery_service import is_unique_favorite, is_unique_like, \
     protection_cheating_views, add_view, filter_queryset_by_param
 from services.film_places_search_service import filter_film_places_queryset
@@ -66,7 +66,7 @@ class FilmPlacesViewSet(viewsets.ViewSet):
             logger.info(f'Пользователь {request.user} хочет изменить место съемки')
             profile = Profile.objects.get(user=request.user)
             instance = FilmPlaces.objects.get(pk=pk, profile=profile)
-            serializer = FilmPlacesCreateSerializer(instance, data=request.data, partial=True,
+            serializer = FilmPlacesUpdateSerializer(instance, data=request.data, partial=True,
                                                     context={'profile': profile})
             if serializer.is_valid(raise_exception=True):
                 serializer.save()
