@@ -41,7 +41,8 @@ class AlbumListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Album
-        fields = ['name_album', 'id', 'main_photo_id', 'profile', 'count_photos', ]
+        fields = ['name_album', 'id', 'main_photo_id',
+                  'profile', 'count_photos', ]
 
     def get_count_photos(self, data):
         return data.gallery_set.all().count()
@@ -102,12 +103,14 @@ class AlbumCreateSerializer(serializers.ModelSerializer):
         profile = self.context['profile']
         user_albums = Album.objects.filter(profile=profile)
         if user_albums.filter(name_album=data.get('name_album')):
-            raise serializers.ValidationError({'error': 'Альбом с таким названием уже существует'})
+            raise serializers.ValidationError(
+                {'error': 'Альбом с таким названием уже существует'})
         if profile.pay_status == 0 and user_albums.count() > 2:
             raise serializers.ValidationError({'error': 'Чтобы добавить больше альбомов, '
                                                         'пожалуйста, обновите Ваш пакет до стандарт'})
         if not data.get('main_photo_id'):
-            data['main_photo_id'] = Image.objects.filter(profile__user__username='admin').first()
+            data['main_photo_id'] = Image.objects.filter(
+                profile__user__username='admin').first()
         return data
 
 
@@ -118,12 +121,15 @@ class AlbumUpdateSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         profile = self.context['profile']
-        user_albums = Album.objects.filter(profile=profile, name_album=data.get('name_album'))
+        user_albums = Album.objects.filter(
+            profile=profile, name_album=data.get('name_album'))
         album = Album.objects.filter(profile=profile).first()
         if album == self.context['instance']:
-            raise serializers.ValidationError({'error': 'Данный альбом редактировать нельзя'})
+            raise serializers.ValidationError(
+                {'error': 'Данный альбом редактировать нельзя'})
         if user_albums:
-            raise serializers.ValidationError({'error': 'Альбом с таким названием уже существует'})
+            raise serializers.ValidationError(
+                {'error': 'Альбом с таким названием уже существует'})
         return data
 
 
@@ -142,7 +148,8 @@ class GalleryCreateSerializer(serializers.ModelSerializer):
         если в альбоме стоит дефолтная фотка, то на обложку альбома ставится фотка которая создается
         """
         if not data.get('album'):
-            data['album'] = [Album.objects.filter(profile=self.context['profile']).first(), ]
+            data['album'] = [Album.objects.filter(
+                profile=self.context['profile']).first(), ]
         else:
             for album_id in data.get('album'):
                 album = Album.objects.filter(id=album_id.id).first()
@@ -270,12 +277,14 @@ class GalleryCommentCreateSerializer(serializers.ModelSerializer):
     def validate(self, data):
         content = data.get('content', '').split()
         if check_obscene_word_in_content(content):
-            raise serializers.ValidationError({'error': 'Ваш комментарий содержит недопустимые слова'})
+            raise serializers.ValidationError(
+                {'error': 'Ваш комментарий содержит недопустимые слова'})
         comment = data.get('answer_id_comment')
         if not comment:
             return data
         if comment.answer_id_comment:
-            raise serializers.ValidationError({'error': 'Вы не можете ответить на ответ другого пользователя'})
+            raise serializers.ValidationError(
+                {'error': 'Вы не можете ответить на ответ другого пользователя'})
         return data
 
 
@@ -285,7 +294,8 @@ class GalleryCommentListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GalleryComment
-        fields = ['content', 'timestamp', 'sender_comment', 'gallery', 'answer_id_comment', 'quote_id', ]
+        fields = ['content', 'timestamp', 'sender_comment',
+                  'gallery', 'answer_id_comment', 'quote_id', ]
 
 
 # сериализаторы фотоессий
@@ -299,8 +309,9 @@ class PhotoSessionUpdateSerializer(serializers.ModelSerializer):
     def validate(self, data):
         profile = self.context['profile']
         user_photo_session = PhotoSession.objects.filter(profile=profile)
-        if user_photo_session.filter(session_name=data.get('session_name')):
-            raise serializers.ValidationError({'error': 'Фотосессия с таким названием уже существует'})
+        if user_photo_session.filter(session_name=data.get('session_name')).count() > 1:
+            raise serializers.ValidationError(
+                {'error': 'Фотосессия с таким названием уже существует'})
         return data
 
 
@@ -315,9 +326,10 @@ class PhotoSessionCreateSerializer(serializers.ModelSerializer):
     def validate(self, data):
         profile = self.context['profile']
         user_photo_session = PhotoSession.objects.filter(profile=profile)
-        if user_photo_session.filter(session_name=data.get('session_name')):
-            raise serializers.ValidationError({'error': 'Фотосессия с таким названием уже существует'})
-        if profile.pay_status == 0 and user_photo_session.count() > 0:
+        if user_photo_session.filter(session_name=data.get('session_name')).count() > 0:
+            raise serializers.ValidationError(
+                {'error': 'Фотосессия с таким названием уже существует'})
+        if profile.pay_status == 0 and user_photo_session.count() > 1:
             raise serializers.ValidationError({'error': 'Чтобы добавить больше фотосессий, '
                                                         'пожалуйста, обновите Ваш пакет до стандарт'})
         return data
@@ -416,12 +428,14 @@ class PhotoSessionCommentCreateSerializer(serializers.ModelSerializer):
     def validate(self, data):
         content = data.get('content', '').split()
         if check_obscene_word_in_content(content):
-            raise serializers.ValidationError({'error': 'Ваш комментарий содержит недопустимые слова'})
+            raise serializers.ValidationError(
+                {'error': 'Ваш комментарий содержит недопустимые слова'})
         comment = data.get('answer_id_comment')
         if not comment:
             return data
         if comment.answer_id_comment:
-            raise serializers.ValidationError({'error': 'Вы не можете ответить на ответ другого пользователя'})
+            raise serializers.ValidationError(
+                {'error': 'Вы не можете ответить на ответ другого пользователя'})
         return data
 
 
@@ -431,4 +445,5 @@ class PhotoSessionCommentListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PhotoSessionComment
-        fields = ['content', 'timestamp', 'sender_comment', 'photo_session', 'answer_id_comment', 'quote_id', ]
+        fields = ['content', 'timestamp', 'sender_comment',
+                  'photo_session', 'answer_id_comment', 'quote_id', ]

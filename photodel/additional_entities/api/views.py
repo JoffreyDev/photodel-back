@@ -49,7 +49,8 @@ class CityViewSet(viewsets.ViewSet):
 
     def check_coordinates(self, request):
         queryset = City.objects.all()
-        nearest_city = check_town_use_coords(queryset, request.GET.get('user_coordinates', ''))
+        nearest_city = check_town_use_coords(
+            queryset, request.GET.get('user_coordinates', ''))
         serializer = CityListSerializer(nearest_city)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
@@ -61,12 +62,14 @@ class PollViewSet(viewsets.ViewSet):
 
     def list_poll(self, request):
         queryset = Question.objects.filter(is_hide=False)
-        serializer = QuestionListSerializer(queryset, many=True, context={'user': request.user})
+        serializer = QuestionListSerializer(
+            queryset, many=True, context={'user': request.user})
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
     def add_answer(self, request):
         profile = Profile.objects.get(user=request.user).id
-        serializer = AnswerCreateSerializer(data=request.data | {"profile": profile})
+        serializer = AnswerCreateSerializer(
+            data=request.data | {"profile": profile})
         serializer.is_valid(raise_exception=True)
         if check_exitst_answer(request.user, request.data.get('choice')):
             return Response(status=status.HTTP_400_BAD_REQUEST,
@@ -87,18 +90,17 @@ class CommonViewSet(viewsets.ViewSet):
         photo_comment = {'photo_comment':
                          GalleryComment.objects.values('content', 'timestamp', 'sender_comment__name',
                                                        'sender_comment__surname', 'sender_comment__status',
-                                                       'gallery__name_image').last()
+                                                       'gallery__name_image', 'sender_comment__id', 'gallery__id', 'sender_comment__user_channel_name').last()
                          }
 
         photo_comment.update({'photo_session_comment':
                               PhotoSessionComment.objects.values('content', 'timestamp', 'sender_comment__name',
                                                                  'sender_comment__surname', 'sender_comment__status',
-                                                                 'photo_session__session_name').last()
+                                                                 'photo_session__session_name', 'sender_comment__id', 'photo_session__id', 'sender_comment__user_channel_name').last()
                               })
         photo_comment.update({'place_comment':
                               FilmPlacesComment.objects.values('content', 'timestamp', 'sender_comment__name',
                                                                'sender_comment__surname', 'sender_comment__status',
-                                                               'place__name_place').last()
+                                                               'place__name_place', 'sender_comment__id', 'place__id', 'sender_comment__user_channel_name').last()
                               })
         return Response(status=status.HTTP_200_OK, data=photo_comment)
-

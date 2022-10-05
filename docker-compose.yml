@@ -1,10 +1,10 @@
-version: '3.3'
+version: "3.3"
 
 services:
   web:
     restart: always
     build: .
-#    command: python manage.py runserver 0.0.0.0:8000
+    #    command: python manage.py runserver 0.0.0.0:8000
     entrypoint: ./entrypoints/web_entrypoint.sh
     volumes:
       - ./photodel/:/app/
@@ -34,6 +34,8 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=admin
       - POSTGRES_DB=photodeldb
+    ports:
+      - "5432:5432"
 
   channels:
     build: .
@@ -41,9 +43,9 @@ services:
     command: daphne -b 0.0.0.0 -p 8001 photodel.asgi:application
     volumes:
       - ./photodel:/app
-#    ports:
-#      - "${HOST_PRIVATE_IP}:${CHANNELS_PORT}:8001"
-#      - "${HOST_VPN_IP}:${CHANNELS_PORT}:8001"
+    #    ports:
+    #      - "${HOST_PRIVATE_IP}:${CHANNELS_PORT}:8001"
+    #      - "${HOST_VPN_IP}:${CHANNELS_PORT}:8001"
     links:
       - redis
     depends_on:

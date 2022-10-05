@@ -12,8 +12,10 @@ def create_request_chat_and_message(sender_request, receiver_profile, request_id
     """
     Создание чата и сооющения при создание запроса на съемку
     """
-    chat = RequestChat.objects.create(request_sender_id=sender_request, request_receiver_id=receiver_profile)
-    RequestMessage.objects.create(request_id=request_id, chat_id=chat.id, author_id=sender_request)
+    chat = RequestChat.objects.create(
+        request_sender_id=sender_request, request_receiver_id=receiver_profile)
+    RequestMessage.objects.create(
+        request_id=request_id, chat_id=chat.id, author_id=sender_request)
     return True
 
 
@@ -25,9 +27,9 @@ def get_interviewer_data(user, chat_id):
         chat = RequestChat.objects.get(id=chat_id)
         if chat.request_sender.user == user:
             return chat.request_receiver.name, chat.request_receiver.surname, \
-                   chat.request_receiver.user_channel_name, chat.request_receiver.avatar.url
+                chat.request_receiver.user_channel_name, chat.request_receiver.avatar.url
         return chat.request_sender.name, chat.request_sender.surname, \
-               chat.request_sender.user_channel_name, chat.request_sender.avatar.url
+            chat.request_sender.user_channel_name, chat.request_sender.avatar.url
     except RequestChat.DoesNotExist:
         return None, None, None
 
@@ -50,7 +52,8 @@ def is_user_in_request_chat(user, room_name):
     """
     try:
         profile = Profile.objects.get(user=user)
-        chat = RequestChat.objects.filter((Q(request_sender=profile) | Q(request_receiver=profile)) & Q(id=int(room_name)))
+        chat = RequestChat.objects.filter((Q(request_sender=profile) | Q(
+            request_receiver=profile)) & Q(id=int(room_name)))
         if chat:
             return True
         return False
@@ -88,7 +91,8 @@ def update_request_messages_status(data, chat_id):
     В качестве параметра приходить список id сообщений
     """
     if data.get('message_ids'):
-        messages = RequestMessage.objects.filter(chat=chat_id, id__in=data['message_ids'])
+        messages = RequestMessage.objects.filter(
+            chat=chat_id, id__in=data['message_ids'])
         for message in messages:
             message.status_read = True
         RequestMessage.objects.bulk_update(messages, ['status_read'])
@@ -114,10 +118,11 @@ def filter_request_chat(user):
         order_list = RequestChat.objects.filter(Q(request_sender__user=user) | Q(request_receiver__user=user)) \
             .select_related('request_sender', 'request_receiver')
     else:
-        chat = RequestChat.objects.filter(Q(request_sender__user=user) | Q(request_receiver__user=user))
+        chat = RequestChat.objects.filter(
+            Q(request_sender__user=user) | Q(request_receiver__user=user))
         order_list = chat.filter(Q(id__in=list_chat_id))\
-                                 .order_by(Case(*[When(id=n, then=i) for i, n in enumerate(list_chat_id)]))\
-                                 .select_related('request_sender', 'request_receiver')
+            .order_by(Case(*[When(id=n, then=i) for i, n in enumerate(list_chat_id)]))\
+            .select_related('request_sender', 'request_receiver')
     return order_list
 
 
@@ -132,12 +137,12 @@ def change_request_status(user, data):
         request = FilmRequest.objects.get(id=data.get('request_id'))
         status = data.get('filming_status')
 
-        if request.filming_status == 'NEW' and request.receiver_profile.user == user \
+        if request.filming_status == 'NEW' and request.receiver_profile.user != user \
                 and (status == 'ACCEPTED' or status == 'REJECTED'):
             request.filming_status = status
             request.save()
             return {'message': 'You successful update filming status'}
-        if request.filming_status == 'ACCEPTED' and request.profile.user == user \
+        if request.filming_status == 'ACCEPTED' and request.profile.user != user \
                 and (status == 'COMPLETED' or status == 'UNCOMPLETED'):
             request.filming_status = status
             request.save()
@@ -164,10 +169,10 @@ def request_messages_to_json(messages, user, chat_id):
                     'id': message.id,
                     'content': message.content,
                     'timestamp': str(current_time),
-                    'name': str(name),
-                    'surname': str(surname),
-                    'avatar': str(avatar),
-                    'online': str(online),
+                    'name': str(message.author.name),
+                    'surname': str(message.author.surname),
+                    'avatar': str(message.author.avatar.url),
+                    'online': str(message.author.user_channel_name),
                     'filming_timestamp': str(request.filming_timestamp),
                     'hours_duration': str(request.hours_duration),
                     'filming_type': str(request.filming_type),
@@ -177,6 +182,7 @@ def request_messages_to_json(messages, user, chat_id):
                     'filming_budget': str(request.filming_budget),
                     'need_makeup_artist': str(request.need_makeup_artist),
                     'description': str(request.description),
+                    'author_id': int(message.author.id)
                 }
             )
         else:
@@ -204,7 +210,8 @@ def request_chats_to_json(chats, user):
     profile = Profile.objects.filter(user=user).first()
     for chat in chats:
         chat_link_obj = chat.requestmessage_set.all()
-        name_interviewer, surname, online, avatar = get_interviewer_data(user, chat.id)
+        name_interviewer, surname, online, avatar = get_interviewer_data(
+            user, chat.id)
         result.append(
             {
                 'id': chat.id,

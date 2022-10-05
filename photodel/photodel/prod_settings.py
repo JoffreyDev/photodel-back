@@ -23,6 +23,20 @@ CORS_ALLOW_CREDENTIALS = True
 #     'http://localhost:8000',
 # ]
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.contrib.gis.db.backends.postgis',
+#         'NAME': 'photodeldb',
+#         # 'NAME': 'photodel',
+#         'USER': 'postgres',
+#         'PASSWORD': 'admin',
+#         # 'HOST': '',
+#         'HOST': 'localhost',
+#         # 'HOST': 'localhost',
+#         # 'PORT': '5432',
+#     }
+# }
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
@@ -37,8 +51,9 @@ DATABASES = {
     }
 }
 
+
 # STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 # STATICFILES_DIRS = [
 #     os.path.join(BASE_DIR, 'static')
-    # os.path.join(BASE_DIR, 'build/static')
+# os.path.join(BASE_DIR, 'build/static')
 # ]
