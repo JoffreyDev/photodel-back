@@ -29,6 +29,10 @@ class Advertisement(models.Model):
     ad_title = models.CharField(max_length=255)
     ad_link = models.CharField(max_length=255)
     ad_count_click = models.IntegerField(default=0)
+    minutes_to_show = models.IntegerField(default=5)
+    start = models.DateTimeField(default=timezone.localtime)
+    end = models.DateTimeField(default=timezone.localtime)
+    note = models.CharField(max_length=255, default='')
 
 
 class BanWord(models.Model):
