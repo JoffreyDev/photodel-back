@@ -29,7 +29,8 @@ class LanguageListSerializer(serializers.ModelSerializer):
 class AdvertisementListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Advertisement
-        fields = ['id', 'ad_image', 'ad_title', 'ad_link', 'ad_count_click', ]
+        fields = ['id', 'ad_image', 'ad_title',
+                  'ad_link', 'ad_count_click', 'ad_count_click']
 
 
 class CityListSerializer(serializers.ModelSerializer):
