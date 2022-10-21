@@ -19,9 +19,7 @@ class LanguageAdmin(admin.ModelAdmin):
 
 @admin.register(Advertisement)
 class AdvertisementAdmin(admin.ModelAdmin):
-    list_display = ['ad_title', ]
-
-    #'start', 'end', 'note', 'status'
+    list_display = ['ad_title', 'start', 'end', 'note', 'status']
 
 
 @admin.register(BanWord)

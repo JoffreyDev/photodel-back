@@ -18,34 +18,34 @@ app.conf.CELERYBEAT_SCHEDULE = {
         'schedule': crontab(hour=0, day_of_week='sunday'),
     },
 
-    # 'task_update_current_ad': {
-    #     'task': 'tasks.accounts_task.task_update_current_ad',
-    #     'schedule': 300,
-    # },
+    'task_update_current_ad': {
+        'task': 'tasks.accounts_task.task_update_current_ad',
+        'schedule': 300,
+    },
 
-    # 'task_update_profile_likes': {
-    #     'task': 'tasks.accounts_task.task_update_profile_likes',
-    #     'schedule': crontab(hour=0),
-    # },
+    'task_update_profile_likes': {
+        'task': 'tasks.accounts_task.task_update_profile_likes',
+        'schedule': crontab(hour=0),
+    },
 
-    # 'task_update_place_likes': {
-    #     'task': 'tasks.accounts_task.task_update_place_likes',
-    #     'schedule': crontab(hour=0),
-    # },
+    'task_update_place_likes': {
+        'task': 'tasks.accounts_task.task_update_place_likes',
+        'schedule': crontab(hour=0),
+    },
 
-    # 'task_update_photos_likes': {
-    #     'task': 'tasks.accounts_task.task_update_photos_likes',
-    #     'schedule': crontab(hour=0),
-    # },
+    'task_update_photos_likes': {
+        'task': 'tasks.accounts_task.task_update_photos_likes',
+        'schedule': crontab(hour=0),
+    },
 
-    # 'check_ads_dates': {
-    #     'task': 'tasks.accounts_task.check_ads_dates',
-    #     'schedule': crontab(hour=0),
-    # },
+    'check_ads_dates': {
+        'task': 'tasks.accounts_task.check_ads_dates',
+        'schedule': crontab(hour=0),
+    },
 
-    # 'reset_temp_location': {
-    #     'task': 'tasks.accounts_task.reset_temp_location',
-    #     'schedule': crontab(hour=0),
-    # },
+    'reset_temp_location': {
+        'task': 'tasks.accounts_task.reset_temp_location',
+        'schedule': crontab(hour=0),
+    },
 
 }
