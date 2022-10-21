@@ -56,7 +56,7 @@ class Gallery(models.Model):
     category = models.ManyToManyField(Specialization)
     album = models.ManyToManyField(Album, blank=True)
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
-    likesStat = models.IntegerField(
+    likes_stat = models.IntegerField(
         default=0, validators=[MinValueValidator(0.0)])
 
     def __str__(self):
