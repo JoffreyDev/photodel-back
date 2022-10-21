@@ -108,7 +108,7 @@ def task_update_photos_likes():
 def check_ads_dates():
     ads_list = Advertisement.objects.values_list('pk', flat=True)
     for ad in ads_list:
-        if Advertisement.objects.filter(pk=ad).all().first().start <= timezone.now() and Advertisement.objects.filter(pk=ad).all().first().end >= timezone.now():
+        if Advertisement.objects.filter(pk=ad).all().first().start_date <= timezone.now() and Advertisement.objects.filter(pk=ad).all().first().end_date >= timezone.now():
             Advertisement.objects.filter(pk=ad).update(status=1)
         else:
             Advertisement.objects.filter(pk=ad).update(status=0)

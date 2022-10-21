@@ -31,8 +31,8 @@ class Advertisement(models.Model):
     ad_title = models.CharField(max_length=255)
     ad_link = models.CharField(max_length=255)
     ad_count_click = models.IntegerField(default=0)
-    start = models.DateTimeField(default=timezone.localtime)
-    end = models.DateTimeField(default=timezone.localtime)
+    start_date = models.DateTimeField(default=timezone.localtime)
+    end_date = models.DateTimeField(default=timezone.localtime)
     note = models.CharField(max_length=255, default='')
     status = models.IntegerField(default=0)
 
