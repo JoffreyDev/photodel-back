@@ -14,7 +14,7 @@ ALLOWED_HOSTS = ['*']
 
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
-# CORS_ORIGIN_WHITELIST = [
+# CORS_ORIGIN_WHITELIST =
 #     'http://localhost:3000',
 #     'http://localhost:8000',
 # ]
@@ -24,27 +24,27 @@ CORS_ALLOW_CREDENTIALS = True
 # ]
 
 # Локально
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-#         'NAME': 'photodeldb',
-#         'USER': 'postgres',
-#         'PASSWORD': 'admin',
-#         'HOST': 'localhost',
-#     }
-# }
-
-# В прод
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'NAME': 'photodeldb',
         'USER': 'postgres',
         'PASSWORD': 'admin',
-        'HOST': 'db',
-        'PORT': '5432',
+        'HOST': 'localhost',
     }
 }
+
+# В прод
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.contrib.gis.db.backends.postgis',
+#         'NAME': 'photodeldb',
+#         'USER': 'postgres',
+#         'PASSWORD': 'admin',
+#         'HOST': 'db',
+#         'PORT': '5432',
+#     }
+# }
 
 
 # STATIC_ROOT = os.path.join(BASE_DIR, 'static')
