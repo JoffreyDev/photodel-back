@@ -20,7 +20,7 @@ class ImageCreateSerializer(serializers.ModelSerializer):
     def validate(self, data):
         profile = self.context['profile']
         user_phys_photos = Image.objects.filter(profile=profile)
-        if profile.pay_status == 0 and user_phys_photos.count() > 30:
+        if profile.pay_status == 0 and user_phys_photos.count() > 50:
             raise serializers.ValidationError({'error': 'Чтобы добавить больше фото, '
                                                         'пожалуйста, обновите Ваш пакет до стандарт'})
         return data
@@ -329,7 +329,7 @@ class PhotoSessionCreateSerializer(serializers.ModelSerializer):
         if user_photo_session.filter(session_name=data.get('session_name')).count() > 0:
             raise serializers.ValidationError(
                 {'error': 'Фотосессия с таким названием уже существует'})
-        if profile.pay_status == 0 and user_photo_session.count() > 1:
+        if profile.pay_status == 0 and user_photo_session.count() >= 2:
             raise serializers.ValidationError({'error': 'Чтобы добавить больше фотосессий, '
                                                         'пожалуйста, обновите Ваш пакет до стандарт'})
         return data

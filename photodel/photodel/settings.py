@@ -66,22 +66,22 @@ WSGI_APPLICATION = 'photodel.wsgi.application'
 ASGI_APPLICATION = 'photodel.routing.application'
 
 
-# To production
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            "hosts": [('127.0.0.1', 6379)],
-        },
-    },
-}
-
-
+# Локально
 # CHANNEL_LAYERS = {
-#     "default": {
-#         "BACKEND": "channels.layers.InMemoryChannelLayer",
-#     }
+#     'default': {
+#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
+#         'CONFIG': {
+#             "hosts": [('127.0.0.1', 6379)],
+#         },
+#     },
 # }
+
+# В прод
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    }
+}
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.mail.ru'
@@ -90,8 +90,9 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = 'photodelru@mail.ru'
 EMAIL_HOST_PASSWORD = 'H0ddpe5dTdq10Fjrmm7K'
 
-# REDIS_HOST = '127.0.0.1'
-REDIS_HOST = 'redis'
+# В прод и локально
+REDIS_HOST = '127.0.0.1'
+#REDIS_HOST = 'redis'
 REDIS_PORT = '6379'
 CELERY_BROKER_URL = 'redis://' + REDIS_HOST + ':' + REDIS_PORT + '/0'
 CELERY_RESULT_BACKEND = 'redis://' + REDIS_HOST + ':' + REDIS_PORT + '/0'

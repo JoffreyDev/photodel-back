@@ -38,7 +38,7 @@ def get_interviewer_data(user, chat_id):
 def get_request_receiver_profile(user, chat_id):
     try:
         chat = RequestChat.objects.get(id=chat_id)
-        if chat.request_sender.user == user:
+        if chat.request_sender.user.id == user.id:
             return chat.request_receiver
         return chat.request_sender
     except RequestChat.DoesNotExist:

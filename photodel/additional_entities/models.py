@@ -11,6 +11,8 @@ class EmailFragment(models.Model):
 class CustomSettings(models.Model):
     distance_for_unique_places = models.IntegerField()
     days_request_to_not_auth_user = models.IntegerField(default=1)
+    count_minutes_advert_show = models.IntegerField(default=5)
+    current_ad = models.IntegerField(default=1)
 
 
 class Country(models.Model):
@@ -29,10 +31,10 @@ class Advertisement(models.Model):
     ad_title = models.CharField(max_length=255)
     ad_link = models.CharField(max_length=255)
     ad_count_click = models.IntegerField(default=0)
-    minutes_to_show = models.IntegerField(default=5)
     start = models.DateTimeField(default=timezone.localtime)
     end = models.DateTimeField(default=timezone.localtime)
     note = models.CharField(max_length=255, default='')
+    status = models.IntegerField(default=0)
 
 
 class BanWord(models.Model):

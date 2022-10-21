@@ -29,8 +29,9 @@ class FilmPlacesUpdateSerializer(serializers.ModelSerializer):
     def validate(self, data):
         profile = self.context['profile']
         user_place = FilmPlaces.objects.filter(profile=profile)
-        if user_place.filter(name_place=data.get('name_place')):
-            raise serializers.ValidationError({'error': 'Место съемки с таким названием уже существует'})
+        if user_place.filter(name_place=data.get('name_place')).all().count() > 1:
+            raise serializers.ValidationError(
+                {'error': 'Место съемки с таким названием уже существует'})
         return data
 
 
@@ -47,8 +48,9 @@ class FilmPlacesCreateSerializer(serializers.ModelSerializer):
         profile = self.context['profile']
         user_place = FilmPlaces.objects.filter(profile=profile)
         if user_place.filter(name_place=data.get('name_place')):
-            raise serializers.ValidationError({'error': 'Место съемки с таким названием уже существует'})
-        if profile.pay_status == 0 and user_place.count() > 0:
+            raise serializers.ValidationError(
+                {'error': 'Место съемки с таким названием уже существует'})
+        if profile.pay_status == 0 and user_place.count() >= 5:
             raise serializers.ValidationError({'error': 'Чтобы добавить больше мест для съемок, '
                                                         'пожалуйста, обновите Ваш пакет до стандарт'})
         return data
@@ -206,12 +208,14 @@ class FilmPlacesCommentCreateSerializer(serializers.ModelSerializer):
     def validate(self, data):
         content = data.get('content', '').split()
         if check_obscene_word_in_content(content):
-            raise serializers.ValidationError({'error': 'Ваш комментарий содержит недопустимые слова'})
+            raise serializers.ValidationError(
+                {'error': 'Ваш комментарий содержит недопустимые слова'})
         comment = data.get('answer_id_comment')
         if not comment:
             return data
         if comment.answer_id_comment:
-            raise serializers.ValidationError({'error': 'Вы не можете ответить на ответ другого пользователя'})
+            raise serializers.ValidationError(
+                {'error': 'Вы не можете ответить на ответ другого пользователя'})
         return data
 
 
@@ -221,7 +225,8 @@ class FilmPlacesCommentListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FilmPlacesComment
-        fields = ['content', 'timestamp', 'sender_comment', 'place', 'id', 'quote_id', ]
+        fields = ['content', 'timestamp',
+                  'sender_comment', 'place', 'id', 'quote_id', ]
 
 
 class FilmRequestCreateSerializer(serializers.ModelSerializer):

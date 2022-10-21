@@ -17,8 +17,10 @@ def is_chat_unique(sender_id, receiver_id):
     """
     if sender_id == receiver_id:
         return False
-    chat1 = Chat.objects.filter(Q(sender_id=sender_id) & Q(receiver_id=receiver_id)).first()
-    chat2 = Chat.objects.filter(Q(sender_id=receiver_id) & Q(receiver_id=sender_id)).first()
+    chat1 = Chat.objects.filter(
+        Q(sender_id=sender_id) & Q(receiver_id=receiver_id)).first()
+    chat2 = Chat.objects.filter(
+        Q(sender_id=receiver_id) & Q(receiver_id=sender_id)).first()
     if chat1:
         return chat1.id
     elif chat2:
@@ -34,9 +36,9 @@ def get_interviewer_data(user, chat_id):
         chat = Chat.objects.get(id=chat_id)
         if chat.sender_id.user == user:
             return chat.receiver_id.name, chat.receiver_id.surname, chat.receiver_id.user_channel_name, \
-                   chat.receiver_id.avatar.url
+                chat.receiver_id.avatar.url
         return chat.sender_id.name, chat.sender_id.surname, chat.sender_id.user_channel_name, \
-               chat.sender_id.avatar.url
+            chat.sender_id.avatar.url
     except Chat.DoesNotExist:
         return None, None
 
@@ -61,7 +63,8 @@ def is_user_in_chat(user, room_name):
     """
     try:
         profile = Profile.objects.get(user=user)
-        chat = Chat.objects.filter((Q(sender_id=profile) | Q(receiver_id=profile)) & Q(id=int(room_name)))
+        chat = Chat.objects.filter((Q(sender_id=profile) | Q(
+            receiver_id=profile)) & Q(id=int(room_name)))
         if chat:
             return True
         return False
@@ -73,7 +76,9 @@ def is_user_in_chat(user, room_name):
 def get_receiver_profile(user, chat_id):
     try:
         chat = Chat.objects.get(id=chat_id)
-        return chat.sender_id
+        if chat.receiver_id.id == user.id:
+            return chat.sender_id
+        return chat.receiver_id
     except Chat.DoesNotExist:
         return None
 
@@ -151,7 +156,8 @@ def update_messages_status(data, chat_id):
     В качестве параметра приходить список id сообщений
     """
     if data.get('message_ids'):
-        messages = Message.objects.filter(chat=chat_id, id__in=data['message_ids'])
+        messages = Message.objects.filter(
+            chat=chat_id, id__in=data['message_ids'])
         for message in messages:
             message.status_read = True
         Message.objects.bulk_update(messages, ['status_read'])
@@ -193,10 +199,11 @@ def filter_chat(user):
         order_list = Chat.objects.filter(Q(sender_id__user=user) | Q(receiver_id__user=user)) \
             .select_related('sender_id', 'receiver_id')
     else:
-        chat = Chat.objects.filter(Q(sender_id__user=user) | Q(receiver_id__user=user))
+        chat = Chat.objects.filter(
+            Q(sender_id__user=user) | Q(receiver_id__user=user))
         order_list = chat.filter(Q(id__in=list_chat_id))\
-                                 .order_by(Case(*[When(id=n, then=i) for i, n in enumerate(list_chat_id)]))\
-                                 .select_related('sender_id', 'receiver_id')
+            .order_by(Case(*[When(id=n, then=i) for i, n in enumerate(list_chat_id)]))\
+            .select_related('sender_id', 'receiver_id')
     return order_list
 
 
