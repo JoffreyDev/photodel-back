@@ -20,16 +20,16 @@ def task_delete_last_views():
     FilmPlaces.objects.update(last_views=0)
 
 
-# @app.task
-# def task_update_place_likes():
+@app.task
+def task_update_place_likes():
 
-#     def get_likes(place):
-#         return FilmPlacesLike.objects.filter(place=place).count()
+    def get_likes(place):
+        return FilmPlacesLike.objects.filter(place=place).count()
 
-#     places_list = FilmPlaces.objects.values_list('pk', flat=True)
-#     for place in places_list:
-#         FilmPlaces.objects.filter(pk=place).update(
-#             likesStat=get_likes(place))
+    places_list = FilmPlaces.objects.values_list('pk', flat=True)
+    for place in places_list:
+        FilmPlaces.objects.filter(pk=place).update(
+            likesStat=get_likes(place))
 
 
 @app.task
