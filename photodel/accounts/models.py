@@ -52,7 +52,7 @@ class Profile(models.Model):
     type_pro_account = models.IntegerField(default=1, null=True)
     expired_pro_subscription = models.DateTimeField(blank=True, null=True)
     rating = models.IntegerField(default=0, validators=[MinValueValidator(0)])
-    likes = models.IntegerField(default=0, validators=[MinValueValidator(0)])
+    # likes = models.IntegerField(default=0, validators=[MinValueValidator(0)])
 
     # contacts
     location = gis_models.PointField(srid=4326, blank=True, null=True)
