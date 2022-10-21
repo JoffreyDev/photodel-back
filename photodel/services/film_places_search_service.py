@@ -1,7 +1,7 @@
 from django.contrib.postgres.search import SearchVector, SearchQuery
 from django.db.models import Q
 from geopy.distance import geodesic
-from services.gallery_service import filter_queryset_by_param
+from services.accounts_service import filter_queryset_by_param
 
 
 def filter_film_places_by_distance(queryset, user_coordinates, distance):
@@ -57,9 +57,11 @@ def filter_film_places_queryset(queryset, get_parameters):
     queryset = filter_film_places_by_category(queryset,
                                               get_parameters.get('category', ''))
     queryset = filter_film_places_by_distance(queryset,
-                                              get_parameters.get('user_coords'),
+                                              get_parameters.get(
+                                                  'user_coords'),
                                               get_parameters.get('distance'))
-    queryset = filter_film_places_by_words(queryset, get_parameters.get('search_words', ''))
+    queryset = filter_film_places_by_words(
+        queryset, get_parameters.get('search_words', ''))
     return filter_queryset_by_param(queryset,
                                     get_parameters.get('sort_type', ''),
                                     get_parameters.get('filter_field', ''))

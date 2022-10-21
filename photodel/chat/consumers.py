@@ -48,16 +48,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
             content = {
                 'command': 'new_message',
                 'message': {
-                        'author_id': message.author.id,
-                        'content': message.content,
-                        'timestamp': str(message.timestamp),
-                        'chat_id': message.chat.id,
-                        'message_id': message.id,
-                        "name": message.author.name,
-                        "surname": message.author.surname,
-                        "avatar": message.author.avatar.url,
-                        "online": message.author.user_channel_name,
-                    }
+                    'author_id': message.author.id,
+                    'content': message.content,
+                    'timestamp': str(message.timestamp),
+                    'chat_id': message.chat.id,
+                    'message_id': message.id,
+                    "name": message.author.name,
+                    "surname": message.author.surname,
+                    "avatar": message.author.avatar.url,
+                    "online": message.author.user_channel_name,
+                }
             }
             return await self.send_chat_message(content)
 
@@ -220,15 +220,15 @@ class RequestChatConsumer(AsyncWebsocketConsumer):
             content = {
                 'command': 'new_message',
                 'message': {
-                        'author_id': message.author.id,
-                        'content': message.content,
-                        'timestamp': str(message.timestamp),
-                        'chat_id': message.chat.id,
-                        'message_id': message.id,
-                        "name": message.author.name,
-                        "surname": message.author.surname,
-                        "avatar": message.author.avatar.url,
-                    }
+                    'author_id': message.author.id,
+                    'content': message.content,
+                    'timestamp': str(message.timestamp),
+                    'chat_id': message.chat.id,
+                    'message_id': message.id,
+                    "name": message.author.name,
+                    "surname": message.author.surname,
+                    "avatar": message.author.avatar.url,
+                }
             }
             return await self.send_chat_message(content)
 

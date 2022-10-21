@@ -26,16 +26,20 @@ class FilmPlaces(models.Model):
     cost = models.CharField(max_length=10)
     payment = models.CharField(max_length=40)
     place_location = gis_models.PointField(srid=4326)
-    string_place_location = models.CharField(max_length=40, null=True, blank=True)
+    string_place_location = models.CharField(
+        max_length=40, null=True, blank=True)
     views = models.IntegerField(default=0, validators=[MinValueValidator(0.0)])
     main_photo = models.ForeignKey(Image, on_delete=models.SET(get_photo), blank=True, null=True,
                                    related_name='film_places_main_photo')
-    last_views = models.IntegerField(default=0, validators=[MinValueValidator(0)])
+    last_views = models.IntegerField(
+        default=0, validators=[MinValueValidator(0)])
     last_ip_user = models.CharField(max_length=18, null=True, blank=True)
     is_hidden = models.BooleanField(default=False)
     was_added = models.DateTimeField(default=timezone.localtime)
     category = models.ManyToManyField(CategoryFilmPlaces)
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    likesStat = models.IntegerField(
+        default=0, validators=[MinValueValidator(0.0)])
 
     def __str__(self):
         return self.name_place
@@ -83,7 +87,8 @@ class FilmRequest(models.Model):
     filming_timestamp = models.DateTimeField()
     hours_duration = models.CharField(max_length=40)
     filming_type = models.CharField(max_length=40)
-    filming_status = models.CharField(max_length=12, choices=FILMING_STATUS_CHOICES, default='NEW')
+    filming_status = models.CharField(
+        max_length=12, choices=FILMING_STATUS_CHOICES, default='NEW')
     count_person = models.CharField(max_length=40)
     filming_budget = models.CharField(max_length=40)
     need_makeup_artist = models.BooleanField(default=False)
@@ -91,8 +96,10 @@ class FilmRequest(models.Model):
     was_added = models.DateTimeField(default=timezone.localtime)
     place_filming = models.CharField(max_length=40, null=True)
     reason_failure = models.TextField(blank=True, null=True)
-    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='request_sender_profile')
-    receiver_profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='request_receiver_profile')
+    profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name='request_sender_profile')
+    receiver_profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name='request_receiver_profile')
 
 
 class NotAuthFilmRequest(models.Model):

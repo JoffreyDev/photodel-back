@@ -3,6 +3,8 @@ from django.db.models import Q
 from geopy.distance import geodesic
 from django.utils import timezone
 
+from services.accounts_service import filter_queryset_by_param
+
 
 def filter_by_distance(profiles, user_coordinates, distance):
     """
@@ -17,7 +19,8 @@ def filter_by_distance(profiles, user_coordinates, distance):
     try:
         for query in profiles:
             if query.date_stay_end and query.date_stay_end > timezone.localtime():
-                distance_diff = geodesic(query.location_now, user_coordinates).m
+                distance_diff = geodesic(
+                    query.location_now, user_coordinates).m
             else:
                 distance_diff = geodesic(query.location, user_coordinates).m
 
@@ -33,9 +36,11 @@ def filter_by_category_and_spec(filter_queryset, name_spec, name_category):
     Фильтрация категории и специализации профиля, если паратры были переданы
     """
     if name_category:
-        filter_queryset = filter_queryset.filter(type_pro__name_category=name_category)
+        filter_queryset = filter_queryset.filter(
+            type_pro__name_category=name_category)
     if name_spec:
-        filter_queryset = filter_queryset.filter(spec_model_or_photographer__name_spec=name_spec)
+        filter_queryset = filter_queryset.filter(
+            spec_model_or_photographer__name_spec=name_spec)
     return filter_queryset
 
 
@@ -57,7 +62,8 @@ def filter_by_address(filter_queryset, address):
         return filter_queryset
     if len(address) == 1:
         address = address[0]
-        queryset = filter_queryset.filter(Q(string_location__icontains=address))
+        queryset = filter_queryset.filter(
+            Q(string_location__icontains=address))
         return queryset
     else:
         search_vector = SearchVector("string_location")
@@ -75,7 +81,8 @@ def filter_by_initials(profiles, search_words):
         return profiles
     if len(search_words) == 1:
         search_words = search_words[0]
-        queryset = profiles.filter(Q(name__icontains=search_words) | Q(surname__icontains=search_words))
+        queryset = profiles.filter(
+            Q(name__icontains=search_words) | Q(surname__icontains=search_words))
         return queryset
     else:
         search_vector = SearchVector("name", "surname")
@@ -88,7 +95,8 @@ def filter_by_all_parameters(profiles, request_data):
     Филтррация по всем переданным параметрам из переменной request_data
     """
     by_categories = filter_by_category_and_spec(profiles,
-                                                request_data.get('name_spec', ''),
+                                                request_data.get(
+                                                    'name_spec', ''),
                                                 request_data.get('name_category', ''))
     by_ready_status = filter_by_ready_status(by_categories,
                                              request_data.get('ready_status', ''))
@@ -99,4 +107,6 @@ def filter_by_all_parameters(profiles, request_data):
                                      request_data.get('distance', ''))
     by_initials = filter_by_initials(by_distance,
                                      request_data.get('search_words', ''))
-    return by_initials
+    return filter_queryset_by_param(by_initials,
+                                    request_data.get('sort_type', ''),
+                                    request_data.get('filter_field', ''))

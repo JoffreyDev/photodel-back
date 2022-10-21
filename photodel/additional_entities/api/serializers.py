@@ -12,6 +12,7 @@ from additional_entities.models import (
     Choice,
     Answer,
 )
+from additional_entities.models import CustomSettings
 
 
 class CountryListSerializer(serializers.ModelSerializer):
@@ -30,7 +31,7 @@ class AdvertisementListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Advertisement
         fields = ['id', 'ad_image', 'ad_title',
-                  'ad_link', 'ad_count_click', 'ad_count_click']
+                  'ad_link']
 
 
 class CityListSerializer(serializers.ModelSerializer):
@@ -80,3 +81,9 @@ class AnswerCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Answer
         fields = '__all__'
+
+
+class AdChangeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomSettings
+        fields = ['current_ad']

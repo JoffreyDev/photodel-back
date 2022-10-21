@@ -18,6 +18,7 @@ class ImageBase64Field(serializers.ImageField):
     """
     Класс преобразования картинки в base64 строку
     """
+
     def to_representation(self, obj):
         """
         Функция преобразования картинки в base64
@@ -133,7 +134,8 @@ def diff_between_two_points(user_coordinates, field_with_location):
     """
     if not user_coordinates or not field_with_location:
         return ''
-    diff = field_with_location.distance(convert_string_coordinates_to_point_obj(user_coordinates)) * 100
+    diff = field_with_location.distance(
+        convert_string_coordinates_to_point_obj(user_coordinates)) * 100
     return f'{math.ceil(diff)}км'
 
 
@@ -152,13 +154,7 @@ def filter_queryset_by_param(queryset, sort_type, filter_field):
     try:
         if not filter_field:
             return queryset
-        if filter_field == 'views':
-            if check_exist_field(queryset.first(), 'last_views'):
-                return queryset.order_by(f'{sort_type}last_views')
-            return queryset.order_by(f'{sort_type}views')
         return queryset.order_by(f'{sort_type}{filter_field}')
     except Exception as e:
         print(e)
         return queryset
-
-

@@ -37,19 +37,22 @@ class CustomJWTSerializer(TokenObtainSerializer):
     Сериализатор для кастомной авторизации пользователя
     """
     username = serializers.CharField(max_length=50, write_only=True)
-    password = serializers.CharField(style={'input_type': 'password'}, write_only=True)
+    password = serializers.CharField(
+        style={'input_type': 'password'}, write_only=True)
 
     def validate_username(self, value):
         qs = User.objects.filter(username__iexact=value)
         if not qs.exists():
-            raise serializers.ValidationError("Такого логина не было найдено. Пожалуйста, попробуйте еще раз")
+            raise serializers.ValidationError(
+                "Такого логина не было найдено. Пожалуйста, попробуйте еще раз")
         return value
 
     def validate(self, validate_data):
         data = super().validate(validate_data)
         profile = Profile.objects.get(user=self.user)
         if not profile.email_verify:
-            raise serializers.ValidationError("Вы не можете войти, Ваша почта не пожтверждена")
+            raise serializers.ValidationError(
+                "Вы не можете войти, Ваша почта не пожтверждена")
         refresh = RefreshToken.for_user(self.user)
         data['refresh'] = str(refresh)
         data['access'] = str(refresh.access_token)
@@ -62,7 +65,8 @@ class UserRegisterSerializer(serializers.ModelSerializer):
     """
     Сериализотор для регистраици юзера и выдачи access refresh токена
     """
-    password2 = serializers.CharField(style={'input_type': 'password'}, write_only=True)
+    password2 = serializers.CharField(
+        style={'input_type': 'password'}, write_only=True)
     token = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
@@ -85,7 +89,8 @@ class UserRegisterSerializer(serializers.ModelSerializer):
     def validate_username(self, value):
         qs = User.objects.filter(username__iexact=value)
         if qs.exists():
-            raise serializers.ValidationError("Пользователь с таким логином уже существует. Введите другой")
+            raise serializers.ValidationError(
+                "Пользователь с таким логином уже существует. Введите другой")
         return value
 
     def get_token(self, instance):
@@ -103,8 +108,10 @@ class ChangePasswordSerializer(serializers.Serializer):
     """
     Сериализотор для изменения пароля
     """
-    new_password1 = serializers.CharField(max_length=128, write_only=True, required=True)
-    new_password2 = serializers.CharField(max_length=128, write_only=True, required=True)
+    new_password1 = serializers.CharField(
+        max_length=128, write_only=True, required=True)
+    new_password2 = serializers.CharField(
+        max_length=128, write_only=True, required=True)
 
     class Meta:
         model = User
@@ -112,10 +119,12 @@ class ChangePasswordSerializer(serializers.Serializer):
 
     def validate(self, data):
         if self.context['user'] is AnonymousUser:
-            raise serializers.ValidationError('Пользователь с таким логином не найден')
+            raise serializers.ValidationError(
+                'Пользователь с таким логином не найден')
         if data['new_password1'] != data['new_password2']:
             raise serializers.ValidationError('Пароя не совпадают')
-        password_validation.validate_password(data['new_password1'], self.context['user'])
+        password_validation.validate_password(
+            data['new_password1'], self.context['user'])
         return data
 
     def save(self, **kwargs):
@@ -156,11 +165,12 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
         """
         # проверка на матные слова в описании профеля
         if check_obscene_word_in_content(data.get('about', '').split()):
-            raise serializers.ValidationError({'error': 'В вашей информации содержиатся недопустимые слова'})
+            raise serializers.ValidationError(
+                {'error': 'В вашей информации содержиатся недопустимые слова'})
 
         # проверка прав в зависимости от платежного статуса профиля
-        if self.instance.pay_status == 0 and data.get('filming_geo') and self.instance.filming_geo.all().count() >= 1:
-            raise serializers.ValidationError({'error': 'Чтобы добавить географию съемок, '
+        if self.instance.pay_status == 0 and len(data.get('filming_geo')) >= 2:
+            raise serializers.ValidationError({'error': 'Чтобы более одной географии съемок, '
                                                         'пожалуйста, обновите Ваш пакет до стандарт'})
 
         # проверка может ли профиль добавить специализацию
@@ -185,7 +195,8 @@ class ProfileForPublicSerializer(serializers.ModelSerializer):
     avatar = ImageBase64Field()
     filming_geo = CountryListSerializer(read_only=True, many=True)
     languages = LanguageListSerializer(read_only=True, many=True)
-    spec_model_or_photographer = SpecializationListSerializer(read_only=True, many=True)
+    spec_model_or_photographer = SpecializationListSerializer(
+        read_only=True, many=True)
     type_pro = ProCategoryListSerializer()
     statistics = serializers.SerializerMethodField()
 
@@ -206,7 +217,8 @@ class ProfilePublicSerializer(serializers.ModelSerializer):
     avatar = ImageBase64Field()
     filming_geo = CountryListSerializer(read_only=True, many=True)
     languages = LanguageListSerializer(read_only=True, many=True)
-    spec_model_or_photographer = SpecializationListSerializer(read_only=True, many=True)
+    spec_model_or_photographer = SpecializationListSerializer(
+        read_only=True, many=True)
     type_pro = ProCategoryListSerializer()
 
     class Meta:
@@ -223,7 +235,8 @@ class ProfileForGallerySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ['id', 'name', 'surname', 'avatar', 'user_channel_name', 'rating', ]
+        fields = ['id', 'name', 'surname', 'avatar',
+                  'user_channel_name', 'rating', ]
 
 
 class ProfileWithAdditionalInfoSerializer(serializers.ModelSerializer):
@@ -293,7 +306,8 @@ class ProfilePrivateSerializer(serializers.ModelSerializer):
 class ProfilListSerializer(serializers.ModelSerializer):
     avatar = ImageBase64Field()
     type_pro = ProCategoryListSerializer()
-    spec_model_or_photographer = SpecializationListSerializer(read_only=True, many=True)
+    spec_model_or_photographer = SpecializationListSerializer(
+        read_only=True, many=True)
     diff_distance = serializers.SerializerMethodField()
     count_favorites = serializers.SerializerMethodField()
     count_likes = serializers.SerializerMethodField()
@@ -325,7 +339,8 @@ class ProfilListForMapSerializer(serializers.ModelSerializer):
 
 class ProfileForFavoriteSerializer(serializers.ModelSerializer):
     avatar = ImageBase64Field()
-    spec_model_or_photographer = SpecializationListSerializer(read_only=True, many=True)
+    spec_model_or_photographer = SpecializationListSerializer(
+        read_only=True, many=True)
     type_pro = ProCategoryListSerializer()
     count_favorites = serializers.SerializerMethodField()
     count_likes = serializers.SerializerMethodField()
@@ -381,12 +396,14 @@ class ProfileCommentCreateSerializer(serializers.ModelSerializer):
     def validate(self, data):
         content = data.get('content', '').split()
         if check_obscene_word_in_content(content):
-            raise serializers.ValidationError({'error': 'Ваш комментарий содержит недопустимые слова'})
+            raise serializers.ValidationError(
+                {'error': 'Ваш комментарий содержит недопустимые слова'})
         comment = data.get('answer_id_comment')
         if not comment:
             return data
         if comment.answer_id_comment:
-            raise serializers.ValidationError({'error': 'Вы не можете ответить на ответ другого пользователя'})
+            raise serializers.ValidationError(
+                {'error': 'Вы не можете ответить на ответ другого пользователя'})
         return data
 
 
@@ -396,4 +413,5 @@ class ProfileCommentListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProfileComment
-        fields = ['content', 'timestamp', 'sender_comment', 'receiver_comment', 'answer_id_comment', 'quote_id', ]
+        fields = ['content', 'timestamp', 'sender_comment',
+                  'receiver_comment', 'answer_id_comment', 'quote_id', ]

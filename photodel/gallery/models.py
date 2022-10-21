@@ -25,7 +25,8 @@ class Image(models.Model):
 class Album(models.Model):
     name_album = models.CharField(max_length=40)
     description_album = models.TextField(blank=True)
-    main_photo_id = models.ForeignKey(Image, on_delete=models.SET(get_photo), blank=True, null=True)
+    main_photo_id = models.ForeignKey(
+        Image, on_delete=models.SET(get_photo), blank=True, null=True)
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
     is_hidden = models.BooleanField(default=False)
 
@@ -38,7 +39,8 @@ class Gallery(models.Model):
     name_image = models.CharField(max_length=50)
     description = models.TextField(blank=True)
     place_location = gis_models.PointField(srid=4326)
-    string_place_location = models.CharField(max_length=40, null=True, blank=True)
+    string_place_location = models.CharField(
+        max_length=40, null=True, blank=True)
     tags = models.TextField(blank=True, null=True)
     photo_camera = models.CharField(max_length=40, blank=True)
     focal_len = models.CharField(max_length=40, blank=True)
@@ -54,6 +56,8 @@ class Gallery(models.Model):
     category = models.ManyToManyField(Specialization)
     album = models.ManyToManyField(Album, blank=True)
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    likesStat = models.IntegerField(
+        default=0, validators=[MinValueValidator(0.0)])
 
     def __str__(self):
         return self.name_image
@@ -93,11 +97,14 @@ class PhotoSession(models.Model):
     session_name = models.CharField(max_length=40)
     session_description = models.TextField(blank=True)
     session_location = gis_models.PointField(srid=4326)
-    string_session_location = models.CharField(max_length=40, null=True, blank=True)
+    string_session_location = models.CharField(
+        max_length=40, null=True, blank=True)
     session_date = models.DateField()
-    session_category = models.ForeignKey(Specialization, on_delete=models.SET_NULL, null=True)
+    session_category = models.ForeignKey(
+        Specialization, on_delete=models.SET_NULL, null=True)
     photos = models.ManyToManyField(Image, related_name='rel_images')
-    main_photo = models.ForeignKey(Image, on_delete=models.SET(get_photo), blank=True, null=True, related_name='main')
+    main_photo = models.ForeignKey(Image, on_delete=models.SET(
+        get_photo), blank=True, null=True, related_name='main')
     last_ip_user = models.CharField(max_length=18, null=True, blank=True)
     views = models.IntegerField(default=0, validators=[MinValueValidator(0)])
     is_hidden = models.BooleanField(default=False)

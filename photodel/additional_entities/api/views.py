@@ -1,13 +1,17 @@
+from threading import currentThread
 from rest_framework import viewsets, status, permissions
 from additional_entities.models import Country, Language, Advertisement, City, Question
 from film_places.models import FilmPlacesComment
 from gallery.models import GalleryComment, PhotoSessionComment
 from accounts.models import Profile
+from additional_entities.models import CustomSettings
 from .serializers import CountryListSerializer, LanguageListSerializer, \
     AdvertisementListSerializer, CityListSerializer, AnswerCreateSerializer, \
-    QuestionListSerializer
+    QuestionListSerializer, AdChangeSerializer
 from rest_framework.response import Response
 from services.additional_service import check_town_use_coords, check_exitst_answer
+import datetime
+import math
 
 
 class CountryViewSet(viewsets.ViewSet):
@@ -25,10 +29,10 @@ class LanguageViewSet(viewsets.ViewSet):
 
 
 class AdvertisementViewSet(viewsets.ViewSet):
-
     def list_advertisement(self, request):
-        queryset = Advertisement.objects.all()
-        serializer = AdvertisementListSerializer(queryset, many=True)
+        current_adv = CustomSettings.objects.all().first().current_ad
+        queryset = Advertisement.objects.get(pk=current_adv)
+        serializer = AdvertisementListSerializer(queryset)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
     def add_click_to_advertisement(self, request, pk):
@@ -39,6 +43,15 @@ class AdvertisementViewSet(viewsets.ViewSet):
             return Response(status=status.HTTP_200_OK)
         except Advertisement.DoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    # def task_update_current_ad():
+
+    #     current_ad = CustomSettings.objects.all().first().current_ad
+    #     if Advertisement.objects.all().count() == current_ad:
+    #         current_ad = 1
+    #     else:
+    #         current_ad += 1
+    #     current_ad.save()
 
 
 class CityViewSet(viewsets.ViewSet):
