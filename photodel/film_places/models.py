@@ -38,7 +38,7 @@ class FilmPlaces(models.Model):
     was_added = models.DateTimeField(default=timezone.localtime)
     category = models.ManyToManyField(CategoryFilmPlaces)
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
-    likesStat = models.IntegerField(
+    likes_stat = models.IntegerField(
         default=0, validators=[MinValueValidator(0.0)])
 
     def __str__(self):
