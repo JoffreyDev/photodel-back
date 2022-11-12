@@ -29,7 +29,7 @@ def task_update_place_likes():
     places_list = FilmPlaces.objects.values_list('pk', flat=True)
     for place in places_list:
         FilmPlaces.objects.filter(pk=place).update(
-            likes_stats=get_likes(place))
+            likes_stat=get_likes(place))
 
 
 @app.task
@@ -101,7 +101,7 @@ def task_update_photos_likes():
     photos_list = Gallery.objects.values_list('pk', flat=True)
     for gallery in photos_list:
         Gallery.objects.filter(pk=gallery).update(
-            likes_stats=get_likes(gallery))
+            likes_stat=get_likes(gallery))
 
 
 @app.task
