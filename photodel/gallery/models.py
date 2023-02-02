@@ -142,3 +142,15 @@ class PhotoSessionFavorite(models.Model):
 
     def __str__(self):
         return str(self.id)
+
+
+class Review(models.Model):
+    sender_profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name='sender_profile')
+    receiver_profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name='receiver_profile')
+    date = models.DateTimeField(default=timezone.localtime)
+    mark = models.IntegerField(default=1)
+    content = models.CharField(max_length=255)
+    images = models.ManyToManyField(Image, blank=True)
+    status = models.BooleanField(default=False)

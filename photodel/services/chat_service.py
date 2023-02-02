@@ -3,6 +3,7 @@ from chat.models import Chat, Message, Notification
 from accounts.models import Profile
 from django.db.models import Q, When, Case
 from asgiref.sync import sync_to_async
+from services.accounts_service import create_notification
 
 from datetime import timedelta
 import json
@@ -99,7 +100,13 @@ def create_new_messages(data, chat_id):
     if data.get('message') and data.get('author_id'):
         author_user = Profile.objects.filter(id=data['author_id']).first()
         chat_instance = Chat.objects.filter(id=chat_id).first()
+        if chat_instance.receiver_id == author_user:
+            receiver = chat_instance.sender_id
+        elif chat_instance.sender_id == author_user:
+            receiver = chat_instance.receiver_id
         if author_user and chat_instance:
+            create_notification(sender_profile=author_user, receiver_profile=receiver,
+                                type='NEW_MESSAGE', action_position=chat_id)
             return Message.objects.create(author=author_user, content=data['message'], chat=chat_instance)
         return []
     return []

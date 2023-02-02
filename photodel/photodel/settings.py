@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'film_places',
     'gallery',
     'chat',
+    'trainings'
 ]
 
 MIDDLEWARE = [

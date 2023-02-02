@@ -6,7 +6,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from rest_framework import serializers
 from django.contrib.gis.geos import Point
-from accounts.models import VerificationCode, Profile
+from accounts.models import VerificationCode, Profile, Notifications
 from gallery.models import GalleryLike, GalleryFavorite, PhotoSessionLike, \
     PhotoSessionFavorite, PhotoSessionComment, GalleryComment
 from film_places.models import FilmPlacesLike, FilmPlacesFavorite, FilmPlacesComment
@@ -223,6 +223,12 @@ def check_obscene_word_in_content(content):
         if word.get('word') in content:
             return True
     return False
+
+
+def create_notification(sender_profile, receiver_profile, type, action_position):
+    Notifications.objects.create(
+        sender_profile=sender_profile, receiver_profile=receiver_profile, type=type, action_position=action_position)
+    return True
 
 
 def filter_queryset_by_param(queryset, sort_type, filter_field):

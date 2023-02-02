@@ -2,7 +2,7 @@ from rest_framework_simplejwt.serializers import TokenObtainSerializer
 from django.contrib.auth.models import User, AnonymousUser
 from rest_framework import serializers
 from accounts.models import Profile, VerificationCode, ProCategory, Specialization, \
-    ProfileComment, ProfileLike, ProfileFavorite
+    ProfileComment, ProfileLike, ProfileFavorite, TeamInvites
 from services.gallery_service import ImageBase64Field, Base64ImageField, diff_between_two_points
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import password_validation
@@ -12,6 +12,8 @@ from services.accounts_service import check_profile_location, collect_favorite, 
     collect_like, check_obscene_word_in_content, collect_comment
 from services.statistics_profile_service import collect_profile_statistics
 import json
+from accounts.models import TeamInvites, Notifications
+from chat.models import Message
 
 
 def get_tokens_for_user(user):
@@ -169,7 +171,7 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
                 {'error': 'В вашей информации содержиатся недопустимые слова'})
 
         # проверка прав в зависимости от платежного статуса профиля
-        if self.instance.pay_status == 0 and len(data.get('filming_geo')) >= 2:
+        if self.instance.pay_status == 0 and data.get('filming_geo') and len(data.get('filming_geo')) >= 2:
             raise serializers.ValidationError({'error': 'Чтобы более одной географии съемок, '
                                                         'пожалуйста, обновите Ваш пакет до стандарт'})
 
@@ -232,11 +234,12 @@ class ProfilePublicSerializer(serializers.ModelSerializer):
 
 class ProfileForGallerySerializer(serializers.ModelSerializer):
     avatar = ImageBase64Field()
+    type_pro = ProCategoryListSerializer()
 
     class Meta:
         model = Profile
         fields = ['id', 'name', 'surname', 'avatar',
-                  'user_channel_name', 'rating', ]
+                  'user_channel_name', 'rating', 'pay_status', 'type_pro']
 
 
 class ProfileWithAdditionalInfoSerializer(serializers.ModelSerializer):
@@ -415,3 +418,119 @@ class ProfileCommentListSerializer(serializers.ModelSerializer):
         model = ProfileComment
         fields = ['content', 'timestamp', 'sender_comment',
                   'receiver_comment', 'answer_id_comment', 'quote_id', ]
+
+
+class TeamInviteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = TeamInvites
+        fields = '__all__'
+
+    def validate(self, data):
+        sender = data.get('invite_sender')
+        receiver = data.get('invite_receiver')
+        if sender == receiver:
+            raise serializers.ValidationError(
+                {'error': 'Нельзя пригласить в команду самого себя'})
+        user_invites = TeamInvites.objects.filter(invite_sender_id=sender)
+        simmilar_invites = user_invites.filter(invite_receiver_id=receiver)
+        if simmilar_invites.filter(status='AWAITING'):
+            raise serializers.ValidationError(
+                {'error': 'Уже есть приглашение, которое ожиданет рассмотрения'})
+        user = Profile.objects.filter(user=sender.user).first()
+        if user.team.filter(user=receiver.user):
+            raise serializers.ValidationError(
+                {'error': 'Этот человек уже в вашей команде!'})
+        return data
+
+
+class ProfileForTeamSerializer(serializers.ModelSerializer):
+    type_pro = ProCategoryListSerializer()
+
+    class Meta:
+        model = Profile
+        fields = ['id', 'name', 'surname', 'user_channel_name', 'type_pro',
+                  'avatar',
+                  'string_location', ]
+
+
+class ProfileTeamInvitesListSerializer(serializers.ModelSerializer):
+    invite_receiver = ProfileForTeamSerializer()
+    invite_sender = ProfileForTeamSerializer()
+
+    class Meta:
+        model = TeamInvites
+        fields = ['invite_receiver', 'invite_sender', 'status', 'id']
+
+
+class ProfileTeamListSerializer(serializers.ModelSerializer):
+    type_pro = ProCategoryListSerializer()
+    avatar = ImageBase64Field()
+    count_favorites = serializers.SerializerMethodField()
+    count_likes = serializers.SerializerMethodField()
+    count_comments = serializers.SerializerMethodField()
+    spec_model_or_photographer = SpecializationListSerializer(
+        read_only=True, many=True)
+    diff_distance = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Profile
+        fields = ['id', 'name', 'surname', 'user_channel_name', 'type_pro',
+                  'avatar',
+                  'string_location', 'pay_status', 'count_favorites', 'count_likes', 'count_comments', 'spec_model_or_photographer', 'rating', 'diff_distance']
+
+    def get_count_favorites(self, obj):
+        return collect_favorite(obj.user)
+
+    def get_count_likes(self, obj):
+        return collect_like(obj.user)
+
+    def get_count_comments(self, obj):
+        return collect_comment(obj.user)
+
+    def get_diff_distance(self, obj):
+        location = check_profile_location(obj)
+        return diff_between_two_points(self.context.get('user_coords'), location)
+
+
+class TeamInviteChangeSerializer(serializers.ModelSerializer):
+
+    request_id = serializers.IntegerField()
+    status = serializers.ChoiceField(
+        choices=TeamInvites.STATUS_CHOICES)
+
+    class Meta:
+        model = TeamInvites
+        fields = '__all__'
+
+    def validate_request_id(self, request_id):
+        invite = TeamInvites.objects.filter(id=request_id).exists()
+        if not invite:
+            raise serializers.ValidationError(
+                {'error': 'Приглашение не найдено'})
+        return request_id
+
+
+class NotificationsSerializer(serializers.ModelSerializer):
+    sender_profile = ProfilePublicSerializer()
+    new_messages = serializers.SerializerMethodField()
+    new_requests = serializers.SerializerMethodField()
+    new_reviews = serializers.SerializerMethodField()
+    new_notifications = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Notifications
+        fields = ['type', 'sender_profile', 'id', 'action_position', 'date',
+                  'new_messages', 'new_requests', 'new_reviews', 'new_notifications']
+
+    def get_new_messages(self, obj):
+        return Notifications.objects.filter(receiver_profile=self.context.get('obj'), type='NEW_MESSAGE', readen=False).count()
+
+    def get_new_requests(self, obj):
+        return Notifications.objects.filter(receiver_profile=self.context.get('obj'), type='NEW_REQUEST', readen=False).count()
+
+    def get_new_reviews(self, obj):
+        return Notifications.objects.filter(receiver_profile=self.context.get('obj'), type='NEW_REVIEW', readen=False).count()
+
+    def get_new_notifications(self, obj):
+        return Notifications.objects.filter(receiver_profile=self.context.get('obj'), readen=False).count()

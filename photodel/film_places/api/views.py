@@ -13,7 +13,7 @@ from services.gallery_service import is_unique_favorite, is_unique_like, \
     protection_cheating_views, add_view, filter_queryset_by_param
 from services.film_places_search_service import filter_film_places_queryset
 from tasks.accounts_task import task_send_email_to_verify_not_auth_request
-from services.accounts_service import create_random_code, custom_paginator
+from services.accounts_service import create_random_code, custom_paginator, create_notification
 from services.request_chat_service import create_request_chat_and_message
 from services.film_places_service import get_popular_places, update_not_auth_code, \
     validate_confirmation_code, check_user_allow_give_request
@@ -28,6 +28,7 @@ class CategoryFilmPlacesViewSet(viewsets.ViewSet):
     """
     Класс для представления работы с моделью CategoryFilmPlaces
     """
+
     def list_category(self, request):
         queryset = CategoryFilmPlaces.objects.order_by('name_category')
         serializer = CategoryFilmPlacesListSerializer(queryset, many=True)
@@ -42,7 +43,7 @@ class FilmPlacesViewSet(viewsets.ViewSet):
         'create_place': [permissions.IsAuthenticated, ],
         'partial_update_place': [permissions.IsAuthenticated, ],
         'delete_place': [permissions.IsAuthenticated, ],
-        }
+    }
 
     def create_place(self, request):
         logger.info(f'Пользователь {request.user} хочет создать место съемки')
@@ -55,28 +56,34 @@ class FilmPlacesViewSet(viewsets.ViewSet):
                                                 context={'profile': profile})
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-            logger.info(f'Пользователь {request.user} успешно создал место для съемки')
+            logger.info(
+                f'Пользователь {request.user} успешно создал место для съемки')
             return Response(serializer.data, status=status.HTTP_200_OK)
-        logger.error(f'Пользователь {request.user} не смог добавить место для съемки')
+        logger.error(
+            f'Пользователь {request.user} не смог добавить место для съемки')
         return Response(status=status.HTTP_400_BAD_REQUEST, data='Создание места для съемки не было выполнено '
                                                                  'Пожалуйства обратитесь в поддержку')
 
     def partial_update_place(self, request, pk):
         try:
-            logger.info(f'Пользователь {request.user} хочет изменить место съемки')
+            logger.info(
+                f'Пользователь {request.user} хочет изменить место съемки')
             profile = Profile.objects.get(user=request.user)
             instance = FilmPlaces.objects.get(pk=pk, profile=profile)
             serializer = FilmPlacesUpdateSerializer(instance, data=request.data, partial=True,
                                                     context={'profile': profile})
             if serializer.is_valid(raise_exception=True):
                 serializer.save()
-                logger.info(f'Пользователь {request.user} успешно изменил место съемки')
+                logger.info(
+                    f'Пользователь {request.user} успешно изменил место съемки')
                 return Response(serializer.data, status=status.HTTP_200_OK)
-            logger.error(f'Обновление место съемки для пользователя {request.user} не было выполнено')
+            logger.error(
+                f'Обновление место съемки для пользователя {request.user} не было выполнено')
             return Response(status=status.HTTP_400_BAD_REQUEST, data='Обновление место съемки не было выполнено '
                                                                      'Пожалуйства обратитесь в поддержку')
         except FilmPlaces.DoesNotExist:
-            logger.error(f'место съемки для пользователя {request.user} не было найдено')
+            logger.error(
+                f'место съемки для пользователя {request.user} не было найдено')
             return Response(status=status.HTTP_400_BAD_REQUEST, data="Vесто съемки не было найдено")
 
     def retrieve_place(self, request, pk):
@@ -85,7 +92,8 @@ class FilmPlacesViewSet(viewsets.ViewSet):
             instance = FilmPlaces.objects.get(id=pk)
             if protection_cheating_views(instance, user_ip):
                 add_view(instance)
-            serializer = FilmPlacesRetrieveSerializer(instance, context={'user': request.user})
+            serializer = FilmPlacesRetrieveSerializer(
+                instance, context={'user': request.user})
             return Response(status=status.HTTP_200_OK, data=serializer.data)
         except FilmPlaces.DoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Место съемки не было найдено'})
@@ -117,14 +125,15 @@ class FilmPlacesViewSet(viewsets.ViewSet):
         places = FilmPlaces.objects.filter(is_hidden=False)
         queryset = filter_film_places_queryset(places, request.GET)
         serializer = FilmPlacesAllLisForMaptSerializer(queryset, many=True,
-                                                 context={'user_coords': request.GET.get('user_coords')})
+                                                       context={'user_coords': request.GET.get('user_coords')})
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
     def delete_place(self, request):
         try:
             places = request.data.get('places_id')
             for place in places:
-                instance = FilmPlaces.objects.get(id=place, profile__user=request.user)
+                instance = FilmPlaces.objects.get(
+                    id=place, profile__user=request.user)
                 instance.delete()
             return Response(status=status.HTTP_200_OK)
         except FilmPlaces.DoesNotExist:
@@ -144,7 +153,8 @@ class FilmPlacesFavoriteViewSet(viewsets.ViewSet):
     }
 
     def list_favorite(self, request, pk):
-        logger.info(f'Пользователь {request.user} хочет получить список избранных мест съемки')
+        logger.info(
+            f'Пользователь {request.user} хочет получить список избранных мест съемки')
         favorites = FilmPlacesFavorite.objects.filter(profile_id=pk)
         queryset = filter_queryset_by_param(favorites,
                                             request.GET.get('sort_type', ''),
@@ -152,36 +162,50 @@ class FilmPlacesFavoriteViewSet(viewsets.ViewSet):
             .select_related('profile', 'place')
         serializer = FilmPlacesFavoriteListSerializer(queryset, many=True,
                                                       context={'user_coords': request.GET.get('user_coords')})
-        logger.info(f'Пользователь {request.user} успешно получил список мест съемок')
+        logger.info(
+            f'Пользователь {request.user} успешно получил список мест съемок')
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def create_favorite(self, request):
-        logger.info(f'Пользователь {request.user} хочет добавить место съемки в избранное')
+        logger.info(
+            f'Пользователь {request.user} хочет добавить место съемки в избранное')
         profile = Profile.objects.get(user=request.user).id
+        sender_profile_instance = Profile.objects.get(user=request.user)
+        owner_profile = FilmPlaces.objects.get(
+            pk=request.data.get('place')).profile
         if not is_unique_favorite(request.data.get('place'), profile, 'places'):
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message":
                                                                       'Такое место съемки уже есть в избранном'})
-        serializer = FilmPlacesFavoriteCreateSerializer(data=request.data | {"profile": profile})
+        serializer = FilmPlacesFavoriteCreateSerializer(
+            data=request.data | {"profile": profile})
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-            logger.info(f'Пользователь {request.user} учпешно добавил место съемки в избранное')
+            create_notification(
+                receiver_profile=owner_profile, sender_profile=sender_profile_instance, type='NEW_PLACE_FAVORITE', action_position=request.data.get('place'))
+            logger.info(
+                f'Пользователь {request.user} учпешно добавил место съемки в избранное')
             return Response(serializer.data, status=status.HTTP_200_OK)
-        logger.error(f'Пользователь {request.user} не добавил место съемки в избранное')
+        logger.error(
+            f'Пользователь {request.user} не добавил место съемки в избранное')
         return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Добавление избранного не было выполнено. '
                                                                              'Пожалуйства обратитесь в поддержку'})
 
     def delete_favorite(self, request):
         try:
-            logger.info(f'Пользователь {request.user} хочет удалить место съемки из избранного')
+            logger.info(
+                f'Пользователь {request.user} хочет удалить место съемки из избранного')
             place_favorites = request.data.get('place_favorites')
             profile = Profile.objects.get(user=request.user)
             for place in place_favorites:
-                instance = FilmPlacesFavorite.objects.get(profile=profile, place=place)
+                instance = FilmPlacesFavorite.objects.get(
+                    profile=profile, place=place)
                 instance.delete()
-            logger.info(f'Пользователь {request.user} успешно удалил место съемки из избранного')
+            logger.info(
+                f'Пользователь {request.user} успешно удалил место съемки из избранного')
             return Response(status=status.HTTP_200_OK)
         except FilmPlacesFavorite.DoesNotExist:
-            logger.error(f'Для Пользователя {request.user} не было найдено избранное место съемки при удалении')
+            logger.error(
+                f'Для Пользователя {request.user} не было найдено избранное место съемки при удалении')
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Избранное мест съемки не было найдено'})
 
     def get_permissions(self):
@@ -198,29 +222,41 @@ class FilmPlacesLikeViewSet(viewsets.ViewSet):
     }
 
     def create_like(self, request):
-        logger.info(f'Пользователь {request.user} хочет добавить лайк к месту съемки')
+        logger.info(
+            f'Пользователь {request.user} хочет добавить лайк к месту съемки')
         profile = Profile.objects.get(user=request.user).id
+        sender_profile_instance = Profile.objects.get(user=request.user)
+        owner_profile = FilmPlaces.objects.get(
+            pk=request.data.get('place')).profile
         if not is_unique_like(request.data.get('place'), profile, 'places'):
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Лайк на месте съемки уже есть'})
-        serializer = FilmPlacesLikeCreateSerializer(data=request.data | {"profile": profile})
+        serializer = FilmPlacesLikeCreateSerializer(
+            data=request.data | {"profile": profile})
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-            logger.info(f'Пользователь {request.user} успешно добавил лайк к месту съемки')
+            create_notification(
+                receiver_profile=owner_profile, sender_profile=sender_profile_instance, type='NEW_PLACE_LIKE', action_position=request.data.get('place'))
+            logger.info(
+                f'Пользователь {request.user} успешно добавил лайк к месту съемки')
             return Response(serializer.data, status=status.HTTP_200_OK)
-        logger.error(f'Пользователь {request.user} не добавил лайк к месту съемки')
+        logger.error(
+            f'Пользователь {request.user} не добавил лайк к месту съемки')
         return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Добавление лайка не было выполнено. '
                                                                              'Пожалуйства обратитесь в поддержку'})
 
     def delete_like(self, request, pk):
         try:
-            logger.info(f'Пользователь {request.user} хочет убрать лайк с места съемки')
+            logger.info(
+                f'Пользователь {request.user} хочет убрать лайк с места съемки')
             profile = Profile.objects.get(user=request.user)
             instance = FilmPlacesLike.objects.get(profile=profile, place=pk)
             instance.delete()
-            logger.info(f'Пользователь {request.user} успешно убрал лайк с места съемки')
+            logger.info(
+                f'Пользователь {request.user} успешно убрал лайк с места съемки')
             return Response(status=status.HTTP_200_OK)
         except FilmPlacesLike.DoesNotExist:
-            logger.error(f'Для Пользователя {request.user} не было найдено место съемки при удалении лайка')
+            logger.error(
+                f'Для Пользователя {request.user} не было найдено место съемки при удалении лайка')
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Место съемки не была найдена'})
 
     def get_permissions(self):
@@ -236,20 +272,30 @@ class FilmPlacesCommentViewSet(viewsets.ViewSet):
     }
 
     def list_comments(self, request, pk):
-        logger.info(f'Пользователь {request.user} хочет получить список мест съемок')
+        logger.info(
+            f'Пользователь {request.user} хочет получить список мест съемок')
         queryset = FilmPlacesComment.objects.filter(place=pk).select_related()
         serializer = FilmPlacesCommentListSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def create_comment(self, request):
-        logger.info(f'Пользователь {request.user} хочет создать комментарий к месту съемки')
+        logger.info(
+            f'Пользователь {request.user} хочет создать комментарий к месту съемки')
         profile = Profile.objects.get(user=request.user).id
-        serializer = FilmPlacesCommentCreateSerializer(data=request.data | {"sender_comment": profile})
+        sender_profile_instance = Profile.objects.get(user=request.user)
+        owner_profile = FilmPlaces.objects.get(
+            pk=request.data.get('place')).profile
+        serializer = FilmPlacesCommentCreateSerializer(
+            data=request.data | {"sender_comment": profile})
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-            logger.info(f'Пользователь {request.user} успешно добавил комментарий к месту съемки')
+            create_notification(
+                receiver_profile=owner_profile, sender_profile=sender_profile_instance, type='NEW_PLACE_COMMENT', action_position=request.data.get('place'))
+            logger.info(
+                f'Пользователь {request.user} успешно добавил комментарий к месту съемки')
             return Response(serializer.data, status=status.HTTP_200_OK)
-        logger.error(f'Пользователь {request.user} не добавил комментарий к месту съемки')
+        logger.error(
+            f'Пользователь {request.user} не добавил комментарий к месту съемки')
         return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Добавление комментария не было выполнено.'
                                                                              ' Пожалуйства обратитесь в поддержку'})
 
@@ -269,11 +315,18 @@ class FilmRequestViewSet(viewsets.ViewSet):
     def create_film_request(self, request):
         logger.info(f'Пользователь {request.user} хочет создать запрос')
         profile = Profile.objects.get(user=request.user).id
-        serializer = FilmRequestCreateSerializer(data=request.data | {"profile": profile})
+        sender_profile_instance = Profile.objects.get(user=request.user)
+        owner_profile = FilmRequest.objects.get(
+            pk=request.data.get('receiver_profile')).profile
+        serializer = FilmRequestCreateSerializer(
+            data=request.data | {"profile": profile})
         if serializer.is_valid(raise_exception=True):
             serializer.save()
+            create_notification(sender_profile=sender_profile_instance, receiver_profile=owner_profile,
+                                type='NEW_FILMING_REQUEST', action_position=0)
             create_request_chat_and_message(serializer.data.get('profile'),
-                                            serializer.data.get('receiver_profile'),
+                                            serializer.data.get(
+                                                'receiver_profile'),
                                             serializer.data.get('id'))
             logger.info(f'Пользователь {request.user} успешно создал запрос')
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -328,7 +381,8 @@ class NotAuthFilmRequestViewSet(viewsets.ViewSet):
             serializer.save()
             code = create_random_code(6)
             update_not_auth_code(serializer.data.get('id', ''), code)
-            task_send_email_to_verify_not_auth_request(serializer.data.get('email', ''), code)
+            task_send_email_to_verify_not_auth_request(
+                serializer.data.get('email', ''), code)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'создание запроса не было выполнено.'
                                                                              ' Пожалуйства обратитесь в поддержку'})
@@ -347,7 +401,8 @@ class NotAuthFilmRequestViewSet(viewsets.ViewSet):
 
     def retrieve_not_auth_requests(self, request, pk):
         try:
-            queryset = NotAuthFilmRequest.objects.get(id=pk, receiver_profile__user=request.user, email_verify=True)
+            queryset = NotAuthFilmRequest.objects.get(
+                id=pk, receiver_profile__user=request.user, email_verify=True)
             serializer = NotAuthFilmRequestListSerializer(queryset)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except NotAuthFilmRequest.DoesNotExist:
