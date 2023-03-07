@@ -435,16 +435,16 @@ class ProfileTeamViewSet(viewsets.ViewSet):
     def send_team_invite(self, request):
         logger.info(
             f'Пользователь {request.user} хочет отправить приглашение в команду')
-        profile = Profile.objects.get(user=request.user).id
-        sender_profile_instance = Profile.objects.get(user=request.user)
-        owner_profile = TeamInvites.objects.get(
-            pk=request.data.get('invite_receiver')).profile
+        sender_profile_instance = Profile.objects.get(
+            user=request.data.get('invite_sender'))
+        receiver_profile_instance = Profile.objects.get(
+            user=request.data.get('invite_receiver'))
         serializer = TeamInviteSerializer(
-            data=request.data | {"profile": profile})
+            data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-            create_notification(sender_profile=sender_profile_instance, receiver_profile=owner_profile,
-                                type='NEW_TRAINING_REQUEST', action_position=0)
+            create_notification(sender_profile=sender_profile_instance, receiver_profile=receiver_profile_instance,
+                                type='NEW_TEAM_REQUEST', action_position=0)
             logger.info(
                 f'Пользователь {request.user} успешно создал приглашение в команду')
             return Response(serializer.data, status=status.HTTP_200_OK)
