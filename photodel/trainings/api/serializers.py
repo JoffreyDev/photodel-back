@@ -272,6 +272,9 @@ class TrainingCreateRequestSerializer(serializers.ModelSerializer):
         if simmilar_requests.filter(status='ACCEPTED'):
             raise serializers.ValidationError(
                 {'error': 'Вы уже записаны на это обучение!'})
+        if training.training_members.all().count() >= training.summary_members:
+            raise serializers.ValidationError(
+                {'error': 'Все места уже забронированы!'})
         return data
 
 
