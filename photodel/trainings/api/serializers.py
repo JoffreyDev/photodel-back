@@ -50,9 +50,14 @@ class TrainingsCreateSerializer(serializers.ModelSerializer):
         if user_training.filter(training_title=data.get('training_title')):
             raise serializers.ValidationError(
                 {'error': 'Обучение с таким названием уже существует'})
-        if profile.pay_status == 0 and user_training.count() >= 10:
-            raise serializers.ValidationError({'error': 'Чтобы добавить больше обучений, '
-                                                        'пожалуйста, обновите Ваш пакет до стандарт'})
+        profile = self.context['profile']
+        user_trainings = Trainings.objects.filter(profile=profile)
+        if profile.pro_account == 0:
+            raise serializers.ValidationError({'error': 'Чтобы добавить обучение, '
+                                                        'пожалуйста, обновите Ваш пакет до Стандарт'})
+        if profile.pro_account == 1 and user_trainings.count() >= 1:
+            raise serializers.ValidationError({'error': 'Вы сможете добавить обучение через месяц. '
+                                                        'Чтобы снять ограничения, пожалуйста, обновите Ваш пакет до Максимум'})
         return data
 
 

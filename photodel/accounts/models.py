@@ -49,8 +49,8 @@ class Profile(models.Model):
     spec_model_or_photographer = models.ManyToManyField(
         Specialization, blank=True)
     # 1 - Бесплатный 2 - Стандарт 3 - Максимум
-    type_pro_account = models.IntegerField(default=1, null=True)
-    expired_pro_subscription = models.DateTimeField(blank=True, null=True)
+    pro_account = models.IntegerField(default=0, null=True)
+    pro_subscription_expiration = models.DateTimeField(blank=True, null=True)
     rating = models.IntegerField(default=0, validators=[MinValueValidator(0)])
     likes = models.IntegerField(default=0, validators=[MinValueValidator(0)])
 

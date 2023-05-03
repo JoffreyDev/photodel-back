@@ -105,9 +105,12 @@ class AlbumCreateSerializer(serializers.ModelSerializer):
         if user_albums.filter(name_album=data.get('name_album')):
             raise serializers.ValidationError(
                 {'error': 'Альбом с таким названием уже существует'})
-        if profile.pay_status == 0 and user_albums.count() > 2:
+        if profile.pro_account == 0 and user_albums.count() >= 3:
             raise serializers.ValidationError({'error': 'Чтобы добавить больше альбомов, '
-                                                        'пожалуйста, обновите Ваш пакет до стандарт'})
+                                                        'пожалуйста, обновите Ваш пакет до Стандарт'})
+        if profile.pro_account == 1 and user_albums.count() >= 10:
+            raise serializers.ValidationError({'error': 'Чтобы добавить больше альбомов, '
+                                                        'пожалуйста, обновите Ваш пакет до Массимум'})
         if not data.get('main_photo_id'):
             data['main_photo_id'] = Image.objects.filter(
                 profile__user__username='admin').first()
@@ -156,6 +159,15 @@ class GalleryCreateSerializer(serializers.ModelSerializer):
                 if album.main_photo_id == Image.objects.filter(profile__user__username='admin').first():
                     album.main_photo_id = data.get('gallery_image')
                     album.save()
+
+        profile = self.context['profile']
+        user_photos = Gallery.objects.filter(profile=profile)
+        if profile.pro_account == 0 and user_photos.count() >= 15:
+            raise serializers.ValidationError({'error': 'Чтобы добавить больше фото, '
+                                                        'пожалуйста, обновите Ваш пакет до Стандарт'})
+        if profile.pro_account == 1 and user_photos.count() >= 100:
+            raise serializers.ValidationError({'error': 'Чтобы добавить больше фото, '
+                                                        'пожалуйста, обновите Ваш пакет до Максимум'})
         return data
 
 
@@ -329,9 +341,14 @@ class PhotoSessionCreateSerializer(serializers.ModelSerializer):
         if user_photo_session.filter(session_name=data.get('session_name')).count() > 0:
             raise serializers.ValidationError(
                 {'error': 'Фотосессия с таким названием уже существует'})
-        if profile.pay_status == 0 and user_photo_session.count() >= 2:
+
+        user_sessions = PhotoSession.objects.filter(profile=profile)
+        if profile.pro_account == 0 and user_sessions.count() >= 1:
             raise serializers.ValidationError({'error': 'Чтобы добавить больше фотосессий, '
-                                                        'пожалуйста, обновите Ваш пакет до стандарт'})
+                                                        'пожалуйста, обновите Ваш пакет до Стандарт'})
+        if profile.pro_account == 1 and user_sessions.count() >= 3:
+            raise serializers.ValidationError({'error': 'Чтобы добавить больше фотосессий, '
+                                                        'пожалуйста, обновите Ваш пакет до Максимум'})
         return data
 
 
