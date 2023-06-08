@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from accounts.models import Profile, VerificationCode, ProCategory, Specialization, TeamInvites, \
     ProfileComment, ProfileLike, ProfileFavorite, Notifications
 from rest_framework_simplejwt.views import TokenViewBase
+import accounts.models
 from services.accounts_service import check_email_verification_code, update_or_create_verification_token, \
     create_random_code, check_is_unique_email, return_user_use_reset_token, custom_paginator, create_notification
 from services.ip_service import get_ip
@@ -14,11 +15,22 @@ from .serializers import ProfileUpdateSerializer, ChangePasswordSerializer, \
     ProCategoryListSerializer, SpecializationListSerializer, \
     ProfilePrivateSerializer, ProfilePublicSerializer, ProfileFavoriteCreateSerializer, \
     ProfileFavoriteListSerializer, ProfileLikeCreateSerializer, ProfileCommentCreateSerializer, \
-    ProfileCommentListSerializer, ProfilListSerializer, ProfileForPublicSerializer, ProfilListForMapSerializer, TeamInviteSerializer, ProfileTeamInvitesListSerializer, TeamInviteChangeSerializer, ProfileTeamListSerializer, NotificationsSerializer
+    ProfileCommentListSerializer, ProfilListSerializer, ProfileForPublicSerializer, ProfilListForMapSerializer, TeamInviteSerializer, ProfileTeamInvitesListSerializer, TeamInviteChangeSerializer, ProfileTeamListSerializer, NotificationsSerializer, HistorySerializer
 
 from .serializers import UserRegisterSerializer, UserSerializer, CustomJWTSerializer
 from services.team_service import update_team_invite_status
 import logging
+import uuid
+from yookassa import Configuration, Payment
+import json
+import datetime
+
+Configuration.account_id = '319943'
+Configuration.secret_key = 'test_Q2RQicRBamSd-wo9QtoyKuTn8u3Mh_h8aijtj09crwo'
+
+
+
+
 
 logger = logging.getLogger(__name__)
 
@@ -523,3 +535,77 @@ class ProfileNotificationViewSet(viewsets.ViewSet):
             return [permission() for permission in self.permission_classes_by_action[self.action]]
         except KeyError:
             return [permission() for permission in self.permission_classes]
+        
+class SubscriptionPay(viewsets.ViewSet):
+     
+    permission_classes_by_action = {
+        'create_comment': [permissions.IsAuthenticated, ],
+    }
+    
+    def create_new_payment(self, request):
+        profile = Profile.objects.filter(user=request.user).first()
+        payment = Payment.create({
+        "amount": {
+            "value": request.data.get('amount'),
+            "currency": "RUB"
+        },
+        "receipt": {
+            "customer": {
+                "email": f'{profile.email}'
+            }
+        },
+        "payment_method_data": {
+            "type": "bank_card"
+        },
+        "confirmation": {
+            "type": "redirect",
+            "return_url": "http://88.214.236.178/profile/finance/?confirm=pending"
+        },
+        "capture": True,
+        "description": f'Оплата подписки {request.data.get("plan")} на {request.data.get("duration")}'
+        })
+
+        
+     
+        payment_data = json.loads(payment.json())
+        payment_id = payment_data['id']
+        accounts.models.Payment.objects.create(payment_id=payment_data['id'], account=profile, plan=request.data.get('plan'), duration=request.data.get('duration'), value=request.data.get('amount'), status='pending')
+        payment_url = (payment_data['confirmation'])['confirmation_url']
+
+        return Response({'confirmation_url': payment_url})
+    
+    def check_payment(self, request):
+        profile = Profile.objects.filter(user=request.user).first()
+        payment = accounts.models.Payment.objects.filter(account=profile).last()
+       
+        info = json.loads((Payment.find_one(payment.payment_id)).json())
+
+        if info['status'] == 'succeeded' and not payment.realized:
+            if payment.plan == 'standart':
+                profile.pro_account = 1
+                profile.pro_subscription_expiration += datetime.timedelta(days=30 * payment.duration)
+                profile.save()
+                payment.realized = True
+                payment.status = 'succeeded'
+                payment.save()
+                return Response({'Подписка успешно приобретена!'})
+            elif payment.plan == 'max':
+                 profile.pro_account = 2
+                 profile.pro_subscription_expiration += datetime.timedelta(days=30 * payment.duration)
+                 profile.save()
+                 payment.realized = True
+                 payment.save()
+                 return Response({'Подписка успешно приобретена!'})
+        elif info['status'] != 'succeeded' and info['status'] != 'pending':
+              payment.status = 'canceled'
+              payment.save()
+              return Response({'Платеж не прошел. Вам могут помочь у нас в поддержке.'})
+        
+    def get_history(self, request):
+        profile = Profile.objects.filter(user=request.user).first()
+        payments = accounts.models.Payment.objects.filter(account=profile)
+        serializer = HistorySerializer(payments, many=True)
+        return Response({'payments': serializer.data})
+        
+
+   

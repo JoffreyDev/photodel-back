@@ -1,12 +1,17 @@
 from django.contrib import admin
 from .models import Profile, VerificationCode, ProCategory, Specialization, \
-    ProfileComment, ProfileLike, ProfileFavorite, TeamInvites, Notifications
+    ProfileComment, ProfileLike, ProfileFavorite, TeamInvites, Notifications, Payment
 
 
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
     list_display = ['name', 'surname', 'email',
                     'phone', 'status', 'last_ip', 'id', ]
+    
+@admin.register(Payment)
+class ProfilePayment(admin.ModelAdmin):
+    list_display = ['account']
+
 
 
 @admin.register(VerificationCode)

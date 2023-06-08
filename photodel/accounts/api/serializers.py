@@ -12,7 +12,7 @@ from services.accounts_service import check_profile_location, collect_favorite, 
     collect_like, check_obscene_word_in_content, collect_comment
 from services.statistics_profile_service import collect_profile_statistics
 import json
-from accounts.models import TeamInvites, Notifications
+from accounts.models import TeamInvites, Notifications, Payment
 from chat.models import Message
 
 
@@ -556,3 +556,8 @@ class NotificationsSerializer(serializers.ModelSerializer):
 
     def get_new_notifications(self, obj):
         return Notifications.objects.filter(receiver_profile=self.context.get('obj'), readen=False).count()
+    
+class HistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Payment
+        fields = ['date', 'value', 'status', 'plan', 'duration']

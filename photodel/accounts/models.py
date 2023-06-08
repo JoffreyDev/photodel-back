@@ -185,3 +185,23 @@ class Notifications(models.Model):
 
     def __str__(self):
         return str(self.id)
+    
+class Payment(models.Model):
+    payment_id = models.CharField(
+        max_length=255, blank=True, null=True, default=0)
+    account = models.ForeignKey(
+        Profile, null=True, on_delete=models.CASCADE, related_name='payment_sender')
+    value = models.IntegerField(
+        blank=True, null=True, default=0)
+    date = models.DateTimeField(default=timezone.localtime)
+    plan = models.CharField(
+        max_length=12, blank=True, null=True, default=0)
+    duration = models.IntegerField(
+        blank=True, null=True, default=0)
+    status = models.CharField(
+        max_length=12, blank=True, null=True, default=0)
+    realized = models.BooleanField(default=False)
+    
+
+    def __str__(self):
+        return str(self.id)

@@ -272,7 +272,7 @@ class GalleryViewSet(viewsets.ViewSet):
 
     def popular_photos(self, request):
         photos = Gallery.objects.order_by(
-            'views').select_related('gallery_image')[:10]
+            '-likes_stat').select_related('gallery_image')[:10]
         serializer = GalleryForCardListSerializer(photos, many=True)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 
