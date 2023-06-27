@@ -241,7 +241,12 @@ class ProfileViewSet(viewsets.ViewSet):
         """
         Список профилей для поиска с пагинацией
         """
-        profiles = Profile.objects.filter(status=2, is_hide=False)
+        user = request.user
+        queryset = Profile.objects.filter(status=2, is_hide=False)
+        if request.user.is_authenticated:
+            profiles = queryset.exclude(user=user)
+        else:
+            profiles = queryset
         queryset_filter = filter_by_all_parameters(profiles, request.GET) \
             .select_related('user', 'type_pro') \
             .prefetch_related('spec_model_or_photographer')

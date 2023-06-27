@@ -260,7 +260,7 @@ class ProfileForGallerySerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = ['id', 'name', 'surname', 'avatar',
-                  'user_channel_name', 'rating', 'pay_status', 'type_pro', 'pro_account', 'pro_subscription_expiration']
+                  'user_channel_name', 'rating', 'pay_status', 'type_pro', 'pro_account', 'pro_subscription_expiration', ]
 
 
 class ProfileWithAdditionalInfoSerializer(serializers.ModelSerializer):
@@ -482,7 +482,7 @@ class ProfileTeamInvitesListSerializer(serializers.ModelSerializer):
     class Meta:
         model = TeamInvites
         fields = ['invite_receiver', 'invite_sender', 'status',
-                  'id', 'pro_account', 'pro_subscription_expiration']
+                  'id',]
 
 
 class ProfileTeamListSerializer(serializers.ModelSerializer):
