@@ -588,7 +588,10 @@ class SubscriptionPay(viewsets.ViewSet):
         if info['status'] == 'succeeded' and not payment.realized:
             if payment.plan == 'standart':
                 profile.pro_account = 1
-                profile.pro_subscription_expiration += datetime.timedelta(days=30 * payment.duration)
+                if not profile.pro_subscription_expiration:
+                        profile.pro_subscription_expiration = datetime.datetime.now() + datetime.timedelta(days=30 * payment.duration)
+                else:
+                    profile.pro_subscription_expiration += datetime.timedelta(days=30 * payment.duration)
                 profile.save()
                 payment.realized = True
                 payment.status = 'succeeded'
@@ -596,7 +599,10 @@ class SubscriptionPay(viewsets.ViewSet):
                 return Response({'Подписка успешно приобретена!'})
             elif payment.plan == 'max':
                  profile.pro_account = 2
-                 profile.pro_subscription_expiration += datetime.timedelta(days=30 * payment.duration)
+                 if not profile.pro_subscription_expiration:
+                    profile.pro_subscription_expiration = datetime.datetime.now() + datetime.timedelta(days=30 * payment.duration)
+                 else:
+                    profile.pro_subscription_expiration += datetime.timedelta(days=30 * payment.duration)
                  profile.save()
                  payment.realized = True
                  payment.save()
