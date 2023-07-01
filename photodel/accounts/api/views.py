@@ -564,7 +564,7 @@ class SubscriptionPay(viewsets.ViewSet):
         },
         "confirmation": {
             "type": "redirect",
-            "return_url": "http://88.214.236.178/profile/finance/?confirm=pending"
+            "return_url": "https://photodel.ru/profile/finance/?confirm=pending"
         },
         "capture": True,
         "description": f'Оплата подписки {request.data.get("plan")} на {request.data.get("duration")}'
