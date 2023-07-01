@@ -17,6 +17,7 @@ INSTALLED_APPS = [
     'django.contrib.gis',
 
     'corsheaders',
+    'yookassa',
 
     'rest_framework',
     'djoser',
@@ -28,6 +29,7 @@ INSTALLED_APPS = [
     'film_places',
     'gallery',
     'chat',
+    'trainings'
 ]
 
 MIDDLEWARE = [

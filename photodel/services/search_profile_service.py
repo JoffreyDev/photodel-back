@@ -88,6 +88,15 @@ def filter_by_initials(profiles, search_words):
         search_vector = SearchVector("name", "surname")
         search_query = SearchQuery(" | ".join(search_words), search_type="raw")
         return profiles.annotate(search=search_vector).filter(search=search_query)
+    
+def filter_profile_by_place(queryset, place):
+    """
+    Фильтрация места по месту
+    """
+    if not place:
+        return queryset
+    queryset = queryset.filter(string_location__contains=place)
+    return queryset
 
 
 def filter_by_all_parameters(profiles, request_data):
@@ -107,6 +116,7 @@ def filter_by_all_parameters(profiles, request_data):
                                      request_data.get('distance', ''))
     by_initials = filter_by_initials(by_distance,
                                      request_data.get('search_words', ''))
-    return filter_queryset_by_param(by_initials,
+    by_place = filter_profile_by_place(by_initials, request_data.get('place', ''))
+    return filter_queryset_by_param(by_place,
                                     request_data.get('sort_type', ''),
                                     request_data.get('filter_field', ''))

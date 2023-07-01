@@ -48,6 +48,15 @@ def filter_film_places_by_words(queryset, search_words):
         search_vector = SearchVector("name_place", "description")
         search_query = SearchQuery(" | ".join(search_words), search_type="raw")
         return queryset.annotate(search=search_vector).filter(search=search_query)
+    
+def filter_place_by_place(queryset, place):
+    """
+    Фильтрация места по месту
+    """
+    if not place:
+        return queryset
+    queryset = queryset.filter(string_place_location__contains=place)
+    return queryset
 
 
 def filter_film_places_queryset(queryset, get_parameters):
@@ -62,6 +71,9 @@ def filter_film_places_queryset(queryset, get_parameters):
                                               get_parameters.get('distance'))
     queryset = filter_film_places_by_words(
         queryset, get_parameters.get('search_words', ''))
+    
+    queryset = filter_place_by_place(queryset, get_parameters.get('place')
+        )
     return filter_queryset_by_param(queryset,
                                     get_parameters.get('sort_type', ''),
                                     get_parameters.get('filter_field', ''))

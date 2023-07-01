@@ -50,9 +50,15 @@ class FilmPlacesCreateSerializer(serializers.ModelSerializer):
         if user_place.filter(name_place=data.get('name_place')):
             raise serializers.ValidationError(
                 {'error': 'Место съемки с таким названием уже существует'})
-        if profile.pay_status == 0 and user_place.count() >= 5:
-            raise serializers.ValidationError({'error': 'Чтобы добавить больше мест для съемок, '
-                                                        'пожалуйста, обновите Ваш пакет до стандарт'})
+
+        profile = self.context['profile']
+        user_places = FilmPlaces.objects.filter(profile=profile)
+        if profile.pro_account == 0 and user_places.count() >= 5:
+            raise serializers.ValidationError({'error': 'Чтобы добавить больше мест для съемки, '
+                                                        'пожалуйста, обновите Ваш пакет до Стандарт'})
+        if profile.pro_account == 1 and user_places.count() >= 15:
+            raise serializers.ValidationError({'error': 'Чтобы добавить мест для съемки, '
+                                                        'пожалуйста, обновите Ваш пакет до Максимум'})
         return data
 
 

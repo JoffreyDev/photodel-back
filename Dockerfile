@@ -20,3 +20,4 @@ RUN pip install -U Twisted[tls,http2]
 ENV DJANGO_SETTINGS_MODULE=photodel.settings
 RUN export DJANGO_SETTINGS_MODULE
 RUN pip3 install -r ./requirments.txt
+RUN pip3 install yookassa

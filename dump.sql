@@ -115,7 +115,7 @@ CREATE TABLE public.accounts_profile (
     about text,
     status integer NOT NULL,
     ready_status character varying(50) NOT NULL,
-    type_pro_account integer,
+    pro_account integer,
     expired_pro_subscription timestamp with time zone,
     rating integer NOT NULL,
     location public.geometry(Point,4326),
@@ -2546,7 +2546,7 @@ COPY public.accounts_procategory (id, name_category) FROM stdin;
 -- Data for Name: accounts_profile; Type: TABLE DATA; Schema: public; Owner: photo_user
 --
 
-COPY public.accounts_profile (id, name, surname, avatar, date_register, last_date_in, last_ip, work_condition, cost_services, photo_technics, about, status, ready_status, type_pro_account, expired_pro_subscription, rating, location, string_location, phone, site, email, email_verify, instagram, facebook, vk, location_now, string_location_now, date_stay_start, date_stay_end, message, is_adult, is_show_nu_photo, is_hide, views, last_views, user_channel_name, type_pro_id, user_id, is_change, is_confirm, pay_status) FROM stdin;
+COPY public.accounts_profile (id, name, surname, avatar, date_register, last_date_in, last_ip, work_condition, cost_services, photo_technics, about, status, ready_status, pro_account, expired_pro_subscription, rating, location, string_location, phone, site, email, email_verify, instagram, facebook, vk, location_now, string_location_now, date_stay_start, date_stay_end, message, is_adult, is_show_nu_photo, is_hide, views, last_views, user_channel_name, type_pro_id, user_id, is_change, is_confirm, pay_status) FROM stdin;
 1	Vlad	admin	default_images/anonymous.jpg	2022-04-05 10:08:31+00	2022-04-08 10:36:16.462651+00	37.214.34.246					1		1	\N	0	\N	1	1		draculatvink@gmail.com	t				\N	1	\N	\N		f	f	f	10	10	\N	\N	1	f	f	0
 2	Эдуард	Баринов	default_images/anonymous.jpg	2022-04-06 15:27:09.639627+00	2022-04-06 15:27:10.305556+00	79.170.109.191				\N	2		1	\N	0	\N	\N			muzhyke1@gmail.com	f				\N	\N	\N	\N		t	f	f	0	0	\N	\N	2	f	f	0
 6	test	test	default_images/anonymous.jpg	2022-04-07 09:47:20.126324+00	2022-05-11 16:34:32.753418+00	37.214.41.137	тест	цу	уцу	авыавы	2		1	\N	0	0101000020E61000008729B29BA0DE4B40080951BE420F4340	Россия, Московская область	+375296732364	нпргшргш	tsp7439@gmail.com	t				0101000020E61000001A0D2B22E3EC4B40080951BE48094340	Россия, Московская область	2022-04-13 21:00:00+00	2022-04-09 21:00:00+00		t	f	f	0	0	\N	3	6	t	f	0

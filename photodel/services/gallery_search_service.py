@@ -51,6 +51,7 @@ def filter_gallery_by_words(queryset, search_words):
             .select_related('gallery_image', 'profile')
 
 
+
 def filter_gallery_queryset(queryset, get_parameters):
     """
     Функцию сбора всех фильтраций в один queryset, а так же сортировка

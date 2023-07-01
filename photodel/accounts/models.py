@@ -49,8 +49,8 @@ class Profile(models.Model):
     spec_model_or_photographer = models.ManyToManyField(
         Specialization, blank=True)
     # 1 - Бесплатный 2 - Стандарт 3 - Максимум
-    type_pro_account = models.IntegerField(default=1, null=True)
-    expired_pro_subscription = models.DateTimeField(blank=True, null=True)
+    pro_account = models.IntegerField(default=0, null=True)
+    pro_subscription_expiration = models.DateTimeField(blank=True, null=True)
     rating = models.IntegerField(default=0, validators=[MinValueValidator(0)])
     likes = models.IntegerField(default=0, validators=[MinValueValidator(0)])
 
@@ -83,6 +83,7 @@ class Profile(models.Model):
         default=0, validators=[MinValueValidator(0)])
     user_channel_name = models.CharField(max_length=255, null=True, blank=True)
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+    team = models.ManyToManyField('self', blank=True)
 
     def __str__(self):
         return self.user.username
@@ -130,6 +131,77 @@ class VerificationCode(models.Model):
     email_code = models.CharField(max_length=30, blank=True, null=True)
     password_reset_token = models.CharField(
         max_length=30, blank=True, null=True)
+
+    def __str__(self):
+        return str(self.id)
+
+
+class TeamInvites(models.Model):
+    invite_sender = models.ForeignKey(
+        Profile, null=True, on_delete=models.CASCADE, related_name='invite_sender')
+    invite_receiver = models.ForeignKey(
+        Profile, null=True, on_delete=models.CASCADE, related_name='invite_receiver')
+    STATUS_CHOICES = [
+        ('AWAITING', 'Ожидает'),
+        ('ACCEPTED', 'Принят'),
+        ('REJECTED', 'Отклонен'),
+    ]
+    status = models.CharField(
+        max_length=12, choices=STATUS_CHOICES, default='AWAITING')
+
+    def __str__(self):
+        return str(self.id)
+
+
+class Notifications(models.Model):
+    date = models.DateTimeField(default=timezone.localtime)
+    sender_profile = models.ForeignKey(
+        Profile, blank=True, on_delete=models.CASCADE, related_name='notify_sender_profile')
+    receiver_profile = models.ForeignKey(
+        Profile, blank=True, on_delete=models.CASCADE, related_name='notify_receiver_profile')
+    TYPE_CHOICES = [
+        ('NEW_SESSION_LIKE', 'новый лайк фотосессии'),
+        ('NEW_SESSION_COMMENT', 'новый комментарий к фотосессии'),
+        ('NEW_SESSION_FAVORITE', 'новое добавление фотосессии в избранное'),
+        ('NEW_PHOTO_LIKE', 'новый лайк фотографии'),
+        ('NEW_PHOTO_COMMENT', 'новый комментарий к фотографии'),
+        ('NEW_PHOTO_FAVORITE', 'новое добавление фотографии в избранное'),
+        ('NEW_PLACE_LIKE', 'новый лайк места для съемки'),
+        ('NEW_PLACE_COMMENT', 'новый комментарий к месту для съемки'),
+        ('NEW_PLACE_FAVORITE', 'новое добавление места для съемки в избранное'),
+        ('NEW_TRAINING_LIKE', 'новый лайк обучения'),
+        ('NEW_TRAINING_COMMENT', 'новый комментарий к обучению'),
+        ('NEW_TRAINING_FAVORITE', 'новое добавление обучения в избранное'),
+        ('NEW_MESSAGE', 'новое сообщение'),
+        ('NEW_FILMING_REQUEST', 'новый запрос на съемку'),
+        ('NEW_TRAINING_REQUEST', 'новый запрос на обучение'),
+        ('NEW_TEAM_REQUEST', 'новый запрос в команду'),
+        ('NEW_REVIEW', 'новый отзыв'),
+    ]
+    type = models.CharField(
+        max_length=25, choices=TYPE_CHOICES)
+    action_position = models.IntegerField(null=True)
+    readen = models.BooleanField(default=False)
+
+    def __str__(self):
+        return str(self.id)
+    
+class Payment(models.Model):
+    payment_id = models.CharField(
+        max_length=255, blank=True, null=True, default=0)
+    account = models.ForeignKey(
+        Profile, null=True, on_delete=models.CASCADE, related_name='payment_sender')
+    value = models.IntegerField(
+        blank=True, null=True, default=0)
+    date = models.DateTimeField(default=timezone.localtime)
+    plan = models.CharField(
+        max_length=12, blank=True, null=True, default=0)
+    duration = models.IntegerField(
+        blank=True, null=True, default=0)
+    status = models.CharField(
+        max_length=12, blank=True, null=True, default=0)
+    realized = models.BooleanField(default=False)
+    
 
     def __str__(self):
         return str(self.id)

@@ -3,6 +3,7 @@ from gallery.models import GalleryFavorite, GalleryLike, \
     PhotoSessionLike, PhotoSessionFavorite
 from film_places.models import FilmPlacesLike, FilmPlacesFavorite
 from accounts.models import ProfileLike, ProfileFavorite
+from trainings.models import TrainingsLike, TrainingsFavorite
 from services.accounts_service import convert_string_coordinates_to_point_obj
 
 from rest_framework import serializers
@@ -73,6 +74,8 @@ def is_unique_favorite(obj_id, profile_id, model):
         return False
     if model == 'photo_session' and PhotoSessionFavorite.objects.filter(photo_session=obj_id, profile=profile_id):
         return False
+    if model == 'trainings' and TrainingsFavorite.objects.filter(training=obj_id, profile=profile_id):
+        return False
     return True
 
 
@@ -87,6 +90,8 @@ def is_unique_like(obj_id, profile_id, model):
     if model == 'places' and FilmPlacesLike.objects.filter(place=obj_id, profile=profile_id):
         return False
     if model == 'photo_session' and PhotoSessionLike.objects.filter(photo_session=obj_id, profile=profile_id):
+        return False
+    if model == 'trainings' and TrainingsLike.objects.filter(training=obj_id, profile=profile_id):
         return False
     return True
 

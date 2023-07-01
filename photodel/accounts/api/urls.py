@@ -3,7 +3,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 
 from .views import RegisterAPIView, ProfileViewSet, VerificationEmailViewSet, \
     ChangePasswordView, CustomTokenObtainPairView, CategoriesProfileViewSet, \
-    ProfileFavoriteViewSet, ProfileLikeViewSet, ProfileCommentViewSet
+    ProfileFavoriteViewSet, ProfileLikeViewSet, ProfileCommentViewSet, ProfileTeamViewSet, ProfileNotificationViewSet, SubscriptionPay
 
 app_name = 'accounts'
 
@@ -55,6 +55,27 @@ urlpatterns = [
          name='list_specialization'),
     path('list_pro_categories/', CategoriesProfileViewSet.as_view({'get': "list_pro_categories"}),
          name='list_pro_categories'),
+    path('team/send_invite/', ProfileTeamViewSet.as_view({'post': "send_team_invite"}),
+         name='send_team_invite'),
+    path('team/incoming_invites_list/<int:pk>/', ProfileTeamViewSet.as_view({'get': "incoming_invites_list"}),
+         name='incoming_invites_list'),
+    path('team/outgoing_invites_list/<int:pk>/', ProfileTeamViewSet.as_view({'get': "outgoing_invites_list"}),
+         name='outgoing_invites_list'),
+    path('team/change_invite_status/', ProfileTeamViewSet.as_view({'post': "change_invite_status"}),
+         name='change_invite_status'),
+    path('team/list/<int:pk>/', ProfileTeamViewSet.as_view({'get': "team_list"}),
+         name='team_list'),
+
+    path('profile/notifications/list/', ProfileNotificationViewSet.as_view({'get': "list_notifications"}),
+         name='list_notifications'),
+    path('profile/notifications/read/', ProfileNotificationViewSet.as_view({'post': "read_notifications"}),
+         name='read_notifications'),
+     path('payment/create/', SubscriptionPay.as_view({'post': "create_new_payment"}),
+         name='create_new_payment'),
+       path('payment/check/', SubscriptionPay.as_view({'get': "check_payment"}),
+         name='check_payment'),
+     path('payment/get/', SubscriptionPay.as_view({'get': "get_history"}),
+         name='get_history'),
+
 
 ]
-

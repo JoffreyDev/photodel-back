@@ -1,4 +1,5 @@
 from film_places.models import FilmRequest
+from accounts.models import TeamInvites
 
 
 def update_film_request_status(data, user):

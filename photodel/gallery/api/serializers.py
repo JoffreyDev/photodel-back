@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import AnonymousUser
 from gallery.models import Album, Gallery, Image, GalleryComment, GalleryLike, GalleryFavorite, \
     PhotoSessionComment, PhotoSessionLike, \
-    PhotoSessionFavorite, PhotoSession
+    PhotoSessionFavorite, PhotoSession, Review
 from accounts.api.serializers import ProfilePublicSerializer, SpecializationListSerializer, \
     ProfileForGallerySerializer, ProfileWithAdditionalInfoSerializer
 from services.gallery_service import diff_between_two_points, Base64ImageField
@@ -17,6 +17,7 @@ class ImageCreateSerializer(serializers.ModelSerializer):
         model = Image
         fields = ['id', 'photo', 'profile', ]
 
+<<<<<<< HEAD
     def validate(self, data):
         profile = self.context['profile']
         user_phys_photos = Image.objects.filter(profile=profile)
@@ -24,6 +25,15 @@ class ImageCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({'error': 'Чтобы добавить больше фото, '
                                                         'пожалуйста, обновите Ваш пакет до стандарт'})
         return data
+=======
+    # def validate(self, data):
+    #     profile = self.context['profile']
+    #     user_phys_photos = Image.objects.filter(profile=profile)
+    #     if profile.pay_status == 0 and user_phys_photos.count() > 50:
+    #         raise serializers.ValidationError({'error': 'Чтобы добавить больше фото, '
+    #                                                     'пожалуйста, обновите Ваш пакет до стандарт'})
+    #     return data
+>>>>>>> stage
 
 
 class ImageSerializer(serializers.ModelSerializer):
@@ -105,9 +115,12 @@ class AlbumCreateSerializer(serializers.ModelSerializer):
         if user_albums.filter(name_album=data.get('name_album')):
             raise serializers.ValidationError(
                 {'error': 'Альбом с таким названием уже существует'})
-        if profile.pay_status == 0 and user_albums.count() > 2:
+        if profile.pro_account == 0 and user_albums.count() >= 3:
             raise serializers.ValidationError({'error': 'Чтобы добавить больше альбомов, '
-                                                        'пожалуйста, обновите Ваш пакет до стандарт'})
+                                                        'пожалуйста, обновите Ваш пакет до Стандарт'})
+        if profile.pro_account == 1 and user_albums.count() >= 10:
+            raise serializers.ValidationError({'error': 'Чтобы добавить больше альбомов, '
+                                                        'пожалуйста, обновите Ваш пакет до Массимум'})
         if not data.get('main_photo_id'):
             data['main_photo_id'] = Image.objects.filter(
                 profile__user__username='admin').first()
@@ -156,6 +169,15 @@ class GalleryCreateSerializer(serializers.ModelSerializer):
                 if album.main_photo_id == Image.objects.filter(profile__user__username='admin').first():
                     album.main_photo_id = data.get('gallery_image')
                     album.save()
+
+        profile = self.context['profile']
+        user_photos = Gallery.objects.filter(profile=profile)
+        if profile.pro_account == 0 and user_photos.count() >= 15:
+            raise serializers.ValidationError({'error': 'Чтобы добавить больше фото, '
+                                                        'пожалуйста, обновите Ваш пакет до Стандарт'})
+        if profile.pro_account == 1 and user_photos.count() >= 100:
+            raise serializers.ValidationError({'error': 'Чтобы добавить больше фото, '
+                                                        'пожалуйста, обновите Ваш пакет до Максимум'})
         return data
 
 
@@ -169,7 +191,7 @@ class GalleryForCardListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Gallery
         fields = ['gallery_image', 'id', 'views', 'likes', 'comments',
-                  'favorites', 'name_image', 'string_place_location', 'profile', ]
+                  'favorites', 'name_image', 'string_place_location', 'profile', 'category']
 
     def get_likes(self, obj):
         return GalleryLike.objects.filter(gallery=obj.id).count()
@@ -229,7 +251,7 @@ class GalleryAllListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Gallery
         fields = ['id', 'gallery_image', 'name_image', 'profile', 'likes', 'comments',
-                  'favorites', 'place_location', ]
+                  'favorites', 'place_location', 'category']
 
     def get_likes(self, obj):
         return GalleryLike.objects.filter(gallery=obj.id).count()
@@ -329,9 +351,18 @@ class PhotoSessionCreateSerializer(serializers.ModelSerializer):
         if user_photo_session.filter(session_name=data.get('session_name')).count() > 0:
             raise serializers.ValidationError(
                 {'error': 'Фотосессия с таким названием уже существует'})
+<<<<<<< HEAD
         if profile.pay_status == 0 and user_photo_session.count() >= 2:
+=======
+
+        user_sessions = PhotoSession.objects.filter(profile=profile)
+        if profile.pro_account == 0 and user_sessions.count() >= 1:
+>>>>>>> stage
             raise serializers.ValidationError({'error': 'Чтобы добавить больше фотосессий, '
-                                                        'пожалуйста, обновите Ваш пакет до стандарт'})
+                                                        'пожалуйста, обновите Ваш пакет до Стандарт'})
+        if profile.pro_account == 1 and user_sessions.count() >= 3:
+            raise serializers.ValidationError({'error': 'Чтобы добавить больше фотосессий, '
+                                                        'пожалуйста, обновите Ваш пакет до Максимум'})
         return data
 
 
@@ -345,7 +376,7 @@ class PhotoSessionForCardListSerializer(serializers.ModelSerializer):
     class Meta:
         model = PhotoSession
         fields = ['id', 'views', 'likes', 'comments', 'favorites',
-                  'main_photo', 'session_name', 'string_session_location', 'profile', ]
+                  'main_photo', 'session_name', 'string_session_location', 'profile', 'session_category']
 
     def get_likes(self, obj):
         return PhotoSessionLike.objects.filter(photo_session=obj.id).count()
@@ -447,3 +478,41 @@ class PhotoSessionCommentListSerializer(serializers.ModelSerializer):
         model = PhotoSessionComment
         fields = ['content', 'timestamp', 'sender_comment',
                   'photo_session', 'answer_id_comment', 'quote_id', ]
+
+
+class ReviewCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        fields = '__all__'
+
+    def validate(self, data):
+        content = data.get('content', '').split()
+        if check_obscene_word_in_content(content):
+            raise serializers.ValidationError(
+                {'error': 'Ваш отзыв содержит недопустимые слова'})
+        if data.get('receiver_id') == data.get('sender_id'):
+            raise serializers.ValidationError(
+                {'error': 'Нельзя оставить отзыв самому себе'})
+        simmilar_review = Review.objects.filter(receiver_profile_id=data.get(
+            'receiver_profile'), sender_profile_id=data.get('sender_profile')).exists()
+        if simmilar_review:
+            raise serializers.ValidationError(
+                {'error': 'Вы уже оставляли отзыв этому пользователю'})
+        return data
+
+
+class ReviewUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        fields = ['images']
+
+
+class ReviewsListSerializer(serializers.ModelSerializer):
+    sender_profile = ProfileForGallerySerializer()
+    receiver_profile = ProfileForGallerySerializer()
+    images = ImageSerializer(read_only=True, many=True)
+
+    class Meta:
+        model = Review
+        fields = ['content', 'date', 'sender_profile',
+                  'receiver_profile', 'mark', 'images', ]
