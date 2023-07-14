@@ -29,9 +29,6 @@ Configuration.account_id = '319943'
 Configuration.secret_key = 'test_Q2RQicRBamSd-wo9QtoyKuTn8u3Mh_h8aijtj09crwo'
 
 
-
-
-
 logger = logging.getLogger(__name__)
 
 
@@ -164,7 +161,7 @@ class ChangePasswordView(viewsets.ViewSet):
                                                                                  'Пожалуйства обратитесь в поддержку'})
         except Profile.DoesNotExist:
             logger.error(f'Пользователь не был найден')
-            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Пользовтаель не был найден'})
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Пользователь не был найден'})
 
     def get_permissions(self):
         try:
@@ -540,83 +537,85 @@ class ProfileNotificationViewSet(viewsets.ViewSet):
             return [permission() for permission in self.permission_classes_by_action[self.action]]
         except KeyError:
             return [permission() for permission in self.permission_classes]
-        
+
+
 class SubscriptionPay(viewsets.ViewSet):
-     
+
     permission_classes_by_action = {
         'create_comment': [permissions.IsAuthenticated, ],
     }
-    
+
     def create_new_payment(self, request):
         profile = Profile.objects.filter(user=request.user).first()
         payment = Payment.create({
-        "amount": {
-            "value": request.data.get('amount'),
-            "currency": "RUB"
-        },
-        "receipt": {
-            "customer": {
-                "email": f'{profile.email}'
-            }
-        },
-        "payment_method_data": {
-            "type": "bank_card"
-        },
-        "confirmation": {
-            "type": "redirect",
-            "return_url": "https://photodel.ru/profile/finance/?confirm=pending"
-        },
-        "capture": True,
-        "description": f'Оплата подписки {request.data.get("plan")} на {request.data.get("duration")}'
+            "amount": {
+                "value": request.data.get('amount'),
+                "currency": "RUB"
+            },
+            "receipt": {
+                "customer": {
+                    "email": f'{profile.email}'
+                }
+            },
+            "payment_method_data": {
+                "type": "bank_card"
+            },
+            "confirmation": {
+                "type": "redirect",
+                "return_url": "https://photodel.ru/profile/finance/?confirm=pending"
+            },
+            "capture": True,
+            "description": f'Оплата подписки {request.data.get("plan")} на {request.data.get("duration")}'
         })
 
-        
-     
         payment_data = json.loads(payment.json())
         payment_id = payment_data['id']
-        accounts.models.Payment.objects.create(payment_id=payment_data['id'], account=profile, plan=request.data.get('plan'), duration=request.data.get('duration'), value=request.data.get('amount'), status='pending')
+        accounts.models.Payment.objects.create(payment_id=payment_data['id'], account=profile, plan=request.data.get(
+            'plan'), duration=request.data.get('duration'), value=request.data.get('amount'), status='pending')
         payment_url = (payment_data['confirmation'])['confirmation_url']
 
         return Response({'confirmation_url': payment_url})
-    
+
     def check_payment(self, request):
         profile = Profile.objects.filter(user=request.user).first()
-        payment = accounts.models.Payment.objects.filter(account=profile).last()
-       
+        payment = accounts.models.Payment.objects.filter(
+            account=profile).last()
+
         info = json.loads((Payment.find_one(payment.payment_id)).json())
 
         if info['status'] == 'succeeded' and not payment.realized:
             if payment.plan == 'standart':
                 profile.pro_account = 1
                 if not profile.pro_subscription_expiration:
-                        profile.pro_subscription_expiration = datetime.datetime.now() + datetime.timedelta(days=30 * payment.duration)
+                    profile.pro_subscription_expiration = datetime.datetime.now(
+                    ) + datetime.timedelta(days=30 * payment.duration)
                 else:
-                    profile.pro_subscription_expiration += datetime.timedelta(days=30 * payment.duration)
+                    profile.pro_subscription_expiration += datetime.timedelta(
+                        days=30 * payment.duration)
                 profile.save()
                 payment.realized = True
                 payment.status = 'succeeded'
                 payment.save()
                 return Response({'Подписка успешно приобретена!'})
             elif payment.plan == 'max':
-                 profile.pro_account = 2
-                 if not profile.pro_subscription_expiration:
-                    profile.pro_subscription_expiration = datetime.datetime.now() + datetime.timedelta(days=30 * payment.duration)
-                 else:
-                    profile.pro_subscription_expiration += datetime.timedelta(days=30 * payment.duration)
-                 profile.save()
-                 payment.realized = True
-                 payment.save()
-                 return Response({'Подписка успешно приобретена!'})
+                profile.pro_account = 2
+                if not profile.pro_subscription_expiration:
+                    profile.pro_subscription_expiration = datetime.datetime.now(
+                    ) + datetime.timedelta(days=30 * payment.duration)
+                else:
+                    profile.pro_subscription_expiration += datetime.timedelta(
+                        days=30 * payment.duration)
+                profile.save()
+                payment.realized = True
+                payment.save()
+                return Response({'Подписка успешно приобретена!'})
         elif info['status'] != 'succeeded' and info['status'] != 'pending':
-              payment.status = 'canceled'
-              payment.save()
-              return Response({'Платеж не прошел. Вам могут помочь у нас в поддержке.'})
-        
+            payment.status = 'canceled'
+            payment.save()
+            return Response({'Платеж не прошел. Вам могут помочь у нас в поддержке.'})
+
     def get_history(self, request):
         profile = Profile.objects.filter(user=request.user).first()
         payments = accounts.models.Payment.objects.filter(account=profile)
         serializer = HistorySerializer(payments, many=True)
         return Response({'payments': serializer.data})
-        
-
-   

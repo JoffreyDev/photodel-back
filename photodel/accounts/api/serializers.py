@@ -358,7 +358,7 @@ class ProfilListForMapSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ['id', 'location', ]
+        fields = ['id', 'location', 'user_channel_name']
 
 
 class ProfileForFavoriteSerializer(serializers.ModelSerializer):
@@ -482,7 +482,7 @@ class ProfileTeamInvitesListSerializer(serializers.ModelSerializer):
     class Meta:
         model = TeamInvites
         fields = ['invite_receiver', 'invite_sender', 'status',
-                  'id',]
+                  'id', ]
 
 
 class ProfileTeamListSerializer(serializers.ModelSerializer):
@@ -556,7 +556,8 @@ class NotificationsSerializer(serializers.ModelSerializer):
 
     def get_new_notifications(self, obj):
         return Notifications.objects.filter(receiver_profile=self.context.get('obj'), readen=False).count()
-    
+
+
 class HistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
