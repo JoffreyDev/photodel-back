@@ -1,5 +1,6 @@
 from rest_framework import permissions, status, viewsets
 from rest_framework.response import Response
+from services.training_service import filter_trainings_queryset
 from trainings.models import TrainingCategory, Trainings, TrainingsLike, \
     TrainingsComment, TrainingsFavorite, TrainingsRequest
 from accounts.models import Profile
@@ -108,7 +109,7 @@ class TrainingsViewSet(viewsets.ViewSet):
 
     def list_all_training(self, request):
         places = Trainings.objects.filter(is_hidden=False)
-        queryset_filter = filter_film_places_queryset(places, request.GET)
+        queryset_filter = filter_trainings_queryset(places, request.GET)
         queryset = custom_paginator(queryset_filter, request)
         serializer = TrainingsAllListSerializer(queryset, many=True,
                                                 context={'user_coords': request.GET.get('user_coords')})
