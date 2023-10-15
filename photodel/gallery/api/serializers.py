@@ -476,7 +476,7 @@ class ReviewCreateSerializer(serializers.ModelSerializer):
         if check_obscene_word_in_content(content):
             raise serializers.ValidationError(
                 {'error': 'Ваш отзыв содержит недопустимые слова'})
-        if data.get('receiver_id') == data.get('sender_id'):
+        if data.get('receiver_profile') == data.get('sender_profile'):
             raise serializers.ValidationError(
                 {'error': 'Нельзя оставить отзыв самому себе'})
         simmilar_review = Review.objects.filter(receiver_profile_id=data.get(

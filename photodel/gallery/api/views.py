@@ -730,8 +730,8 @@ class ReviewViewSet(viewsets.ViewSet):
     def create_review(self, request):
         profile = Profile.objects.get(user=request.user).id
         sender_profile_instance = Profile.objects.get(user=request.user)
-        owner_profile = Review.objects.get(
-            pk=request.data.get('receiver_profile')).profile
+        owner_profile = Profile.objects.get(
+            pk=request.data.get('receiver_profile'))
         serializer = ReviewCreateSerializer(
             data=request.data | {"sender_comment": profile})
         if serializer.is_valid(raise_exception=True):

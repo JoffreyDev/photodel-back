@@ -316,8 +316,8 @@ class FilmRequestViewSet(viewsets.ViewSet):
         logger.info(f'Пользователь {request.user} хочет создать запрос')
         profile = Profile.objects.get(user=request.user).id
         sender_profile_instance = Profile.objects.get(user=request.user)
-        owner_profile = FilmRequest.objects.get(
-            pk=request.data.get('receiver_profile')).profile
+        owner_profile = Profile.objects.get(
+            pk=request.data.get('receiver_profile'))
         serializer = FilmRequestCreateSerializer(
             data=request.data | {"profile": profile})
         if serializer.is_valid(raise_exception=True):
