@@ -94,6 +94,19 @@ def task_update_profile_likes():
 
 
 @app.task
+def check_subscription_expiration():
+    # Получаем все профили, где Pro subscription expiration <= текущей даты
+    expired_profiles = Profile.objects.filter(
+        pro_subscription_expiration__lte=datetime.now())
+
+    # Обновляем соответствующие поля
+    for profile in expired_profiles:
+        profile.pro_subscription_expiration = None
+        profile.pro_account = 0
+        profile.save()
+
+
+@app.task
 def task_update_photos_likes():
     def get_likes(gallery):
         return GalleryLike.objects.filter(gallery=gallery).count()

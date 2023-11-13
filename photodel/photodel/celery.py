@@ -28,6 +28,11 @@ app.conf.CELERYBEAT_SCHEDULE = {
         'schedule': crontab(hour=0),
     },
 
+    'check_subscription_expiration': {
+        'task': 'tasks.accounts_task.check_subscription_expiration',
+        'schedule': crontab(hour=0),
+    },
+
     'task_update_place_likes': {
         'task': 'tasks.accounts_task.task_update_place_likes',
         'schedule': crontab(hour=0),
