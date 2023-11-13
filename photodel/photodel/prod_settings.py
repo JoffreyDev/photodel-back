@@ -34,7 +34,7 @@ CORS_ALLOW_CREDENTIALS = True
 #     }
 # }
 
-# # В прод
+# В прод
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
