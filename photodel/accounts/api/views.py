@@ -208,7 +208,7 @@ class ProfileViewSet(viewsets.ViewSet):
     def public_profile(self, request, pk):
         try:
             instance = Profile.objects.get(id=pk)
-            serializer = ProfileForPublicSerializer(instance)
+            serializer = ProfileForPublicSerializer(instance, context={"user": request.user})
             return Response(status=status.HTTP_200_OK, data=serializer.data)
         except Profile.DoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Профиль не был найден.'})
@@ -469,16 +469,16 @@ class ProfileTeamViewSet(viewsets.ViewSet):
     def incoming_invites_list(self, request, pk):
         logger.info(
             f'Пользователь {request.user} хочет получить список приглашений в команду')
-        queryset = TeamInvites.objects.filter(invite_sender=pk) \
-            .select_related('invite_sender')
+        queryset = TeamInvites.objects.filter(invite_receiver=pk) \
+            .select_related('invite_receiver')
         serializer = ProfileTeamInvitesListSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def outgoing_invites_list(self, request, pk):
         logger.info(
             f'Пользователь {request.user} хочет получить список приглашений в команду')
-        queryset = TeamInvites.objects.filter(invite_receiver=pk) \
-            .select_related('invite_receiver')
+        queryset = TeamInvites.objects.filter(invite_sender=pk) \
+            .select_related('invite_sender')
         serializer = ProfileTeamInvitesListSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 

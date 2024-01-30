@@ -183,7 +183,7 @@ class FilmPlacesFavoriteViewSet(viewsets.ViewSet):
             create_notification(
                 receiver_profile=owner_profile, sender_profile=sender_profile_instance, type='NEW_PLACE_FAVORITE', action_position=request.data.get('place'))
             logger.info(
-                f'Пользователь {request.user} учпешно добавил место съемки в избранное')
+                f'Пользователь {request.user} уcпешно добавил место съемки в избранное')
             return Response(serializer.data, status=status.HTTP_200_OK)
         logger.error(
             f'Пользователь {request.user} не добавил место съемки в избранное')

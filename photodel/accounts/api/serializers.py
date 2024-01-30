@@ -222,6 +222,7 @@ class ProfileForPublicSerializer(serializers.ModelSerializer):
         read_only=True, many=True)
     type_pro = ProCategoryListSerializer()
     statistics = serializers.SerializerMethodField()
+    in_favorite = serializers.SerializerMethodField()
 
     class Meta:
         model = Profile
@@ -230,10 +231,15 @@ class ProfileForPublicSerializer(serializers.ModelSerializer):
                   'location', 'phone', 'site', 'email', 'instagram', 'facebook', 'vk', 'avatar',
                   'location_now', 'date_stay_start', 'date_stay_end', 'message', 'is_adult',
                   'spec_model_or_photographer', 'ready_status', 'statistics', 'user_channel_name',
-                  'rating', 'date_register', 'is_confirm', 'pro_account', 'pro_subscription_expiration', 'status']
+                  'rating', 'date_register', 'is_confirm', 'pro_account', 'pro_subscription_expiration', 'status', 'in_favorite']
 
     def get_statistics(self, obj):
         return collect_profile_statistics(obj)
+    
+    def get_in_favorite(self, obj):
+        if isinstance(self.context['user'], AnonymousUser):
+            return ''
+        return bool(ProfileFavorite.objects.filter(receiver_favorite=obj.id, sender_favorite__user=self.context['user']))
 
 
 class ProfilePublicSerializer(serializers.ModelSerializer):
