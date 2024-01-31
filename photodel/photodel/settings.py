@@ -85,12 +85,12 @@ CHANNEL_LAYERS = {
     }
 }
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.mail.ru'
-EMAIL_USE_TLS = True
-EMAIL_PORT = 587
-EMAIL_HOST_USER = 'photodelru@mail.ru'
-EMAIL_HOST_PASSWORD = 'H0ddpe5dTdq10Fjrmm7K'
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.mail.ru'
+# EMAIL_USE_TLS = True
+# EMAIL_PORT = 587
+# EMAIL_HOST_USER = 'photodelru@mail.ru'
+# EMAIL_HOST_PASSWORD = 'H0ddpe5dTdq10Fjrmm7K'
 
 # Локально
 # REDIS_HOST = '127.0.0.1'

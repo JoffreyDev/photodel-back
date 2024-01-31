@@ -203,9 +203,6 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
         status = data.get('ready_status')
         site = data.get('site')
 
-        if self.instance.pro_account == 0 and status:
-            raise serializers.ValidationError({'error': 'Чтобы указать статус, '
-                                                        'пожалуйста, обновите Ваш пакет до Стандарт'})
 
         if self.instance.pro_account == 0 and site:
             raise serializers.ValidationError({'error': 'Чтобы указать ссылку на сайт, '

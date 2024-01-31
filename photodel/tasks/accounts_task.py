@@ -1,7 +1,8 @@
 from django.template.loader import render_to_string
 from additional_entities.models import Advertisement, CustomSettings
-from gallery.models import Gallery
+from gallery.models import Gallery, PhotoSession
 from gallery.models import GalleryLike
+from trainings.models import Trainings
 from services.accounts_service import send_email_to_users, get_name_user
 from additional_entities.models import EmailFragment
 from photodel.celery import app
@@ -97,13 +98,53 @@ def task_update_profile_likes():
 def check_subscription_expiration():
     # Получаем все профили, где Pro subscription expiration <= текущей даты
     expired_profiles = Profile.objects.filter(
-        pro_subscription_expiration__lte=datetime.now())
+        pro_subscription_expiration__lte=datetime.datetime.now())
 
     # Обновляем соответствующие поля
     for profile in expired_profiles:
         profile.pro_subscription_expiration = None
         profile.pro_account = 0
+        profile.is_confirm = False
+        profile.location_now = None
+        profile.string_location_now = None
+        profile.date_stay_start = None
+        profile.date_stay_end = None
+        profile.message = ''
+        profile.site = None
+        profile.spec_model_or_photographer.clear()
+        profile.filming_geo.clear()
+        profile.team.clear()
         profile.save()
+
+       # Получение фотографий профиля, упорядоченных по времени создания
+        all_photos = Gallery.objects.filter(profile=profile).order_by('was_added')
+        # Определение количества фотографий, превышающих лимит
+        photos_to_hide_count = all_photos.count() - 15
+        # Удаление лишних фотографий
+        if photos_to_hide_count > 0:
+            photos_to_delete = all_photos[:photos_to_hide_count]
+            for photo in photos_to_delete:
+                photo.is_hidden = True
+                photo.save()
+
+        all_trainings = Trainings.objects.filter(profile=profile)
+        if all_trainings > 0:
+            for training in all_trainings:
+                training.is_hidden = True
+                training.save()
+
+        all_photosessions = PhotoSession.objects.filter(profile=profile).order_by('-was_added')
+
+        # Определение количества фотосессий, которые нужно удалить
+        photosessions_to_keep = 1
+        photosessions_to_delete_count = all_photosessions.count() - photosessions_to_keep
+
+        # Удаление лишних фотосессий
+        if photosessions_to_delete_count > 0:
+            photosessions_to_delete = all_photosessions[photosessions_to_keep:]
+            for photosession in photosessions_to_delete:
+                photosession.is_hidden = True
+                photosession.save()
 
 
 @app.task
