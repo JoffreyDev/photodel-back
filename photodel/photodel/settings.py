@@ -123,6 +123,10 @@ REST_FRAMEWORK = {
     ]
 }
 
+SESSION_COOKIE_AGE = 900
+
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': datetime.timedelta(days=30),

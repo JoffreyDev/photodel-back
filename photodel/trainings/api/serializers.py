@@ -128,11 +128,12 @@ class TrainingsRetrieveSerializer(serializers.ModelSerializer):
     training_orgs = ProfileForGallerySerializer(read_only=True, many=True)
     training_members = ProfileForGallerySerializer(read_only=True, many=True)
     reserved_places = serializers.SerializerMethodField()
+    has_request_from_user = serializers.SerializerMethodField()
 
     class Meta:
         model = Trainings
         fields = ['id', 'training_title', 'main_photo', 'start_date', 'end_date',
-                  'cost', 'place', 'likes', 'summary_members', 'reserved_places', 'favorites', 'comments', 'profile', 'string_place_location', 'views', 'is_liked', 'in_favorite', 'training_images', 'was_added', 'first_payment', 'place_location', 'training_category', 'training_description', 'training_team', 'training_members', 'training_orgs', ]
+                  'cost', 'place', 'likes', 'summary_members', 'reserved_places', 'favorites', 'comments', 'profile', 'string_place_location', 'views', 'is_liked', 'in_favorite', 'training_images', 'was_added', 'first_payment', 'place_location', 'training_category', 'training_description', 'training_team', 'training_members', 'training_orgs', 'has_request_from_user',]
 
     def get_likes(self, obj):
         return TrainingsLike.objects.filter(training=obj.id).count()
@@ -155,6 +156,11 @@ class TrainingsRetrieveSerializer(serializers.ModelSerializer):
 
     def get_reserved_places(self, obj):
         return Trainings.objects.get(pk=obj.id).training_members.all().count()
+    
+    def get_has_request_from_user(self, obj):
+        if isinstance(self.context.get('user', ''), AnonymousUser):
+            return ''
+        return bool(TrainingsRequest.objects.filter(training=obj.id, request_user__user=self.context['user']))
 
 
 class TrainingsAllListSerializer(serializers.ModelSerializer):
