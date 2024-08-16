@@ -24,26 +24,26 @@ CORS_ALLOW_CREDENTIALS = True
 # ]
 
 # Локально
-# DATABASES = {
+#DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.contrib.gis.db.backends.postgis',
 #         'NAME': 'photodeldb',
 #         'USER': 'postgres',
 #         'PASSWORD': 'admin',
 #         'HOST': 'localhost',
-#     }
+#    }
 # }
 
 # В прод
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': 'photodeldb',
-        'USER': 'postgres',
-        'PASSWORD': 'admin',
+       'NAME': 'photodeldb',
+       'USER': 'postgres',
+       'PASSWORD': 'admin',
         'HOST': 'db',
-        'PORT': '5432',
-    }
+       'PORT': '5432',
+   }
 }
 
 

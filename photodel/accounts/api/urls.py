@@ -22,6 +22,10 @@ urlpatterns = [
 
     path('profile/', ProfileViewSet.as_view({'get': "private_profile"}),
          name='private_profile'),
+     path('profile/delete/', ProfileViewSet.as_view({'get': "delete_user_by_id"}),
+         name='delete_user_by_id'),
+     path('profile/password/change/', ProfileViewSet.as_view({'post': "change_user_password_with_check"}),
+         name='change_user_password_with_check'),
     path('profile/<int:pk>/', ProfileViewSet.as_view({'get': "public_profile"}),
          name='public_profile'),
     path('profile/update/', ProfileViewSet.as_view({'post': "partial_update"}),

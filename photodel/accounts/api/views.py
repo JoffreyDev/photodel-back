@@ -204,6 +204,33 @@ class ProfileViewSet(viewsets.ViewSet):
         instance = Profile.objects.get(user=request.user)
         serializer = ProfilePrivateSerializer(instance)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
+    
+    def delete_user_by_id(self, request):
+        try:
+            print(request.user)
+            user = User.objects.get(username=request.user)
+            user.delete()
+            return Response(status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Профиль не был найден.'})
+        
+    def change_user_password_with_check(self, request):
+        try:
+            old_pass = request.data.get('old_pass', '')
+            new_pass = request.data.get('new_pass', '')
+            # Получаем пользователя по его ID
+            user = User.objects.get(username=request.user)
+            
+            # Проверяем, что старый пароль верен
+            if user.check_password(old_pass):
+                # Если пароль верен, меняем его на новый
+                user.set_password(new_pass)
+                user.save()
+                return Response(status=status.HTTP_200_OK)
+            else:
+                return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Введенный старый пароль неверен.'})
+        except User.DoesNotExist:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Пользователь не найден.'})
 
     def public_profile(self, request, pk):
         try:

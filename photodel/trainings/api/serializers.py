@@ -160,8 +160,10 @@ class TrainingsRetrieveSerializer(serializers.ModelSerializer):
     def get_has_request_from_user(self, obj):
         if isinstance(self.context.get('user', ''), AnonymousUser):
             return ''
-        return bool(TrainingsRequest.objects.filter(training=obj.id, request_user__user=self.context['user']))
-
+        request = TrainingsRequest.objects.filter(training=obj.id, request_user__user=self.context['user']).last()
+        if (request):
+            return request.status
+        return False
 
 class TrainingsAllListSerializer(serializers.ModelSerializer):
     profile = ProfileForGallerySerializer()

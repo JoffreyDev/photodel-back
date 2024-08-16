@@ -2,6 +2,8 @@ from pathlib import Path
 import os
 import datetime
 
+os.environ['GDAL_LIBRARY_PATH'] = r'C:\Users\joffr\AppData\Local\Programs\Python\Python310\Lib\site-packages\osgeo\gdal.dll'
+
 BASE_URL = 'https://photodel.ru/'
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -68,17 +70,17 @@ WSGI_APPLICATION = 'photodel.wsgi.application'
 ASGI_APPLICATION = 'photodel.routing.application'
 
 
-# Локально
-# CHANNEL_LAYERS = {
-#     'default': {
-#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
+# ЛОКАЛЬНО
+#CHANNEL_LAYERS = {
+#     'DEFAULT': {
+#         'BACKEND': 'CHANNELS_REDIS.CORE.REDISCHANNELLAYER',
 #         'CONFIG': {
-#             "hosts": [('127.0.0.1', 6379)],
-#         },
-#     },
+#             "HOSTS": [('127.0.0.1', 6379)],
+#        },
+#    },
 # }
 
-# В прод
+ #В прод
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels.layers.InMemoryChannelLayer",
@@ -95,7 +97,7 @@ EMAIL_HOST_PASSWORD = 'H0ddpe5dTdq10Fjrmm7K'
 # Локально
 # REDIS_HOST = '127.0.0.1'
 # В прод
-REDIS_HOST = 'redis'
+REDIS_HOST = 'REDIS'
 REDIS_PORT = '6379'
 CELERY_BROKER_URL = 'redis://' + REDIS_HOST + ':' + REDIS_PORT + '/0'
 CELERY_RESULT_BACKEND = 'redis://' + REDIS_HOST + ':' + REDIS_PORT + '/0'
