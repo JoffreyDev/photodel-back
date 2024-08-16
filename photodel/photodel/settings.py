@@ -70,17 +70,17 @@ WSGI_APPLICATION = 'photodel.wsgi.application'
 ASGI_APPLICATION = 'photodel.routing.application'
 
 
-# ЛОКАЛЬНО
-#CHANNEL_LAYERS = {
-#     'DEFAULT': {
-#         'BACKEND': 'CHANNELS_REDIS.CORE.REDISCHANNELLAYER',
+# Локально
+# CHANNEL_LAYERS = {
+#     'default': {
+#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
 #         'CONFIG': {
-#             "HOSTS": [('127.0.0.1', 6379)],
+#             "hosts": [('127.0.0.1', 6379)],
 #        },
 #    },
 # }
 
- #В прод
+# В прод
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels.layers.InMemoryChannelLayer",
@@ -97,7 +97,7 @@ EMAIL_HOST_PASSWORD = 'H0ddpe5dTdq10Fjrmm7K'
 # Локально
 # REDIS_HOST = '127.0.0.1'
 # В прод
-REDIS_HOST = 'REDIS'
+REDIS_HOST = 'redis'
 REDIS_PORT = '6379'
 CELERY_BROKER_URL = 'redis://' + REDIS_HOST + ':' + REDIS_PORT + '/0'
 CELERY_RESULT_BACKEND = 'redis://' + REDIS_HOST + ':' + REDIS_PORT + '/0'
