@@ -39,6 +39,10 @@ urlpatterns = [
          name='place_delete_favorite'),
     path('comment/list/<int:pk>/', FilmPlacesCommentViewSet.as_view({'get': "list_comments"}),
          name='place_list_comments'),
+      path('comment/edit/', FilmPlacesCommentViewSet.as_view({'post': "edit_comment"}),
+         name='edit_comment'),
+     path('comment/delete/', FilmPlacesCommentViewSet.as_view({'post': "delete_comment"}),
+         name='delete_comment'),
     path('comment/create/', FilmPlacesCommentViewSet.as_view({'post': "create_comment"}),
          name='place_create_comment'),
 

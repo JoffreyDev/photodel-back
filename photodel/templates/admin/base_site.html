@@ -1,0 +1,13 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block branding %}
+{{ block.super }}
+<div class="my-custom-message" style="padding: 10px;">
+    <strong>Важное сообщение:</strong> значения широты и долготы перепутаны в координатах из-за особоенности сторонней библиотеки.
+</div>
+{% endblock %}
+
+{% block content %}
+{{ block.super }}
+{% endblock %}

@@ -295,6 +295,45 @@ class TrainingsCommentViewSet(viewsets.ViewSet):
             f'Пользователь {request.user} не добавил комментарий к обучению')
         return Response(status=status.HTTP_400_BAD_REQUEST, data={"message": 'Добавление комментария не было выполнено.'
                                                                              ' Пожалуйства обратитесь в поддержку'})
+    
+    def edit_comment(self, request):
+        comment_id = request.data.get('comment_id')
+        try:
+            comment = TrainingsComment.objects.get(pk=comment_id)
+        except TrainingsComment.DoesNotExist:
+            logger.error(f'Комментарий с ID {comment_id} не найден')
+            return Response(status=status.HTTP_404_NOT_FOUND, data={"message": 'Комментарий не найден'})
+
+        # Проверка, что текущий пользователь является автором комментария
+        if comment.sender_comment.user != request.user:
+            logger.error(f'Пользователь {request.user} попытался редактировать чужой комментарий')
+            return Response(status=status.HTTP_403_FORBIDDEN, data={"message": 'Вы не можете редактировать этот комментарий'})
+
+        serializer = TrainingsCommentCreateSerializer(comment, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            serializer.save()
+            logger.info(f'Пользователь {request.user} успешно отредактировал комментарий с ID {comment_id}')
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        logger.error(f'Пользователь {request.user} не смог отредактировать комментарий с ID {comment_id}')
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete_comment(self, request):
+        comment_id = request.data.get('comment_id')
+        try:
+            comment = TrainingsComment.objects.get(pk=comment_id)
+        except TrainingsComment.DoesNotExist:
+            logger.error(f'Комментарий с ID {comment_id} не найден')
+            return Response(status=status.HTTP_404_NOT_FOUND, data={"message": 'Комментарий не найден'})
+
+        # Проверка, что текущий пользователь является автором комментария
+        if comment.sender_comment.user != request.user:
+            logger.error(f'Пользователь {request.user} попытался редактировать чужой комментарий')
+            return Response(status=status.HTTP_403_FORBIDDEN, data={"message": 'Вы не можете редактировать этот комментарий'})
+        
+        comment.delete()
+        return Response(status=status.HTTP_200_OK)
 
     def get_permissions(self):
         try:

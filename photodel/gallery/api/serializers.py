@@ -307,7 +307,7 @@ class GalleryCommentListSerializer(serializers.ModelSerializer):
     class Meta:
         model = GalleryComment
         fields = ['content', 'timestamp', 'sender_comment',
-                  'gallery', 'answer_id_comment', 'quote_id', ]
+                  'gallery', 'answer_id_comment', 'quote_id', 'id']
 
 
 # сериализаторы фотоессий
@@ -463,7 +463,7 @@ class PhotoSessionCommentListSerializer(serializers.ModelSerializer):
     class Meta:
         model = PhotoSessionComment
         fields = ['content', 'timestamp', 'sender_comment',
-                  'photo_session', 'answer_id_comment', 'quote_id', ]
+                  'photo_session', 'answer_id_comment', 'quote_id', 'id']
 
 
 class ReviewCreateSerializer(serializers.ModelSerializer):

@@ -59,6 +59,10 @@ urlpatterns = [
          name='delete_like'),
     path('photo/comment/list/<int:pk>/', GalleryCommentViewSet.as_view({'get': "list_comments"}),
          name='list_comments'),
+     path('photo/comment/edit/', GalleryCommentViewSet.as_view({'post': "edit_comment"}),
+         name='edit_comment'),
+     path('photo/comment/delete/', GalleryCommentViewSet.as_view({'post': "delete_comment"}),
+         name='delete_comment'),
     path('photo/comment/create/', GalleryCommentViewSet.as_view({'post': "create_comment"}),
          name='create_comment'),
 
@@ -85,6 +89,10 @@ urlpatterns = [
          name='delete_like'),
     path('photo_session/comment/list/<int:pk>/', PhotoSessionCommentViewSet.as_view({'get': "list_comments"}),
          name='list_comments'),
+     path('photo_session/comment/edit/', PhotoSessionCommentViewSet.as_view({'post': "edit_comment"}),
+         name='edit_comment'),
+     path('photo_session/comment/delete/', PhotoSessionCommentViewSet.as_view({'post': "delete_comment"}),
+         name='delete_comment'),
     path('photo_session/comment/create/', PhotoSessionCommentViewSet.as_view({'post': "create_comment"}),
          name='create_comment'),
 
