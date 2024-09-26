@@ -118,8 +118,14 @@ class FilmPlacesViewSet(viewsets.ViewSet):
         queryset = custom_paginator(queryset_filter, request)
         serializer = FilmPlacesAllListSerializer(queryset, many=True,
                                                  context={'user_coords': request.GET.get('user_coords')})
-        return Response(status=status.HTTP_200_OK, data=serializer.data,
-                        headers={'Count-Filter-Items': len(queryset_filter)})
+        count_filter_items = len(queryset_filter)
+        response_data = serializer.data
+        if isinstance(response_data, list):
+            response_data = {'data': response_data}
+
+        response_data['totalCount'] = count_filter_items
+
+        return Response(status=status.HTTP_200_OK, data=response_data)
 
     def list_all_place_for_map(self, request):
         places = FilmPlaces.objects.filter(is_hidden=False)

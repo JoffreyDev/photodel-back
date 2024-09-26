@@ -281,8 +281,15 @@ class ProfileViewSet(viewsets.ViewSet):
         queryset = custom_paginator(queryset_sort, request)
         serializer = ProfilListSerializer(queryset, many=True,
                                           context={'user_coords': request.GET.get('user_coords')})
-        return Response(status=status.HTTP_200_OK, data=serializer.data,
-                        headers={'Count-Filter-Items': len(queryset_filter)})
+        
+        count_filter_items = len(queryset_filter)
+        response_data = serializer.data
+        if isinstance(response_data, list):
+            response_data = {'data': response_data}
+
+        response_data['totalCount'] = count_filter_items
+
+        return Response(status=status.HTTP_200_OK, data=response_data)
 
     def list_profiles_for_map(self, request):
         """
@@ -634,6 +641,7 @@ class SubscriptionPay(viewsets.ViewSet):
                         days=30 * payment.duration)
                 profile.save()
                 payment.realized = True
+                payment.status = 'succeeded'
                 payment.save()
                 return Response({'Подписка успешно приобретена!'})
         elif info['status'] != 'succeeded' and info['status'] != 'pending':
