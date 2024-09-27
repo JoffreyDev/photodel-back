@@ -101,7 +101,9 @@ urlpatterns = [
          name='create_review'),
     path('review/update/<int:pk>/', ReviewViewSet.as_view({'post': "update_review"}),
          name='update_review'),
-    path('review/list/<int:pk>/', ReviewViewSet.as_view({'get': "list_reviews"}),
+    path('review/list/<int:pk>/', ReviewViewSet.as_view({'post': "list_reviews"}),
          name='list_reviews'),
+     path('review/my/', ReviewViewSet.as_view({'post': "list_my_reviews"}),
+         name='list_my_reviews'),
 
 ]

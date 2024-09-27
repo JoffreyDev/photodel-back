@@ -71,18 +71,18 @@ ASGI_APPLICATION = 'photodel.routing.application'
 
 
 # Локально
-# CHANNEL_LAYERS = {
-#     'default': {
-#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
-#         'CONFIG': {
-#             "hosts": [('127.0.0.1', 6379)],
-#        },
-#    },
-# }
+CHANNEL_LAYERS = {
+     'default': {
+         'BACKEND': 'channels_redis.core.RedisChannelLayer',
+         'CONFIG': {
+             "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+ }
 
 # В прод
 CHANNEL_LAYERS = {
-    "default": {
+   "default": {
         "BACKEND": "channels.layers.InMemoryChannelLayer",
     }
 }
@@ -95,7 +95,7 @@ EMAIL_HOST_USER = 'photodelru@mail.ru'
 EMAIL_HOST_PASSWORD = 'H0ddpe5dTdq10Fjrmm7K'
 
 # Локально
-# REDIS_HOST = '127.0.0.1'
+#REDIS_HOST = '127.0.0.1'
 # В прод
 REDIS_HOST = 'redis'
 REDIS_PORT = '6379'

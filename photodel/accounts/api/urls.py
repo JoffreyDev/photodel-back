@@ -72,7 +72,11 @@ urlpatterns = [
 
     path('profile/notifications/list/', ProfileNotificationViewSet.as_view({'get': "list_notifications"}),
          name='list_notifications'),
-    path('profile/notifications/read/', ProfileNotificationViewSet.as_view({'post': "read_notifications"}),
+    path('profile/notifications/read_messages_notifications/', ProfileNotificationViewSet.as_view({'post': "read_messages_notifications"}),
+         name='read_messages_notifications'),
+     path('profile/notifications/read_reviews_notifications/', ProfileNotificationViewSet.as_view({'post': "read_reviews_notifications"}),
+         name='read_reviews_notifications'),
+     path('profile/notifications/read/', ProfileNotificationViewSet.as_view({'post': "read_notifications"}),
          name='read_notifications'),
      path('payment/create/', SubscriptionPay.as_view({'post': "create_new_payment"}),
          name='create_new_payment'),

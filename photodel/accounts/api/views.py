@@ -565,6 +565,35 @@ class ProfileNotificationViewSet(viewsets.ViewSet):
             notification_instance.readen = True
             notification_instance.save()
         return Response(status=status.HTTP_200_OK)
+    
+    def read_messages_notifications(self, request):
+        chat_id = request.data.get('chat_id')  # Получаем chat_id из запроса
+
+        if chat_id:
+            # Фильтруем уведомления по chat_id и action_position
+            notifications = Notifications.objects.filter(type='NEW_MESSAGE', action_position=chat_id)
+
+            # Обновляем поле readden для найденных уведомлений
+            notifications.update(readen=True)
+
+            return Response(status=status.HTTP_200_OK)
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={'error': 'chat_id is required'})
+        
+    def read_reviews_notifications(self, request):
+
+        user = request.user
+
+        if user:
+            # Фильтруем уведомления по chat_id и action_position
+            notifications = Notifications.objects.filter(type='NEW_REVIEW', receiver_profile__user=user)
+
+            # Обновляем поле readden для найденных уведомлений
+            notifications.update(readen=True)
+
+            return Response(status=status.HTTP_200_OK)
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={'error': 'chat_id is required'})
 
     def get_permissions(self):
         try:

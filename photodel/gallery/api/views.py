@@ -808,8 +808,24 @@ class ReviewViewSet(viewsets.ViewSet):
     }
 
     def list_reviews(self, request, pk):
-        queryset = Review.objects.filter(receiver_profile_id=pk, status=True)\
-            .select_related('receiver_profile')
+        queryset = Review.objects.filter(receiver_profile_id=pk, status=True).select_related('receiver_profile')
+
+        sort_field = request.data.get('sort_field')
+        sort_type = request.data.get('sort_type')
+
+        queryset = queryset.order_by(f'{sort_type}{sort_field}')
+
+        serializer = ReviewsListSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def list_my_reviews(self, request):
+        queryset = Review.objects.filter(sender_profile__user=request.user)
+
+        sort_field = request.data.get('sort_field')
+        sort_type = request.data.get('sort_type')
+
+        queryset = queryset.order_by(f'{sort_type}{sort_field}')
+
         serializer = ReviewsListSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 

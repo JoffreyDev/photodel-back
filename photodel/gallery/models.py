@@ -154,3 +154,4 @@ class Review(models.Model):
     content = models.CharField(max_length=255)
     images = models.ManyToManyField(Image, blank=True)
     status = models.BooleanField(default=False)
+
